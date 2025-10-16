@@ -1,0 +1,88 @@
+class ProductData {
+  static const List<Map<String, dynamic>> products = [
+    {
+      "id": 1,
+      "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center",
+      "productName": "Samsung Galaxy S25 FE",
+      "description": "5G 8GB 256GB - Icy Blue",
+      "originalPrice": 2699.00,
+      "discountedPrice": 2179.00,
+      "offerText": "-19%",
+    },
+    {
+      "id": 2,
+      "imageUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop&crop=center",
+      "productName": "iPhone 15 Pro",
+      "description": "6.1\" 128GB - Natural Titanium",
+      "originalPrice": 3999.00,
+      "discountedPrice": 3599.00,
+      "offerText": "-10%",
+    },
+    {
+      "id": 3,
+      "imageUrl": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=300&h=300&fit=crop&crop=center",
+      "productName": "OnePlus 12",
+      "description": "5G 12GB 256GB - Silky Black",
+      "originalPrice": 2499.00,
+      "discountedPrice": 2199.00,
+      "offerText": "-12%",
+    },
+    {
+      "id": 4,
+      "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center",
+      "productName": "Google Pixel 8",
+      "description": "5G 8GB 128GB - Obsidian",
+      "originalPrice": 1999.00,
+      "discountedPrice": 1799.00,
+      "offerText": "-10%",
+    },
+    {
+      "id": 5,
+      "imageUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop&crop=center",
+      "productName": "Xiaomi 14 Ultra",
+      "description": "5G 12GB 512GB - Black",
+      "originalPrice": 2999.00,
+      "discountedPrice": 2599.00,
+      "offerText": "-13%",
+    },
+    {
+      "id": 6,
+      "imageUrl": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=300&h=300&fit=crop&crop=center",
+      "productName": "Sony Xperia 1 V",
+      "description": "5G 12GB 256GB - Platinum Silver",
+      "originalPrice": 3499.00,
+      "discountedPrice": 2999.00,
+      "offerText": "-14%",
+    },
+    {
+      "id": 7,
+      "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center",
+      "productName": "Huawei P60 Pro",
+      "description": "5G 8GB 256GB - Rococo Pearl",
+      "originalPrice": 2799.00,
+      "discountedPrice": 2399.00,
+      "offerText": "-14%",
+    },
+    {
+      "id": 8,
+      "imageUrl": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop&crop=center",
+      "productName": "Nothing Phone 2",
+      "description": "5G 8GB 128GB - White",
+      "originalPrice": 1899.00,
+      "discountedPrice": 1599.00,
+      "offerText": "-16%",
+    },
+  ];
+
+  static List<Map<String, dynamic>> getProducts() {
+    return List.from(products);
+  }
+
+  static Map<String, dynamic>? getProductById(int id) {
+    try {
+      return products.firstWhere((product) => product['id'] == id);
+    } catch (e) {
+      return null;
+    }
+  }
+}
