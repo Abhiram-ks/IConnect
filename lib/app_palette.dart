@@ -7,6 +7,7 @@ class AppPalette  {
   static const blackColor  = Colors.black;
   static const whiteColor  = Colors.white;
   static const greenColor  = Colors.green;
+  static const darkGreenColor = Color(0xFF1B5E20); // Dark green for search background
   static const redColor    = Color.fromARGB(255, 255, 103, 92);
   static const greyColor   = Colors.grey;
   static const blueColor   = Color.fromARGB(255, 31, 124, 201);

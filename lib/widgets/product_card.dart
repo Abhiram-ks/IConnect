@@ -9,8 +9,10 @@ class ProductCard extends StatelessWidget {
   final double originalPrice;
   final double discountedPrice;
   final String? offerText;
+  final int productId;
+  final bool isInCart;
   final VoidCallback onTap;
-  final VoidCallback onWishlist;
+  final VoidCallback onAddToCart;
   final VoidCallback onView;
 
   const ProductCard({
@@ -20,9 +22,11 @@ class ProductCard extends StatelessWidget {
     required this.description,
     required this.originalPrice,
     required this.discountedPrice,
+    required this.productId,
     this.offerText,
+    this.isInCart = false,
     required this.onTap,
-    required this.onWishlist,
+    required this.onAddToCart,
     required this.onView,
   });
 
@@ -116,62 +120,68 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                 
+                // Icons positioned at bottom center of the image
                 Positioned(
                   bottom: 8,
-                  right: 8,
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: onWishlist,
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.3),
-                                spreadRadius: 1,
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            FontAwesomeIcons.heart,
-                            size: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // View Button
-                      GestureDetector(
-                        onTap: onView,
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.3),
-                                spreadRadius: 1,
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            FontAwesomeIcons.eye,
-                            size: 14,
-                            color: Colors.grey,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Cart Button
+                        GestureDetector(
+                          onTap: onAddToCart,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  spreadRadius: 1,
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              FontAwesomeIcons.bagShopping,
+                              size: 14,
+                              color: isInCart ? AppPalette.blueColor : Colors.grey,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        // View Button
+                        GestureDetector(
+                          onTap: onView,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  spreadRadius: 1,
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              FontAwesomeIcons.eye,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

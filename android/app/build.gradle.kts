@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.iconnect"
+    namespace = "com.iconnect.application"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.iconnect"
+        applicationId = "com.iconnect.application"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

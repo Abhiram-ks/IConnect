@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconnect/app_theme.dart';
 import 'package:iconnect/routes.dart';
 
@@ -11,12 +12,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'I Connect',
-      theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.navigation,
-      onGenerateRoute: AppRoutes.generateRoute,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light.copyWith(
+            statusBarColor: Colors.black, 
+            systemNavigationBarColor: Colors.black, 
+            statusBarIconBrightness: Brightness.light, 
+            systemNavigationBarIconBrightness: Brightness.light,
+          ),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'I Connect',
+        theme: AppTheme.lightTheme,
+        initialRoute: AppRoutes.navigation,
+        onGenerateRoute: AppRoutes.generateRoute,
+      ),
     );
   }
 }

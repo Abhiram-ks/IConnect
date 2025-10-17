@@ -3,6 +3,13 @@ class ProductData {
     {
       "id": 1,
       "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center",
+      "images": [
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop&crop=center",
+      ],
       "productName": "Samsung Galaxy S25 FE",
       "description": "5G 8GB 256GB - Icy Blue",
       "originalPrice": 2699.00,
@@ -71,6 +78,24 @@ class ProductData {
       "originalPrice": 1899.00,
       "discountedPrice": 1599.00,
       "offerText": "-16%",
+    },
+    {
+      "id": 9,
+      "imageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center",
+      "productName": "Green Lion 2 in 1 Magnetic Car Phone Holder",
+      "description": "Universal Magnetic Phone Mount for Car Dashboard",
+      "originalPrice": 45.00,
+      "discountedPrice": 39.00,
+      "offerText": "-13%",
+    },
+    {
+      "id": 10,
+      "imageUrl": "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=300&h=300&fit=crop&crop=center",
+      "productName": "Mageasy Card Folio M 2-in-1 MagSafe Leather Flip Phone Case With Stand For 2024 iPhone 16 Pro Max - Black",
+      "description": "Premium Leather Case with Card Holder and Stand",
+      "originalPrice": 199.00,
+      "discountedPrice": 179.00,
+      "offerText": "-10%",
     },
   ];
 
