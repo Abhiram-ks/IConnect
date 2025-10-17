@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/data/product_data.dart';
+import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -92,42 +93,44 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppPalette.whiteColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header Section
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.grey,
-                    width: 0.5,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              children: [
+                // Header Section
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey,
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Search our store',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.black87,
+                          size: 24,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Search our store',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.black87,
-                      size: 24,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             
             // Search Bar
             Container(
@@ -177,31 +180,18 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             
             // Content Area
-            Expanded(
-              child: _showPopularSearches && !_isSearching
-                  ? _buildPopularSearchesView()
-                  : _searchController.text.isNotEmpty && !_isSearching
-                      ? _buildSearchSuggestions()
-                      : _buildSearchResults(),
+                Expanded(
+                  child: _showPopularSearches && !_isSearching
+                      ? _buildPopularSearchesView()
+                      : _searchController.text.isNotEmpty && !_isSearching
+                          ? _buildSearchSuggestions()
+                          : _buildSearchResults(),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // WhatsApp functionality
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('WhatsApp support coming soon!'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
-        backgroundColor: const Color(0xFF25D366), // WhatsApp green
-        child: const Icon(
-          Icons.chat,
-          color: Colors.white,
-        ),
+          ),
+          const WhatsAppFloatingButton(),
+        ],
       ),
     );
   }
@@ -357,22 +347,30 @@ class _SearchScreenState extends State<SearchScreen> {
             itemCount: _searchResults.length,
             itemBuilder: (context, index) {
               final product = _searchResults[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/product_details',
+                    arguments: {'productId': product['id']},
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
                   children: [
                     // Product Image
                     Container(
@@ -453,6 +451,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ),
                   ],
+                ),
                 ),
               );
             },

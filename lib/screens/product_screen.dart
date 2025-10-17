@@ -222,7 +222,13 @@ class ProductScreen extends StatelessWidget {
                                       productId: product['id'],
                                       offerText: product['offerText'],
                                       isInCart: isInCart,
-                                      onTap: () {},
+                                      onTap: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          '/product_details',
+                                          arguments: {'productId': product['id']},
+                                        );
+                                      },
                                       onAddToCart: () {
                                         final cartItem = CartItem(
                                           id: product['id'],

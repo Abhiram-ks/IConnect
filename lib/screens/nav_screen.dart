@@ -6,11 +6,13 @@ import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
+import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
 import 'package:iconnect/screens/detailed_cart_screen.dart';
 import 'package:iconnect/screens/home_screen.dart';
 import 'package:iconnect/screens/product_screen.dart';
 import 'package:iconnect/screens/search_screen.dart';
 import 'package:iconnect/widgets/cart_drawer.dart';
+import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 const double bottomNavBarHeight = 70.0;
 
@@ -26,12 +28,7 @@ class BottomNavigationControllers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => ButtomNavCubit()),
-        BlocProvider(create: (context) => CartCubit()),
-      ],
-      child: Theme(
+    return Theme(
         data: Theme.of(context).copyWith(
           splashColor: AppPalette.whiteColor.withAlpha((0.3 * 225).round()),
           highlightColor: AppPalette.blueColor.withAlpha((0.2 * 255).round()),
@@ -43,55 +40,62 @@ class BottomNavigationControllers extends StatelessWidget {
               drawer: AppDrawer(),
               endDrawer: const CartDrawer(),
               appBar: CustomAppBarDashbord(),
-              body: BlocBuilder<ButtomNavCubit, NavItem>(
-                builder: (context, state) {
-                  switch (state) {
-                    case NavItem.home:
-                      return _screens[0];
-                    case NavItem.product:
-                      return _screens[1];
-                    case NavItem.cart:
-                      return _screens[2];
-                    case NavItem.search:
-                      return _screens[3];
-                  }
-                },
+              body: Stack(
+                children: [
+                  BlocBuilder<ButtomNavCubit, NavItem>(
+                    builder: (context, state) {
+                      switch (state) {
+                        case NavItem.home:
+                          return _screens[0];
+                        case NavItem.product:
+                          return _screens[1];
+                        case NavItem.cart:
+                          return _screens[2];
+                        case NavItem.search:
+                          return _screens[3];
+                      }
+                    },
+                  ),
+                  const WhatsAppFloatingButton(),
+                ],
               ),
               bottomNavigationBar: BlocBuilder<ButtomNavCubit, NavItem>(
                 builder: (context, state) {
-                  return SizedBox(
-                    height: bottomNavBarHeight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppPalette.whiteColor,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppPalette.blackColor.withValues(alpha: 0.1),
-                            blurRadius: 6,
-                            offset: const Offset(0, -3),
+                  return Builder(
+                    builder: (BuildContext scaffoldContext) {
+                      return SizedBox(
+                        height: bottomNavBarHeight,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppPalette.whiteColor,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppPalette.blackColor.withValues(alpha: 0.1),
+                                blurRadius: 6,
+                                offset: const Offset(0, -3),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: BottomNavigationBar(
-                        enableFeedback: true,
-                        useLegacyColorScheme: true,
-                        elevation: 0,
-                        iconSize: 26,
-                        selectedItemColor: AppPalette.blueColor,
-                        backgroundColor: Colors.transparent,
-                        landscapeLayout:
-                            BottomNavigationBarLandscapeLayout.spread,
-                        unselectedLabelStyle: TextStyle(
-                          color: AppPalette.hintColor,
-                        ),
-                        showSelectedLabels: true,
-                        showUnselectedLabels: true,
-                        type: BottomNavigationBarType.fixed,
-                        currentIndex: NavItem.values.indexOf(state),
-                        onTap: (index) {
-                          if (NavItem.values[index] == NavItem.cart) {
-                            // Open cart drawer when cart icon is tapped
-                            Scaffold.of(context).openEndDrawer();
+                          child: BottomNavigationBar(
+                            enableFeedback: true,
+                            useLegacyColorScheme: true,
+                            elevation: 0,
+                            iconSize: 26,
+                            selectedItemColor: AppPalette.blueColor,
+                            backgroundColor: Colors.transparent,
+                            landscapeLayout:
+                                BottomNavigationBarLandscapeLayout.spread,
+                            unselectedLabelStyle: TextStyle(
+                              color: AppPalette.hintColor,
+                            ),
+                            showSelectedLabels: true,
+                            showUnselectedLabels: true,
+                            type: BottomNavigationBarType.fixed,
+                            currentIndex: NavItem.values.indexOf(state),
+                            onTap: (index) {
+                              if (NavItem.values[index] == NavItem.cart) {
+                                // Open cart drawer when cart icon is tapped
+                                Scaffold.of(scaffoldContext).openEndDrawer();
                           } else if (NavItem.values[index] == NavItem.search) {
                             // Open search screen when search icon is tapped
                             Navigator.push(
@@ -101,10 +105,20 @@ class BottomNavigationControllers extends StatelessWidget {
                               ),
                             );
                           } else {
+                            // If tapping home icon, reset home view to show home content
+                            if (NavItem.values[index] == NavItem.home) {
+                              context.read<HomeViewCubit>().showHome();
+                            }
+                            
                             // Navigate to other screens normally
                             context.read<ButtomNavCubit>().selectItem(
                               NavItem.values[index],
                             );
+                            
+                            // If navigating away from home, reset home view to default
+                            if (NavItem.values[index] != NavItem.home) {
+                              context.read<HomeViewCubit>().showHome();
+                            }
                           }
                         },
                         items: [
@@ -199,16 +213,17 @@ class BottomNavigationControllers extends StatelessWidget {
                               color: AppPalette.blueColor,
                             ),
                           ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    );
+                    },
                   );
                 },
               ),
             ),
           ),
         ),
-      ),
     );
   }
 }
@@ -277,52 +292,56 @@ class CustomAppBarDashbord extends StatelessWidget
           ),
         ),
         ConstantWidgets.width20(context),
-        Stack(
-          children: [
-            IconButton.filled(
-              icon: const Icon(
-                Icons.shopping_bag_outlined,
-                color: AppPalette.blackColor,
-              ),
-              onPressed: () {
-                // Open cart drawer when header cart icon is tapped
-                Scaffold.of(context).openEndDrawer();
-              },
-              tooltip: 'Shopping Cart',
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                disabledBackgroundColor: Colors.transparent,
-                shadowColor: Colors.black26,
-                shape: const CircleBorder(),
-              ),
-            ),
-            BlocBuilder<CartCubit, CartState>(
-              builder: (context, state) {
-                if (state.itemCount > 0) {
-                  return Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppPalette.redColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '${state.itemCount}',
-                        style: const TextStyle(
-                          color: AppPalette.whiteColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+        Builder(
+          builder: (BuildContext scaffoldContext) {
+            return Stack(
+              children: [
+                IconButton.filled(
+                  icon: const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: AppPalette.blackColor,
+                  ),
+                  onPressed: () {
+                    // Open cart drawer when header cart icon is tapped
+                    Scaffold.of(scaffoldContext).openEndDrawer();
+                  },
+                  tooltip: 'Shopping Cart',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    disabledBackgroundColor: Colors.transparent,
+                    shadowColor: Colors.black26,
+                    shape: const CircleBorder(),
+                  ),
+                ),
+                BlocBuilder<CartCubit, CartState>(
+                  builder: (context, state) {
+                    if (state.itemCount > 0) {
+                      return Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppPalette.redColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '${state.itemCount}',
+                            style: const TextStyle(
+                              color: AppPalette.whiteColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            );
+          },
         ),
         ConstantWidgets.width40(context),
       ],

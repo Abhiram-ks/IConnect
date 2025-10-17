@@ -97,10 +97,87 @@ class ProductData {
       "discountedPrice": 179.00,
       "offerText": "-10%",
     },
+    // Smartwatch Products for Banner
+    {
+      "id": 101,
+      "imageUrl": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center",
+      "images": [
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1579586337278-3fd0d7b2e2a6?w=300&h=300&fit=crop&crop=center",
+      ],
+      "productName": "Apple Watch Series 9",
+      "description": "45mm GPS - Midnight Black",
+      "originalPrice": 1499.00,
+      "discountedPrice": 1299.00,
+      "offerText": "-13%",
+    },
+    {
+      "id": 102,
+      "imageUrl": "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=300&h=300&fit=crop&crop=center",
+      "images": [
+        "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1579586337278-3fd0d7b2e2a6?w=300&h=300&fit=crop&crop=center",
+      ],
+      "productName": "Apple Watch Series 9",
+      "description": "45mm GPS - Gold Stainless Steel",
+      "originalPrice": 1699.00,
+      "discountedPrice": 1499.00,
+      "offerText": "-12%",
+    },
+    {
+      "id": 103,
+      "imageUrl": "https://images.unsplash.com/photo-1579586337278-3fd0d7b2e2a6?w=300&h=300&fit=crop&crop=center",
+      "images": [
+        "https://images.unsplash.com/photo-1579586337278-3fd0d7b2e2a6?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1544117519-31a4b719223d?w=300&h=300&fit=crop&crop=center",
+      ],
+      "productName": "Samsung Galaxy Watch 8 Classic",
+      "description": "47mm Bluetooth - Black Leather",
+      "originalPrice": 1299.00,
+      "discountedPrice": 999.00,
+      "offerText": "-23%",
+    },
+    {
+      "id": 104,
+      "imageUrl": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=300&h=300&fit=crop&crop=center",
+      "images": [
+        "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1579586337278-3fd0d7b2e2a6?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center",
+      ],
+      "productName": "Samsung Galaxy Watch 8 Classic",
+      "description": "47mm Bluetooth - White Leather",
+      "originalPrice": 1299.00,
+      "discountedPrice": 999.00,
+      "offerText": "-23%",
+    },
+    {
+      "id": 105,
+      "imageUrl": "https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=300&fit=crop&crop=center",
+      "images": [
+        "https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1579586337278-3fd0d7b2e2a6?w=300&h=300&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center",
+      ],
+      "productName": "Apple Watch Ultra 2",
+      "description": "49mm GPS - Titanium Case",
+      "originalPrice": 2199.00,
+      "discountedPrice": 1999.00,
+      "offerText": "-9%",
+    },
   ];
 
   static List<Map<String, dynamic>> getProducts() {
     return List.from(products);
+  }
+
+  static List<Map<String, dynamic>> getSmartwatchProducts() {
+    return products.where((product) => 
+      product['productName'].toString().toLowerCase().contains('watch')
+    ).toList();
   }
 
   static Map<String, dynamic>? getProductById(int id) {

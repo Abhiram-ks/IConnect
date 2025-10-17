@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/models/cart_item.dart';
-import 'package:iconnect/screens/product_details_screen.dart';
 
 class ProductPreviewModal extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -252,18 +251,10 @@ class _ProductPreviewModalState extends State<ProductPreviewModal> {
                           onTap: () {
                             Navigator.of(context).pop();
                             // Navigate to full product details
-                            Navigator.push(
+                            Navigator.pushNamed(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => MultiBlocProvider(
-                                  providers: [
-                                    BlocProvider(create: (context) => CartCubit()),
-                                  ],
-                                  child: ProductDetailsScreen(
-                                    productId: widget.product['id'],
-                                  ),
-                                ),
-                              ),
+                              '/product_details',
+                              arguments: {'productId': widget.product['id']},
                             );
                           },
                           child: const Text(

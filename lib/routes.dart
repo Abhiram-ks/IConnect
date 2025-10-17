@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/screens/product_details_screen.dart';
+import 'package:iconnect/screens/banner_details_screen.dart';
 
 import 'constant/constant.dart';
 
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String createuser = '/createuser_screen';
   static const String tabbarExample = '/tabbar_example';
   static const String productDetails = '/product_details';
+  static const String bannerDetails = '/banner_details';
 
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -24,6 +26,16 @@ class AppRoutes {
         final productId = args?['productId'] as int? ?? 1;
         return MaterialPageRoute(
           builder: (context) => ProductDetailsScreen(productId: productId),
+        );
+      case bannerDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final bannerTitle = args?['bannerTitle'] as String? ?? 'Featured Products';
+        final bannerProducts = args?['bannerProducts'] as List<Map<String, dynamic>>? ?? [];
+        return MaterialPageRoute(
+          builder: (context) => BannerDetailsScreen(
+            bannerTitle: bannerTitle,
+            bannerProducts: bannerProducts,
+          ),
         );
       case login:
      //   return MaterialPageRoute(builder: (context) => const LoginScreen());

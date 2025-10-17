@@ -2,17 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_palette.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../constant/app_images.dart';
 import '../cubit/image_slider_cubit/image_slider_cubit.dart';
 import '../cubit/brand_scroll_cubit/brand_scroll_cubit.dart';
+import '../cubit/home_view_cubit/home_view_cubit.dart';
+import '../cubit/cart_cubit/cart_cubit.dart';
+import '../models/cart_item.dart';
 import '../widgets/brand_card.dart';
 import '../widgets/product_tab_bar.dart';
 import '../widgets/new_arrivals_section.dart';
+import '../widgets/product_card.dart';
 import '../data/brand_data.dart';
+import '../data/product_data.dart';
 
 // Reusable Category Card Widget
 class CategoryCard extends StatelessWidget {
@@ -98,6 +102,33 @@ class CategoryCard extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeViewCubit, HomeViewData>(
+      builder: (context, state) {
+        return PopScope(
+          canPop: state.viewState == HomeViewState.home,
+          onPopInvoked: (bool didPop) {
+            if (!didPop && state.viewState == HomeViewState.bannerDetails) {
+              // If we're on banner details and back is pressed, go to home view
+              context.read<HomeViewCubit>().showHome();
+            }
+          },
+          child: state.viewState == HomeViewState.bannerDetails
+              ? _BannerDetailsView(
+                  bannerTitle: state.bannerTitle ?? '',
+                  bannerProducts: state.bannerProducts ?? [],
+                )
+              : const _HomeContentView(),
+        );
+      },
+    );
+  }
+}
+
+class _HomeContentView extends StatelessWidget {
+  const _HomeContentView();
+
   // Categories map with 6 items
   static const List<Map<String, String>> categories = [
     {
@@ -145,15 +176,23 @@ class HomeScreen extends StatelessWidget {
             physics: BouncingScrollPhysics(),
             child: Column(
               children: [
-                ImageScolingWidget(
-                  imageList: [
-                    'https://static.vecteezy.com/system/resources/previews/020/737/706/non_2x/web-banner-or-horizontal-template-design-with-special-offer-on-mobile-phones-for-advertising-concept-vector.jpg',
-                    'https://tse4.mm.bing.net/th/id/OIP.yVGDg2ygsSNXfoA1pLwVNAHaEK?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
-                    'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/77f7c336776659.5728f30441a89.jpg',
-                  ],
-                  screenHeight: height,
-                  screenWidth: width,
-                  show: true,
+                GestureDetector(
+                  onTap: () {
+                    context.read<HomeViewCubit>().showBannerDetails(
+                      bannerTitle: 'Smartwatch Collection',
+                      bannerProducts: ProductData.getSmartwatchProducts(),
+                    );
+                  },
+                  child: ImageScolingWidget(
+                    imageList: [
+                      'https://static.vecteezy.com/system/resources/previews/020/737/706/non_2x/web-banner-or-horizontal-template-design-with-special-offer-on-mobile-phones-for-advertising-concept-vector.jpg',
+                      'https://tse4.mm.bing.net/th/id/OIP.yVGDg2ygsSNXfoA1pLwVNAHaEK?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
+                      'https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/77f7c336776659.5728f30441a89.jpg',
+                    ],
+                    screenHeight: height,
+                    screenWidth: width,
+                    show: true,
+                  ),
                 ),
 
                 ConstantWidgets.hight10(context),
@@ -300,15 +339,6 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {},
-            backgroundColor: AppPalette.greenColor,
-            child: Icon(
-              FontAwesomeIcons.whatsapp,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
         );
       },
     );
@@ -408,4 +438,232 @@ Image imageshow({required String imageUrl, required String imageAsset}) {
       return Image.asset(imageAsset, fit: BoxFit.cover);
     },
   );
+}
+
+// Banner Details View Widget
+class _BannerDetailsView extends StatelessWidget {
+  final String bannerTitle;
+  final List<Map<String, dynamic>> bannerProducts;
+
+  const _BannerDetailsView({
+    required this.bannerTitle,
+    required this.bannerProducts,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppPalette.whiteColor,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Back button banner hero section
+            _buildBannerHero(context),
+
+            // Products Grid Section
+            _buildProductsSection(context),
+
+            // Bottom padding
+            const SizedBox(height: 100),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBannerHero(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(top: 16, bottom: 24, left: 16, right: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppPalette.blueColor.withValues(alpha: 0.1),
+            AppPalette.greenColor.withValues(alpha: 0.1),
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Back button
+          GestureDetector(
+            onTap: () {
+              context.read<HomeViewCubit>().showHome();
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppPalette.whiteColor,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_back,
+                size: 24,
+                color: AppPalette.blackColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Title and info
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  bannerTitle,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${bannerProducts.length} products available',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppPalette.redColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Text(
+                    'Special Offers',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppPalette.whiteColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductsSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Featured Products',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppPalette.blueColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  '${bannerProducts.length} items',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppPalette.blueColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Products Grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.75,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: bannerProducts.length,
+            itemBuilder: (context, index) {
+              final product = bannerProducts[index];
+              return BlocBuilder<CartCubit, CartState>(
+                builder: (context, cartState) {
+                  final isInCart = cartState.items.any((item) => item.id == product['id']);
+                  return ProductCard(
+                    imageUrl: product['imageUrl'],
+                    productName: product['productName'],
+                    description: product['description'],
+                    originalPrice: product['originalPrice'],
+                    discountedPrice: product['discountedPrice'],
+                    productId: product['id'],
+                    offerText: product['offerText'],
+                    isInCart: isInCart,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/product_details',
+                        arguments: {'productId': product['id']},
+                      );
+                    },
+                    onAddToCart: () {
+                      final cartItem = CartItem(
+                        id: product['id'],
+                        imageUrl: product['imageUrl'],
+                        productName: product['productName'],
+                        description: product['description'],
+                        originalPrice: product['originalPrice'],
+                        discountedPrice: product['discountedPrice'],
+                        offerText: product['offerText'],
+                      );
+                      context.read<CartCubit>().addToCart(cartItem);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('${product['productName']} added to cart'),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: AppPalette.blueColor,
+                        ),
+                      );
+                    },
+                    onView: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Quick view for ${product['productName']}'),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: AppPalette.blueColor,
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 }

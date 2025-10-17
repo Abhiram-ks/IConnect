@@ -11,6 +11,8 @@ import 'package:iconnect/widgets/cart_drawer.dart';
 import 'package:iconnect/widgets/product_card.dart';
 import 'package:iconnect/widgets/product_preview_modal.dart';
 import 'package:iconnect/screens/search_screen.dart';
+import 'package:iconnect/widgets/whatsapp_floating_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final int productId;
@@ -53,35 +55,40 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       drawer: AppDrawer(),
       endDrawer: const CartDrawer(),
       appBar: CustomAppBarDashbord(),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image Banner
-            _buildProductImageBanner(),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Image Banner
+                _buildProductImageBanner(),
 
-            // Product Details Section
-            _buildProductDetails(),
+                // Product Details Section
+                _buildProductDetails(),
 
-            // Price Section
-            _buildPriceSection(),
+                // Price Section
+                _buildPriceSection(),
 
-            // Quantity Section
-            _buildQuantitySection(),
+                // Quantity Section
+                _buildQuantitySection(),
 
-            // Action Buttons
-            _buildActionButtons(),
+                // Action Buttons
+                _buildActionButtons(),
 
-            // Product Description
-            _buildProductDescription(),
+                // Product Description
+                _buildProductDescription(),
 
-            // You May Also Like Section
-            _buildYouMayAlsoLikeSection(),
+                // You May Also Like Section
+                _buildYouMayAlsoLikeSection(),
 
-            // Bottom padding
-            const SizedBox(height: 100),
-          ],
-        ),
+                // Bottom padding
+                const SizedBox(height: 100),
+              ],
+            ),
+          ),
+          const WhatsAppFloatingButton(),
+        ],
       ),
     );
   }
@@ -104,7 +111,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           color: Colors.grey[100],
           child: Stack(
             children: [
-              // Image carousel
+              // Image carousel with pinch-to-zoom
               PageView.builder(
                 controller: _pageController,
                 onPageChanged: (index) {
@@ -114,57 +121,44 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 },
                 itemCount: productImages.length,
                 itemBuilder: (context, index) {
-                  return Center(
-                    child: Image.network(
-                      productImages[index],
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: AppPalette.blueColor,
-                            strokeWidth: 2,
-                            value:
-                                loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        (loadingProgress.expectedTotalBytes ??
-                                            1)
-                                    : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[200],
-                          child: const Icon(
-                            Icons.image,
-                            color: Colors.grey,
-                            size: 100,
-                          ),
-                        );
-                      },
+                  return InteractiveViewer(
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    panEnabled: true,
+                    scaleEnabled: true,
+                    child: Center(
+                      child: Image.network(
+                        productImages[index],
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: AppPalette.blueColor,
+                              strokeWidth: 2,
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          (loadingProgress.expectedTotalBytes ??
+                                              1)
+                                      : null,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.image,
+                              color: Colors.grey,
+                              size: 100,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
-              ),
-
-              // Zoom button
-              Positioned(
-                bottom: 16,
-                right: 16,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.zoom_in,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
               ),
             ],
           ),
@@ -422,68 +416,48 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           const SizedBox(height: 12),
 
           // Buy Now Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: () {
-                _buyNow();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          Builder(
+            builder: (BuildContext scaffoldContext) {
+              return SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    _buyNow(scaffoldContext);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Buy it now',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Buy it now',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+              );
+            },
           ),
           const SizedBox(height: 16),
 
           // Contact Buttons
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Handle call action
-                  },
-                  icon: const Icon(Icons.phone, size: 18),
-                  label: const Text('Order By Call'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
+          ElevatedButton.icon(
+            onPressed: _makePhoneCall,
+            icon: const Icon(Icons.phone, size: 18),
+            label: const Text('Order By Call'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Handle WhatsApp action
-                  },
-                  icon: const Icon(Icons.chat, size: 18),
-                  label: const Text('WhatsApp Us'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -629,19 +603,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       offerText: product['offerText'],
                       isInCart: isInCart,
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushNamed(
                           context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => MultiBlocProvider(
-                                  providers: [
-                                    BlocProvider(create: (context) => CartCubit()),
-                                  ],
-                                  child: ProductDetailsScreen(
-                                    productId: product['id'],
-                                  ),
-                                ),
-                          ),
+                          '/product_details',
+                          arguments: {'productId': product['id']},
                         );
                       },
                       onAddToCart: () {
@@ -715,10 +680,40 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     }
   }
 
-  void _buyNow() {
+  void _buyNow(BuildContext scaffoldContext) {
     _addToCart();
     // Navigate to cart or checkout
-    Scaffold.of(context).openEndDrawer();
+    Scaffold.of(scaffoldContext).openEndDrawer();
+  }
+
+  Future<void> _makePhoneCall() async {
+    final phoneNumber = PhoneConfig.phoneNumber;
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not launch phone dialer'),
+              backgroundColor: AppPalette.redColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error making phone call: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppPalette.redColor,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -777,51 +772,55 @@ class CustomAppBarProductDetails extends StatelessWidget
           ),
         ),
         ConstantWidgets.width20(context),
-        Stack(
-          children: [
-            IconButton.filled(
-              icon: const Icon(
-                Icons.shopping_bag_outlined,
-                color: AppPalette.blackColor,
-              ),
-              onPressed: () {
-                Scaffold.of(context).openEndDrawer();
-              },
-              tooltip: 'Shopping Cart',
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                disabledBackgroundColor: Colors.transparent,
-                shadowColor: Colors.black26,
-                shape: const CircleBorder(),
-              ),
-            ),
-            BlocBuilder<CartCubit, CartState>(
-              builder: (context, state) {
-                if (state.itemCount > 0) {
-                  return Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppPalette.redColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '${state.itemCount}',
-                        style: const TextStyle(
-                          color: AppPalette.whiteColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+        Builder(
+          builder: (BuildContext scaffoldContext) {
+            return Stack(
+              children: [
+                IconButton.filled(
+                  icon: const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: AppPalette.blackColor,
+                  ),
+                  onPressed: () {
+                    Scaffold.of(scaffoldContext).openEndDrawer();
+                  },
+                  tooltip: 'Shopping Cart',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    disabledBackgroundColor: Colors.transparent,
+                    shadowColor: Colors.black26,
+                    shape: const CircleBorder(),
+                  ),
+                ),
+                BlocBuilder<CartCubit, CartState>(
+                  builder: (context, state) {
+                    if (state.itemCount > 0) {
+                      return Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppPalette.redColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '${state.itemCount}',
+                            style: const TextStyle(
+                              color: AppPalette.whiteColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            );
+          },
         ),
         ConstantWidgets.width40(context),
       ],

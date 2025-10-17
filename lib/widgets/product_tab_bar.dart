@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/widgets/product_card.dart';
 import 'package:iconnect/widgets/product_preview_modal.dart';
-import 'package:iconnect/screens/product_details_screen.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/models/cart_item.dart';
 
@@ -134,18 +133,10 @@ class _ProductTabBarState extends State<ProductTabBar>
                   isInCart: isInCart,
                   onTap: () {
                     // Navigate to product details
-                    Navigator.push(
+                    Navigator.pushNamed(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => MultiBlocProvider(
-                          providers: [
-                            BlocProvider(create: (context) => CartCubit()),
-                          ],
-                          child: ProductDetailsScreen(
-                            productId: product['id'] as int,
-                          ),
-                        ),
-                      ),
+                      '/product_details',
+                      arguments: {'productId': product['id']},
                     );
                   },
                   onAddToCart: () {
