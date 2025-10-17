@@ -15,6 +15,7 @@ import '../widgets/brand_card.dart';
 import '../widgets/product_tab_bar.dart';
 import '../widgets/new_arrivals_section.dart';
 import '../widgets/product_card.dart';
+import '../widgets/product_preview_modal.dart';
 import '../data/brand_data.dart';
 import '../data/product_data.dart';
 
@@ -649,11 +650,10 @@ class _BannerDetailsView extends StatelessWidget {
                       );
                     },
                     onView: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Quick view for ${product['productName']}'),
-                          duration: const Duration(seconds: 2),
-                          backgroundColor: AppPalette.blueColor,
+                      showDialog(
+                        context: context,
+                        builder: (context) => ProductPreviewModal(
+                          product: product,
                         ),
                       );
                     },
