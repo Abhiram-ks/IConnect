@@ -18,7 +18,7 @@ static const List<Map<String, dynamic>> brands = [
   },
   {
     "id": 5,
-    "imageUrl": "https://interbrand.com/wp-content/uploads/2024/10/Sony-logo-square.png",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Sony_logo.svg/800px-Sony_logo.svg.png",
   },
   {
     "id": 6,

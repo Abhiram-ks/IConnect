@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -69,14 +70,29 @@ class CartScreen extends StatelessWidget {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
                       child: ListTile(
-                        leading: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            image: DecorationImage(
-                              image: NetworkImage(item.imageUrl),
-                              fit: BoxFit.cover,
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            imageUrl: item.imageUrl,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: AppPalette.hintColor.withValues(alpha: 0.1),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppPalette.blueColor,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppPalette.hintColor.withValues(alpha: 0.1),
+                              child: const Icon(
+                                Icons.broken_image_outlined,
+                                color: AppPalette.hintColor,
+                                size: 30,
+                              ),
                             ),
                           ),
                         ),

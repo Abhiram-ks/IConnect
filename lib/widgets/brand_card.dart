@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
 
 class BrandCard extends StatelessWidget {
@@ -17,11 +18,11 @@ class BrandCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 100,
-        height: 20,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: 100.w,
+        height: 20.h,
+        margin: EdgeInsets.symmetric(horizontal: 4.w),
         child: ClipRRect(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(25.r),
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
@@ -42,7 +43,7 @@ class BrandCard extends StatelessWidget {
                     return Icon(
                       CupertinoIcons.photo,
                       color: AppPalette.greyColor,
-                      size: 20,
+                      size: 20.sp,
                     );
                   },
                 ),

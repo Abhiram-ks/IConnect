@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iconnect/app_drawer.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconnect/app_palette.dart';
+import 'package:iconnect/common/custom_button.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/data/product_data.dart';
 import 'package:iconnect/models/cart_item.dart';
-import 'package:iconnect/screens/nav_screen.dart';
-import 'package:iconnect/widgets/cart_drawer.dart';
 import 'package:iconnect/widgets/product_card.dart';
 import 'package:iconnect/widgets/product_preview_modal.dart';
 import 'package:iconnect/screens/search_screen.dart';
@@ -52,12 +52,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     }
 
     return Scaffold(
-      drawer: AppDrawer(),
-      endDrawer: const CartDrawer(),
-      appBar: CustomAppBarDashbord(),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 8,
+        shadowColor: Colors.black.withValues(alpha: 0.15),
+        surfaceTintColor: Colors.white,
+        centerTitle: true,
+        title:  Center(
+        child: Image.asset(
+          'assets/iconnect_logo.png',
+          height: 25.h,
+          fit: BoxFit.contain,
+        ),
+      ),
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -122,7 +135,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 itemCount: productImages.length,
                 itemBuilder: (context, index) {
                   return InteractiveViewer(
-                    minScale: 0.5,
+                    minScale: 0.5,  
                     maxScale: 4.0,
                     panEnabled: true,
                     scaleEnabled: true,
@@ -164,28 +177,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           ),
         ),
 
-        // Pagination indicators
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              productImages.length,
-              (index) => Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      _currentImageIndex == index
-                          ? AppPalette.blueColor
-                          : Colors.grey[300]!,
-                ),
-              ),
-            ),
-          ),
-        ),
+   
 
         // Thumbnail gallery
         Container(
@@ -208,17 +200,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   height: 60,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color:
                           _currentImageIndex == index
-                              ? AppPalette.blueColor
+                              ? AppPalette.blackColor
                               : Colors.grey[300]!,
                       width: _currentImageIndex == index ? 2 : 1,
                     ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(7),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
                     child: Image.network(
                       productImages[index],
                       fit: BoxFit.cover,
@@ -226,7 +217,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         if (loadingProgress == null) return child;
                         return Center(
                           child: CircularProgressIndicator(
-                            color: AppPalette.blueColor,
+                            color: AppPalette.blackColor,
                             strokeWidth: 1,
                             value:
                                 loadingProgress.expectedTotalBytes != null
@@ -254,6 +245,29 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             },
           ),
         ),
+
+             // Pagination indicators
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              productImages.length,
+              (index) => Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      _currentImageIndex == index
+                          ? AppPalette.blackColor
+                          : AppPalette.hintColor,
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -266,16 +280,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         children: [
           // Brand name
           Text(
-            'Apple', // You can make this dynamic based on product data
-            style: TextStyle(
+              'Apple', // You can make this dynamic based on product data
+              style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 4),
-
-          // Product name
           Text(
             product['productName'] ?? '',
             style: const TextStyle(
@@ -283,6 +294,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
+            textAlign: TextAlign.left,
+            overflow: TextOverflow.ellipsis,
+          maxLines: 7,
           ),
         ],
       ),
@@ -299,7 +313,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppPalette.redColor,
             ),
           ),
           if (product['originalPrice'] != null &&
@@ -310,7 +324,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 'QAR ${product['originalPrice']?.toStringAsFixed(2) ?? '0.00'}',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[500],
+                  color: AppPalette.blackColor,
                   decoration: TextDecoration.lineThrough,
                 ),
               ),
@@ -324,16 +338,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
             'Quantity',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          const Spacer(),
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300] ?? AppPalette.greyColor),
+              borderRadius: BorderRadius.circular(30),
             ),
             child: Row(
               children: [
@@ -353,7 +367,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ),
                 ),
                 Container(
-                  width: 50,
+                  width: 70,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
                     '$_quantity',
@@ -389,101 +403,67 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Add to Cart Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton(
-              onPressed: () {
-                _addToCart();
-              },
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.black),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Add to cart',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
+          CustomButton(
+            onPressed: () {
+              _addToCart();
+            },
+            text: 'Add to cart',
+            bgColor: AppPalette.whiteColor,
+            textColor: AppPalette.blackColor,
+            borderColor: AppPalette.blackColor,
 
-          // Buy Now Button
+          ),
+        ConstantWidgets.hight10(context),
           Builder(
             builder: (BuildContext scaffoldContext) {
-              return SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _buyNow(scaffoldContext);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Buy it now',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+              return  CustomButton(
+                onPressed: () {
+                  _buyNow(scaffoldContext);
+                },
+                text: 'Buy it now',
+                bgColor: AppPalette.blackColor,
+                textColor: AppPalette.whiteColor,
+                borderColor: AppPalette.blackColor,
               );
             },
           ),
-          const SizedBox(height: 16),
-
-          // Contact Buttons
-          ElevatedButton.icon(
-            onPressed: _makePhoneCall,
-            icon: const Icon(Icons.phone, size: 18),
-            label: const Text('Order By Call'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Utility Links
+          ConstantWidgets.hight10(context),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextButton.icon(
-                onPressed: () {
-                  // Handle compare action
-                },
-                icon: const Icon(Icons.compare_arrows, size: 16),
-                label: const Text('Compare'),
-                style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _makePhoneCall,
+                  icon: const Icon(Icons.phone, size: 18),
+                  label: const Text('Order By Call'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    minimumSize: Size(double.infinity, 48.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(width: 24),
-              TextButton.icon(
-                onPressed: () {
-                  // Handle share action
-                },
-                icon: const Icon(Icons.share, size: 16),
-                label: const Text('Share'),
-                style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _launchWhatsApp,
+                  icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
+                  label: const Text('WhatsApp'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    foregroundColor: Colors.white,
+                    minimumSize: Size(double.infinity, 48.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
+          ConstantWidgets.hight10(context),
         ],
       ),
     );
@@ -705,6 +685,36 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       }
     } catch (e) {
       debugPrint('Error making phone call: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppPalette.redColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _launchWhatsApp() async {
+    final phoneNumber = PhoneConfig.phoneNumber;
+    final Uri whatsappUri = Uri.parse('https://wa.me/$phoneNumber');
+    
+    try {
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not launch WhatsApp'),
+              backgroundColor: AppPalette.redColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error launching WhatsApp: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

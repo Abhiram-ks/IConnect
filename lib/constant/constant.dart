@@ -1,30 +1,30 @@
 
 import 'package:flutter/material.dart';
-import 'media_quary_helper.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ConstantWidgets {
   static Widget hight10(BuildContext context) {
-    return SizedBox(height: MeidaQuaryHelper.height(context) * 0.01);
+    return SizedBox(height: 10.h);
   }
 
   static Widget hight20(BuildContext context) {
-    return SizedBox(height: MeidaQuaryHelper.height(context) * 0.02);
+    return SizedBox(height: 20.h);
   }
 
   
   static Widget hight30(BuildContext context) {
-    return SizedBox(height: MeidaQuaryHelper.height(context) * 0.03);
+    return SizedBox(height: 30.h);
   }
   
   static Widget hight50(BuildContext context) {
-    return SizedBox(height: MeidaQuaryHelper.height(context) * 0.05);
+    return SizedBox(height: 50.h);
   }
   static Widget width20(BuildContext context){
-    return SizedBox(width: MeidaQuaryHelper.width(context) * 0.02);
+    return SizedBox(width: 20.w);
   }
 
   static Widget width40(BuildContext context){
-    return SizedBox(width: MeidaQuaryHelper.width(context) * 0.04);
+    return SizedBox(width: 40.w);
   }
 
 }

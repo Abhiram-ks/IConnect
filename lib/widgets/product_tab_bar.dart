@@ -58,38 +58,32 @@ class _ProductTabBarState extends State<ProductTabBar>
       child: Column(
         children: [
           // TabBar
-          Container(
-            decoration: BoxDecoration(
-              color: AppPalette.whiteColor,
-              border: Border(
-                bottom: BorderSide(
-                  color: AppPalette.greyColor.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
+          TabBar(
+            controller: _tabController,
+            isScrollable: widget.isScrollable,
+            indicatorColor: widget.indicatorColor ?? AppPalette.blueColor,
+            indicatorWeight: widget.indicatorWeight,
+            dividerColor: Colors.transparent,
+            padding: EdgeInsets.zero,
+            indicatorPadding: EdgeInsets.zero,
+            indicatorSize: TabBarIndicatorSize.tab,
+            tabAlignment: TabAlignment.start,
+            
+            labelColor: widget.labelColor ?? AppPalette.blueColor,
+            unselectedLabelColor:widget.unselectedLabelColor ?? AppPalette.greyColor,
+            labelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
             ),
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: widget.isScrollable,
-              indicatorColor: widget.indicatorColor ?? AppPalette.blueColor,
-              indicatorWeight: widget.indicatorWeight,
-              labelColor: widget.labelColor ?? AppPalette.blueColor,
-              unselectedLabelColor:
-                  widget.unselectedLabelColor ?? AppPalette.greyColor,
-              labelStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-              tabs: widget.categories
-                  .map(
-                    (category) => Tab(text: category.name),
-                  )
-                  .toList(),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
+            tabs: widget.categories
+                .map(
+                  (category) => Tab(text: category.name),
+                )
+                .toList(),
           ),
 
           // TabBarView

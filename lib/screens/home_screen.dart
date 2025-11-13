@@ -1,23 +1,26 @@
+// ignore_for_file: deprecated_member_use
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:infinite_carousel/infinite_carousel.dart';
 
 import '../constant/app_images.dart';
 import '../cubit/image_slider_cubit/image_slider_cubit.dart';
 import '../cubit/brand_scroll_cubit/brand_scroll_cubit.dart';
 import '../cubit/home_view_cubit/home_view_cubit.dart';
-import '../cubit/cart_cubit/cart_cubit.dart';
-import '../models/cart_item.dart';
 import '../widgets/brand_card.dart';
-import '../widgets/product_tab_bar.dart';
 import '../widgets/new_arrivals_section.dart';
-import '../widgets/product_card.dart';
-import '../widgets/product_preview_modal.dart';
 import '../data/brand_data.dart';
-import '../data/product_data.dart';
+// ✅ Import real Shopify widgets
+import '../widgets/shopify_new_arrivals_section.dart';
+import '../widgets/shopify_product_grid_section.dart';
 
 // Reusable Category Card Widget
 class CategoryCard extends StatelessWidget {
@@ -40,10 +43,10 @@ class CategoryCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 60.w,
+            height: 60.h,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(30.r),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -54,7 +57,7 @@ class CategoryCard extends StatelessWidget {
               ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(30.r),
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
@@ -76,17 +79,17 @@ class CategoryCard extends StatelessWidget {
                   return Icon(
                     CupertinoIcons.photo,
                     color: AppPalette.greyColor,
-                    size: 30,
+                    size: 30.sp,
                   );
                 },
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 12,
+            style: TextStyle(
+              fontSize: 12.sp,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
             ),
@@ -111,26 +114,34 @@ class HomeScreen extends StatelessWidget {
           canPop: state.viewState == HomeViewState.home,
           onPopInvoked: (bool didPop) {
             if (!didPop && state.viewState == HomeViewState.bannerDetails) {
-              // If we're on banner details and back is pressed, go to home view
               context.read<HomeViewCubit>().showHome();
             }
           },
-          child: state.viewState == HomeViewState.bannerDetails
-              ? _BannerDetailsView(
-                  bannerTitle: state.bannerTitle ?? '',
-                  bannerProducts: state.bannerProducts ?? [],
-                )
-              : const _HomeContentView(),
+          child:
+              state.viewState == HomeViewState.bannerDetails
+                  ? _BannerDetailsView(
+                    bannerTitle: state.bannerTitle ?? '',
+                    bannerProducts: state.bannerProducts ?? [],
+                  )
+                  : const _HomeContentView(),
         );
       },
     );
   }
 }
 
-class _HomeContentView extends StatelessWidget {
+class _HomeContentView extends StatefulWidget {
   const _HomeContentView();
 
-  // Categories map with 6 items
+  @override
+  State<_HomeContentView> createState() => _HomeContentViewState();
+}
+
+class _HomeContentViewState extends State<_HomeContentView> {
+  late InfiniteScrollController infiniteScrollController;
+  Timer? _autoScrollTimer;
+  int _currentIndex = 0;
+
   static const List<Map<String, String>> categories = [
     {
       'title': 'iMac',
@@ -165,6 +176,51 @@ class _HomeContentView extends StatelessWidget {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    infiniteScrollController = InfiniteScrollController(initialItem: 0);
+    // Delay auto-scroll to let UI settle
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _startAutoScroll();
+      }
+    });
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(
+      const Duration(milliseconds: 2500),
+      (timer) {
+        if (mounted && infiniteScrollController.hasClients) {
+          _currentIndex = (_currentIndex + 1) % categories.length;
+          infiniteScrollController.animateToItem(
+            _currentIndex,
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeInOutCubic,
+          );
+        }
+      },
+    );
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTimer?.cancel();
+  }
+
+  void _resumeAutoScroll() {
+    _stopAutoScroll();
+    _startAutoScroll();
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    infiniteScrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -178,12 +234,7 @@ class _HomeContentView extends StatelessWidget {
             child: Column(
               children: [
                 GestureDetector(
-                  onTap: () {
-                    context.read<HomeViewCubit>().showBannerDetails(
-                      bannerTitle: 'Smartwatch Collection',
-                      bannerProducts: ProductData.getSmartwatchProducts(),
-                    );
-                  },
+                  onTap: () {},
                   child: ImageScolingWidget(
                     imageList: [
                       'https://static.vecteezy.com/system/resources/previews/020/737/706/non_2x/web-banner-or-horizontal-template-design-with-special-offer-on-mobile-phones-for-advertising-concept-vector.jpg',
@@ -198,42 +249,71 @@ class _HomeContentView extends StatelessWidget {
 
                 ConstantWidgets.hight10(context),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  padding: EdgeInsets.symmetric(horizontal: 4.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                        height: 120,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: categories.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: CategoryCard(
-                                imageUrl: categories[index]['imageUrl']!,
-                                title: categories[index]['title']!,
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${categories[index]['title']} tapped!',
+                        height: 120.h,
+                        child: GestureDetector(
+                          onPanDown: (_) => _stopAutoScroll(),
+                          onPanEnd: (_) => _resumeAutoScroll(),
+                          onPanCancel: () => _resumeAutoScroll(),
+                          child: InfiniteCarousel.builder(
+                            itemCount: categories.length,
+                            itemExtent: 90.w,
+                            center: true,
+                            anchor: 0.0,
+                            scrollBehavior:
+                                kIsWeb
+                                    ? ScrollConfiguration.of(context).copyWith(
+                                      dragDevices: {
+                                        PointerDeviceKind.touch,
+                                        PointerDeviceKind.mouse,
+                                      },
+                                    )
+                                    : null,
+                            loop: true,
+                            velocityFactor: 0.15,
+                            physics: const BouncingScrollPhysics(),
+                            onIndexChanged: (index) {
+                              if (mounted) {
+                                _currentIndex = index;
+                              }
+                            },
+                            controller: infiniteScrollController,
+                            axisDirection: Axis.horizontal,
+                            itemBuilder: (context, itemIndex, __) {
+                              return Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 6.w),
+                                child: CategoryCard(
+                                  imageUrl: categories[itemIndex]['imageUrl']!,
+                                  title: categories[itemIndex]['title']!,
+                                  onTap: () {
+                                    _stopAutoScroll();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '${categories[itemIndex]['title']} tapped!',
+                                        ),
+                                        backgroundColor: AppPalette.blackColor,
+                                        duration: const Duration(seconds: 1),
                                       ),
-                                      backgroundColor: AppPalette.blackColor,
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
-                          },
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
+                      ConstantWidgets.hight10(context),
                       BlocProvider(
                         create:
                             (context) =>
                                 BrandScrollCubit(brandList: BrandData.brands),
                         child: SizedBox(
-                          height: 30,
+                          height: 28.h,
                           child: BlocBuilder<BrandScrollCubit, int>(
                             builder: (context, state) {
                               final cubit = context.read<BrandScrollCubit>();
@@ -265,36 +345,34 @@ class _HomeContentView extends StatelessWidget {
                         ),
                       ),
 
-                      // Product Tab Section
-                      ConstantWidgets.hight10(context),
-                      ProductTabBar(
-                        categories: ProductCategoryData.getCategories(),
-                        height: 300,
+                      // ✅ Real Shopify Products Grid
+                      ConstantWidgets.hight30(context),
+                      ShopifyProductGridSection(
+                        title: 'Featured Products from Shopify',
+                        crossAxisCount: 2,
+                        productCount: 6,
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
                       ),
 
-                      // New Arrivals Section
-                      ConstantWidgets.hight10(context),
-                      NewArrivalsSection(
-                        title: 'New Arrivals',
-                        products: NewArrivalsData.getNewArrivalsProducts(),
+                      // ✅ Real Shopify New Arrivals Section (Horizontal Scroll)
+                      ConstantWidgets.hight20(context),
+                      ShopifyNewArrivalsSection(
+                        title: 'New Arrivals from Shopify Store',
+                        productCount: 10,
                         onViewAll: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Viewing all new arrivals!'),
-                              backgroundColor: AppPalette.blueColor,
-                            ),
+                          Navigator.pushNamed(
+                            context,
+                            '/test-shopify-products',
                           );
                         },
                       ),
 
-                      // Service Banners Section
-                      ConstantWidgets.hight10(context),
+                      ConstantWidgets.hight20(context),
                       ServiceBanner(
                         title: 'SMARTPHONES DISPLAY REPAIR',
                         imageUrl:
                             'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=120&fit=crop&crop=center',
-                        buttonText: 'View All Services',
-                        isMainBanner: true,
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -310,7 +388,6 @@ class _HomeContentView extends StatelessWidget {
                         subtitle: 'Professional Electronic Repair',
                         imageUrl:
                             'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=120&fit=crop&crop=center',
-                        buttonText: 'View All Services',
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -320,20 +397,21 @@ class _HomeContentView extends StatelessWidget {
                           );
                         },
                       ),
-                      NewArrivalsSection(
-                        title: 'Fold and Flip Phones',
-                        products: NewArrivalsData.getNewArrivalsProducts(),
+
+                      // ✅ Another Real Shopify Products Section
+                      ConstantWidgets.hight20(context),
+                      ShopifyNewArrivalsSection(
+                        title: 'Trending Products',
+                        productCount: 8,
                         onViewAll: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Viewing all new arrivals!'),
-                              backgroundColor: AppPalette.blueColor,
-                            ),
+                          Navigator.pushNamed(
+                            context,
+                            '/test-shopify-products',
                           );
                         },
                       ),
 
-                      SizedBox(height: 64),
+                      SizedBox(height: 64.h),
                     ],
                   ),
                 ), // Brands Section with Cubit Management
@@ -381,7 +459,8 @@ class ImageScolingWidget extends StatelessWidget {
                     return (imageList[index].startsWith('http'))
                         ? imageshow(
                           imageUrl: imageList[index],
-                          imageAsset: imageList[index],
+                          imageAsset: AppImages.demmyImage,
+                          height: 200.h,
                         )
                         : Image.asset(
                           AppImages.demmyImage,
@@ -398,9 +477,9 @@ class ImageScolingWidget extends StatelessWidget {
                       return SmoothPageIndicator(
                         controller: cubit.pageController,
                         count: imageList.length,
-                        effect: const ExpandingDotsEffect(
-                          dotHeight: 8,
-                          dotWidth: 8,
+                        effect: ExpandingDotsEffect(
+                          dotHeight: 8.h,
+                          dotWidth: 8.w,
                           activeDotColor: AppPalette.whiteColor,
                           dotColor: AppPalette.greyColor,
                         ),
@@ -417,27 +496,98 @@ class ImageScolingWidget extends StatelessWidget {
   }
 }
 
-Image imageshow({required String imageUrl, required String imageAsset}) {
-  return Image.network(
-    imageUrl,
-    fit: BoxFit.cover,
-    loadingBuilder: (context, child, loadingProgress) {
-      if (loadingProgress == null) return child;
-      return Center(
-        child: CircularProgressIndicator(
-          color: AppPalette.blueColor,
-          backgroundColor: AppPalette.hintColor,
-          value:
-              loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                      (loadingProgress.expectedTotalBytes ?? 1)
-                  : null,
-        ),
-      );
-    },
-    errorBuilder: (context, error, stackTrace) {
-      return Image.asset(imageAsset, fit: BoxFit.cover);
-    },
+Widget imageshow({
+  required String imageUrl,
+  required String imageAsset,
+  double? height,
+}) {
+  return SizedBox(
+    height: height ?? 200.h,
+    width: double.infinity,
+    child: Image.network(
+      imageUrl,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          color: Colors.grey[100],
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  color: AppPalette.blueColor,
+                  backgroundColor: AppPalette.hintColor,
+                  value:
+                      loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes ?? 1)
+                          : null,
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Loading...',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppPalette.greyColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        // Check if it's a network error
+        bool isNetworkError =
+            error.toString().contains('Failed host lookup') ||
+            error.toString().contains('SocketException') ||
+            error.toString().contains('Connection');
+
+        return Container(
+          color: Colors.grey[100],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isNetworkError ? Icons.wifi_off : Icons.error_outline,
+                size: 48.sp,
+                color: AppPalette.greyColor,
+              ),
+              SizedBox(height: 8.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: Text(
+                  isNetworkError
+                      ? 'No internet connection\nPlease check your connection'
+                      : 'Failed to load image',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppPalette.greyColor,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              if (imageAsset.isNotEmpty)
+                Expanded(
+                  child: Image.asset(
+                    imageAsset,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.image_not_supported,
+                        size: 48.sp,
+                        color: AppPalette.greyColor,
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    ),
   );
 }
 
@@ -459,11 +609,7 @@ class _BannerDetailsView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Back button banner hero section
             _buildBannerHero(context),
-
-            // Products Grid Section
-            _buildProductsSection(context),
 
             // Bottom padding
             const SizedBox(height: 100),
@@ -476,194 +622,171 @@ class _BannerDetailsView extends StatelessWidget {
   Widget _buildBannerHero(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 16, bottom: 24, left: 16, right: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppPalette.blueColor.withValues(alpha: 0.1),
-            AppPalette.greenColor.withValues(alpha: 0.1),
-          ],
-        ),
-      ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back button
-          GestureDetector(
-            onTap: () {
-              context.read<HomeViewCubit>().showHome();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppPalette.whiteColor,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                size: 24,
-                color: AppPalette.blackColor,
-              ),
-            ),
+          imageshow(
+            imageUrl:
+                'https://www.creativefabrica.com/wp-content/uploads/2022/09/29/Luxury-Watch-Store-Banner-Template-Graphics-39519650-1-1-580x386.jpg',
+            imageAsset: AppImages.demmyImage,
+            height: 80.h,
           ),
-          const SizedBox(height: 24),
-          // Title and info
-          Center(
-            child: Column(
+          SizedBox(height: 12.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Row(
               children: [
-                Text(
-                  bannerTitle,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8.r),
+                        color: Colors.white,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.filter_list,
+                            size: 16.sp,
+                            color: AppPalette.blackColor,
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Filter',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(width: 4.w),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 16.sp,
+                            color: AppPalette.greyColor,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '${bannerProducts.length} products available',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppPalette.redColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Text(
-                    'Special Offers',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppPalette.whiteColor,
-                      fontWeight: FontWeight.w500,
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      _showSortBottomSheet(context);
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8.r),
+                        color: Colors.white,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.sort,
+                            size: 16.sp,
+                            color: AppPalette.blackColor,
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Sort A-Z',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(width: 4.w),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 16.sp,
+                            color: AppPalette.greyColor,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
+          SizedBox(height: 8.h),
         ],
       ),
     );
   }
 
-  Widget _buildProductsSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Featured Products',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+  void _showSortBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppPalette.whiteColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(1.r)),
+      ),
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Sort By',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.close, size: 24.sp),
+                    ),
+                  ],
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppPalette.blueColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  '${bannerProducts.length} items',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppPalette.blueColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Products Grid
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.75,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: bannerProducts.length,
-            itemBuilder: (context, index) {
-              final product = bannerProducts[index];
-              return BlocBuilder<CartCubit, CartState>(
-                builder: (context, cartState) {
-                  final isInCart = cartState.items.any((item) => item.id == product['id']);
-                  return ProductCard(
-                    imageUrl: product['imageUrl'],
-                    productName: product['productName'],
-                    description: product['description'],
-                    originalPrice: product['originalPrice'],
-                    discountedPrice: product['discountedPrice'],
-                    productId: product['id'],
-                    offerText: product['offerText'],
-                    isInCart: isInCart,
+                SizedBox(height: 8.h),
+                ...[
+                  'Featured',
+                  'Best selling',
+                  'Alphabetically, A-Z',
+                  'Alphabetically, Z-A',
+                  'Price, low to high',
+                  'Price, high to low',
+                  'Date, old to new',
+                  'Date, new to old',
+                ].map((option) {
+                  return ListTile(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 0,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    dense: true,
+                    title: Text(option, style: TextStyle(fontSize: 16.sp)),
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/product_details',
-                        arguments: {'productId': product['id']},
-                      );
-                    },
-                    onAddToCart: () {
-                      final cartItem = CartItem(
-                        id: product['id'],
-                        imageUrl: product['imageUrl'],
-                        productName: product['productName'],
-                        description: product['description'],
-                        originalPrice: product['originalPrice'],
-                        discountedPrice: product['discountedPrice'],
-                        offerText: product['offerText'],
-                      );
-                      context.read<CartCubit>().addToCart(cartItem);
-
+                      Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${product['productName']} added to cart'),
-                          duration: const Duration(seconds: 2),
+                          content: Text('Sorted by: $option'),
+                          duration: Duration(seconds: 1),
                           backgroundColor: AppPalette.blueColor,
                         ),
                       );
                     },
-                    onView: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => ProductPreviewModal(
-                          product: product,
-                        ),
-                      );
-                    },
                   );
-                },
-              );
-            },
+                }),
+              ],
+            ),
           ),
-        ],
-      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/widgets/product_card.dart';
 import 'package:iconnect/widgets/product_preview_modal.dart';
@@ -27,45 +28,31 @@ class NewArrivalsSection extends StatelessWidget {
       children: [
         // Header with title and "View All" button
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              if (onViewAll != null)
-                GestureDetector(
-                  onTap: onViewAll,
-                  child: Text(
-                    'View All',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppPalette.blueColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-            ],
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.start,
           ),
         ),
         
         // Horizontal product list
         SizedBox(
-          height: 220,
+          height: 230.h,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
               return Padding(
-                padding: const EdgeInsets.only(right: 12.0),
+                padding: EdgeInsets.only(right: 12.w),
                 child: BlocBuilder<CartCubit, CartState>(
                   builder: (context, cartState) {
                     final isInCart = cartState.items.any((item) => item.id == product['id']);
@@ -131,7 +118,6 @@ class ServiceBanner extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String imageUrl;
-  final String buttonText;
   final VoidCallback onTap;
   final bool isMainBanner;
 
@@ -140,7 +126,6 @@ class ServiceBanner extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.imageUrl,
-    required this.buttonText,
     required this.onTap,
     this.isMainBanner = false,
   });
@@ -148,56 +133,45 @@ class ServiceBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      height: isMainBanner ? 120 : 100,
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      height: 120.h,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12.r),
+        color: AppPalette.whiteColor,
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          imageUrl,
-          width: double.infinity,
-          height: double.infinity,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              color: Colors.grey[100],
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: AppPalette.blueColor,
-                  strokeWidth: 2,
-                ),
+      child: Image.network(
+        imageUrl,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey[100],
+            child: Center(
+              child: CircularProgressIndicator(
+                color: AppPalette.blueColor,
+                strokeWidth: 2,
               ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey[100],
-              child: const Icon(
-                Icons.image,
-                color: Colors.grey,
-                size: 50,
-              ),
-            );
-          },
-        ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey[100],
+            child: Icon(
+              Icons.image,
+              color: Colors.grey,
+              size: 50.sp,
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-/// Sample data for New Arrivals products
+
 class NewArrivalsData {
   static List<Map<String, dynamic>> getNewArrivalsProducts() {
     return [

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_drawer.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/constant/constant.dart';
@@ -13,8 +14,6 @@ import 'package:iconnect/screens/product_screen.dart';
 import 'package:iconnect/screens/search_screen.dart';
 import 'package:iconnect/widgets/cart_drawer.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
-
-const double bottomNavBarHeight = 70.0;
 
 class BottomNavigationControllers extends StatelessWidget {
   final List<Widget> _screens = [
@@ -64,15 +63,15 @@ class BottomNavigationControllers extends StatelessWidget {
                   return Builder(
                     builder: (BuildContext scaffoldContext) {
                       return SizedBox(
-                        height: bottomNavBarHeight,
+                        height: 70.h,
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppPalette.whiteColor,
                             boxShadow: [
                               BoxShadow(
                                 color: AppPalette.blackColor.withValues(alpha: 0.1),
-                                blurRadius: 6,
-                                offset: const Offset(0, -3),
+                                blurRadius: 6.r,
+                                offset: Offset(0, -3.h),
                               ),
                             ],
                           ),
@@ -80,7 +79,7 @@ class BottomNavigationControllers extends StatelessWidget {
                             enableFeedback: true,
                             useLegacyColorScheme: true,
                             elevation: 0,
-                            iconSize: 26,
+                            iconSize: 26.sp,
                             selectedItemColor: AppPalette.blueColor,
                             backgroundColor: Colors.transparent,
                             landscapeLayout:
@@ -97,13 +96,8 @@ class BottomNavigationControllers extends StatelessWidget {
                                 // Open cart drawer when cart icon is tapped
                                 Scaffold.of(scaffoldContext).openEndDrawer();
                           } else if (NavItem.values[index] == NavItem.search) {
-                            // Open search screen when search icon is tapped
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SearchScreen(),
-                              ),
-                            );
+                            // Open categories drawer when categories icon is tapped
+                            Scaffold.of(scaffoldContext).openDrawer();
                           } else {
                             // If tapping home icon, reset home view to show home content
                             if (NavItem.values[index] == NavItem.home) {
@@ -122,19 +116,19 @@ class BottomNavigationControllers extends StatelessWidget {
                           }
                         },
                         items: [
-                          const BottomNavigationBarItem(
-                            icon: Icon(Icons.home_outlined, size: 16),
+                          BottomNavigationBarItem(
+                            icon: Icon(Icons.home_outlined, size: 16.sp),
                             label: 'Home',
                             activeIcon: Icon(
                               Icons.home,
                               color: AppPalette.blueColor,
                             ),
                           ),
-                          const BottomNavigationBarItem(
-                            icon: Icon(Icons.grid_view, size: 16),
-                            label: 'Product',
+                          BottomNavigationBarItem(
+                            icon: Icon(Icons.percent, size: 16.sp),
+                            label: 'Offers',
                             activeIcon: Icon(
-                              Icons.grid_view_sharp,
+                              Icons.percent_outlined,
                               color: AppPalette.blueColor,
                             ),
                           ),
@@ -143,25 +137,25 @@ class BottomNavigationControllers extends StatelessWidget {
                               builder: (context, state) {
                                 return Stack(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.shopping_bag_outlined,
-                                      size: 16,
+                                      size: 16.sp,
                                     ),
                                     if (state.itemCount > 0)
                                       Positioned(
                                         right: 0,
                                         top: 0,
                                         child: Container(
-                                          padding: const EdgeInsets.all(4),
+                                          padding: EdgeInsets.all(4.r),
                                           decoration: const BoxDecoration(
                                             color: AppPalette.redColor,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Text(
                                             '${state.itemCount}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: AppPalette.whiteColor,
-                                              fontSize: 8,
+                                              fontSize: 8.sp,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -185,16 +179,16 @@ class BottomNavigationControllers extends StatelessWidget {
                                         right: 0,
                                         top: 0,
                                         child: Container(
-                                          padding: const EdgeInsets.all(4),
+                                          padding: EdgeInsets.all(4.r),
                                           decoration: const BoxDecoration(
                                             color: AppPalette.redColor,
                                             shape: BoxShape.circle,
                                           ),
                                           child: Text(
                                             '${state.itemCount}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: AppPalette.whiteColor,
-                                              fontSize: 8,
+                                              fontSize: 8.sp,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -205,11 +199,11 @@ class BottomNavigationControllers extends StatelessWidget {
                               },
                             ),
                           ),
-                          const BottomNavigationBarItem(
-                            icon: Icon(Icons.search, size: 16),
-                            label: 'Search',
+                          BottomNavigationBarItem(
+                            icon: Icon(Icons.category_rounded, size: 16.sp),
+                            label: 'Categories',
                             activeIcon: Icon(
-                              CupertinoIcons.search,
+                              Icons.category_rounded,
                               color: AppPalette.blueColor,
                             ),
                           ),
@@ -237,12 +231,12 @@ class CustomAppBarDashbord extends StatelessWidget
   @override
   final Size preferredSize;
 
-  const CustomAppBarDashbord({
+  CustomAppBarDashbord({
     super.key,
     this.title = 'IConnect',
     this.onBack,
     this.onNotificationTap,
-  }) : preferredSize = const Size.fromHeight(60);
+  }) : preferredSize = Size.fromHeight(60.h);
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +249,7 @@ class CustomAppBarDashbord extends StatelessWidget
       title: Center(
         child: Image.asset(
           'assets/iconnect_logo.png',
-          height: 25,
+          height: 25.h,
           fit: BoxFit.contain,
         ),
       ),
@@ -270,7 +264,21 @@ class CustomAppBarDashbord extends StatelessWidget
                   shape: const CircleBorder(),
                 ),
               )
-              : null,
+              : Builder(
+                builder: (BuildContext scaffoldContext) {
+                  return IconButton(
+                    icon: const Icon(
+                      Icons.menu,
+                      color: AppPalette.blackColor,
+                    ),
+                    onPressed: () {
+                      // Open drawer when menu icon is tapped
+                      Scaffold.of(scaffoldContext).openDrawer();
+                    },
+                    tooltip: 'Menu',
+                  );
+                },
+              ),
       actions: [
         IconButton.filled(
           icon: const Icon(Icons.search, color: AppPalette.blackColor),
@@ -291,7 +299,6 @@ class CustomAppBarDashbord extends StatelessWidget
             shape: const CircleBorder(),
           ),
         ),
-        ConstantWidgets.width20(context),
         Builder(
           builder: (BuildContext scaffoldContext) {
             return Stack(
@@ -317,19 +324,19 @@ class CustomAppBarDashbord extends StatelessWidget
                   builder: (context, state) {
                     if (state.itemCount > 0) {
                       return Positioned(
-                        right: 8,
-                        top: 8,
+                        right: 8.w,
+                        top: 8.h,
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: EdgeInsets.all(4.r),
                           decoration: const BoxDecoration(
                             color: AppPalette.redColor,
                             shape: BoxShape.circle,
                           ),
                           child: Text(
                             '${state.itemCount}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppPalette.whiteColor,
-                              fontSize: 10,
+                              fontSize: 10.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -343,7 +350,7 @@ class CustomAppBarDashbord extends StatelessWidget
             );
           },
         ),
-        ConstantWidgets.width40(context),
+        ConstantWidgets.width20(context),
       ],
     );
   }

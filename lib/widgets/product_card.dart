@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconnect/app_palette.dart';
 
@@ -34,86 +35,65 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 160,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: .1),
-              spreadRadius: 1,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: SizedBox(
+        width: 160.w,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Stack(
               children: [
                 Container(
-                  height: 140,
+                  height: 165.h,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
                     color: Colors.grey[100],
                   ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: AppPalette.blueColor,
-                            strokeWidth: 2,
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    (loadingProgress.expectedTotalBytes ?? 1)
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[200],
-                          child: const Icon(
-                            Icons.image,
-                            color: Colors.grey,
-                            size: 50,
-                          ),
-                        );
-                      },
-                    ),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          color: AppPalette.blueColor,
+                          strokeWidth: 2,
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  (loadingProgress.expectedTotalBytes ?? 1)
+                              : null,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.image,
+                          color: Colors.grey,
+                          size: 50.sp,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 
 
                 if (offerText != null)
                   Positioned(
-                    top: 8,
-                    left: 8,
+                    top: 8.h,
+                    left: 8.w,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                       decoration: BoxDecoration(
                         color: AppPalette.blueColor,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Text(
                         offerText!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: 10.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -122,7 +102,7 @@ class ProductCard extends StatelessWidget {
                 
                 // Icons positioned at bottom center of the image
                 Positioned(
-                  bottom: 8,
+                  bottom: 8.h,
                   left: 0,
                   right: 0,
                   child: Center(
@@ -133,8 +113,8 @@ class ProductCard extends StatelessWidget {
                         GestureDetector(
                           onTap: onAddToCart,
                           child: Container(
-                            width: 32,
-                            height: 32,
+                            width: 32.w,
+                            height: 32.h,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
@@ -142,25 +122,25 @@ class ProductCard extends StatelessWidget {
                                 BoxShadow(
                                   color: Colors.grey.withOpacity(0.3),
                                   spreadRadius: 1,
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
+                                  blurRadius: 4.r,
+                                  offset: Offset(0, 2.h),
                                 ),
                               ],
                             ),
                             child: Icon(
                               FontAwesomeIcons.bagShopping,
-                              size: 14,
+                              size: 14.sp,
                               color: isInCart ? AppPalette.blueColor : Colors.grey,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.w),
                         // View Button
                         GestureDetector(
                           onTap: onView,
                           child: Container(
-                            width: 32,
-                            height: 32,
+                            width: 32.w,
+                            height: 32.h,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
@@ -168,14 +148,14 @@ class ProductCard extends StatelessWidget {
                                 BoxShadow(
                                   color: Colors.grey.withOpacity(0.3),
                                   spreadRadius: 1,
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
+                                  blurRadius: 4.r,
+                                  offset: Offset(0, 2.h),
                                 ),
                               ],
                             ),
-                            child: const Icon(
+                            child: Icon(
                               FontAwesomeIcons.eye,
-                              size: 14,
+                              size: 14.sp,
                               color: Colors.grey,
                             ),
                           ),
@@ -188,70 +168,59 @@ class ProductCard extends StatelessWidget {
             ),
             
             // Product Details Section
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Product Name
-                    Text(
-                      productName,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Product Name
+                  Text(
+                    productName,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      height: 1.15,
                     ),
-                    const SizedBox(height: 2),
-                    
-                    // Description
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[600],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    
-                    // Pricing
-                    Row(
-                      children: [
-                        // Discounted Price
-                        Expanded(
-                          child: Text(
-                            'QAR ${discountedPrice.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  
+                  SizedBox(height: 3.h),
+                  // Pricing
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'QAR ${discountedPrice.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines:  1,
                         ),
-                        const SizedBox(width: 4),
-                        // Original Price (Struck through)
-                        Expanded(
-                          child: Text(
-                            'QAR ${originalPrice.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey[500],
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(width: 4.w),
+                      // Original Price (Struck through)
+                      Expanded(
+                        child: Text(
+                          'QAR ${originalPrice.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            color: Colors.grey[500],
+                            decoration: TextDecoration.lineThrough,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines:  1,
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

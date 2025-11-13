@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:iconnect/constant/constant.dart';
@@ -24,28 +25,28 @@ class WhatsAppFloatingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 20,
-      right: 20,
+      bottom: 20.h,
+      right: 20.w,
       child: GestureDetector(
         onTap: _openWhatsApp,
         child: Container(
-          width: 60,
-          height: 60,
+          width: 60.w,
+          height: 60.h,
           decoration: BoxDecoration(
             color: const Color(0xFF25D366), // WhatsApp green color
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(30.r),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
+                blurRadius: 8.r,
+                offset: Offset(0, 4.h),
               ),
             ],
           ),
-          child: const Icon(
+          child: Icon(
             FontAwesomeIcons.whatsapp,
             color: Colors.white,
-            size: 32,
+            size: 32.sp,
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/models/cart_item.dart';
@@ -72,11 +73,11 @@ class AddToCartButton extends StatelessWidget {
             icon: Icon(
               isInCart ? Icons.add : Icons.shopping_bag_outlined,
               color: AppPalette.whiteColor,
-              size: 16,
+              size: 16.sp,
             ),
             style: IconButton.styleFrom(
               padding: EdgeInsets.zero,
-              minimumSize: const Size(32, 32),
+              minimumSize: Size(32.w, 32.h),
             ),
           ),
         );
@@ -126,15 +127,15 @@ class CartQuantityButton extends StatelessWidget {
             onPressed: onPressed,
             icon: Text(
               '${cartItem.quantity}',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppPalette.whiteColor,
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
             style: IconButton.styleFrom(
               padding: EdgeInsets.zero,
-              minimumSize: const Size(32, 32),
+              minimumSize: Size(32.w, 32.h),
             ),
           ),
         );
