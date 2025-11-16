@@ -6,6 +6,7 @@ class ProductModel extends ProductEntity {
     required super.id,
     required super.title,
     required super.description,
+    required super.descriptionHtml,
     required super.handle,
     super.featuredImage,
     required super.images,
@@ -64,6 +65,7 @@ class ProductModel extends ProductEntity {
       id: json['id'] as String,
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      descriptionHtml: json['descriptionHtml'] as String? ?? '',
       handle: json['handle'] as String? ?? '',
       featuredImage: featuredImage,
       images: imagesList,
@@ -82,6 +84,7 @@ class ProductModel extends ProductEntity {
       'id': id,
       'title': title,
       'description': description,
+      'descriptionHtml': descriptionHtml,
       'handle': handle,
       'featuredImage': featuredImage,
       'images': images,
@@ -99,6 +102,7 @@ class ProductModel extends ProductEntity {
     String? id,
     String? title,
     String? description,
+    String? descriptionHtml,
     String? handle,
     String? featuredImage,
     List<String>? images,
@@ -113,6 +117,7 @@ class ProductModel extends ProductEntity {
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
+      descriptionHtml: descriptionHtml ?? this.descriptionHtml,
       handle: handle ?? this.handle,
       featuredImage: featuredImage ?? this.featuredImage,
       images: images ?? this.images,
@@ -135,6 +140,7 @@ class ProductVariantModel extends ProductVariantEntity {
     super.compareAtPrice,
     required super.currencyCode,
     required super.availableForSale,
+    super.image,
   });
 
   factory ProductVariantModel.fromJson(Map<String, dynamic> json) {
@@ -148,6 +154,10 @@ class ProductVariantModel extends ProductVariantEntity {
       compareAtPrice = double.tryParse(compareAtPriceData['amount'].toString());
     }
 
+    // Extract variant image
+    final imageData = json['image'] as Map<String, dynamic>?;
+    final variantImage = imageData?['url'] as String?;
+
     return ProductVariantModel(
       id: json['id'] as String,
       title: json['title'] as String? ?? '',
@@ -155,6 +165,7 @@ class ProductVariantModel extends ProductVariantEntity {
       compareAtPrice: compareAtPrice,
       currencyCode: currencyCode,
       availableForSale: json['availableForSale'] as bool? ?? true,
+      image: variantImage,
     );
   }
 
@@ -166,6 +177,7 @@ class ProductVariantModel extends ProductVariantEntity {
       'compareAtPrice': compareAtPrice,
       'currencyCode': currencyCode,
       'availableForSale': availableForSale,
+      'image': image,
     };
   }
 }

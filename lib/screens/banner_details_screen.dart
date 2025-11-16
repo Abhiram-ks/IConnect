@@ -25,7 +25,7 @@ class BannerDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: AppDrawer(),
-      endDrawer: const CartDrawer(),
+      endDrawer: const CartDrawerWidget(),
       appBar: CustomAppBarDashbord(),
       body: Stack(
         children: [

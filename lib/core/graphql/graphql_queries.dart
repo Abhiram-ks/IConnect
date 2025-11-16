@@ -1,7 +1,7 @@
 /// GraphQL Query constants for Shopify Storefront API
 class GraphQLQueries {
   // ========== PRODUCT QUERIES ==========
-  
+
   /// Get all products with pagination
   static const String getProducts = r'''
     query GetProducts($first: Int!, $after: String, $query: String) {
@@ -12,6 +12,7 @@ class GraphQLQueries {
             title
             description
             handle
+            vendor
             featuredImage {
               url
             }
@@ -59,6 +60,7 @@ class GraphQLQueries {
         description
         descriptionHtml
         handle
+        vendor
         featuredImage {
           url
         }
@@ -83,6 +85,9 @@ class GraphQLQueries {
                 currencyCode
               }
               availableForSale
+              image {
+                url
+              }
             }
           }
         }
@@ -134,6 +139,9 @@ class GraphQLQueries {
                 currencyCode
               }
               availableForSale
+              image {
+                url
+              }
             }
           }
         }
@@ -166,6 +174,34 @@ class GraphQLQueries {
             description
             image {
               url
+              altText
+            }
+          }
+        }
+      }
+    }
+  ''';
+
+  /// Get featured collections for banners (collections with images)
+  static const String getFeaturedCollections = r'''
+    query GetFeaturedCollections($first: Int!) {
+      collections(first: $first, query: "image:*") {
+        edges {
+          node {
+            id
+            title
+            handle
+            description
+            image {
+              url
+              altText
+            }
+            products(first: 1) {
+              edges {
+                node {
+                  id
+                }
+              }
             }
           }
         }
@@ -308,154 +344,334 @@ class GraphQLQueries {
     }
   ''';
 
-  // ========== CHECKOUT MUTATIONS ==========
+  // ========== CART MUTATIONS (Modern Shopify Cart API) ==========
 
-  /// Create checkout
-  static const String checkoutCreate = r'''
-    mutation CheckoutCreate($input: CheckoutCreateInput!) {
-      checkoutCreate(input: $input) {
-        checkout {
+  /// Create cart
+  static const String cartCreate = r'''
+    mutation CartCreate($input: CartInput!) {
+      cartCreate(input: $input) {
+        cart {
           id
-          webUrl
-          lineItems(first: 10) {
+          checkoutUrl
+          lines(first: 50) {
             edges {
               node {
                 id
-                title
                 quantity
-                variant {
-                  id
-                  title
-                  price {
-                    amount
-                    currencyCode
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                    }
+                    price {
+                      amount
+                      currencyCode
+                    }
+                    compareAtPrice {
+                      amount
+                      currencyCode
+                    }
+                    image {
+                      url
+                    }
                   }
                 }
               }
             }
           }
-          totalPrice {
-            amount
-            currencyCode
+          cost {
+            subtotalAmount {
+              amount
+              currencyCode
+            }
+            totalAmount {
+              amount
+              currencyCode
+            }
           }
         }
-        checkoutUserErrors {
-          message
+        userErrors {
           field
+          message
         }
       }
     }
   ''';
 
-  /// Add line items to checkout
-  static const String checkoutLineItemsAdd = r'''
-    mutation CheckoutLineItemsAdd($checkoutId: ID!, $lineItems: [CheckoutLineItemInput!]!) {
-      checkoutLineItemsAdd(checkoutId: $checkoutId, lineItems: $lineItems) {
-        checkout {
-          id
-          webUrl
-          lineItems(first: 10) {
-            edges {
-              node {
-                id
-                title
-                quantity
-                variant {
+  /// Get cart by ID
+  static const String getCart = r'''
+    query GetCart($id: ID!) {
+      cart(id: $id) {
+        id
+        checkoutUrl
+        lines(first: 50) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
                   id
                   title
+                  product {
+                    title
+                  }
                   price {
                     amount
                     currencyCode
+                  }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
+                  image {
+                    url
                   }
                 }
               }
             }
           }
-          totalPrice {
+        }
+        cost {
+          subtotalAmount {
             amount
             currencyCode
           }
-        }
-        checkoutUserErrors {
-          message
-          field
+          totalAmount {
+            amount
+            currencyCode
+          }
         }
       }
     }
   ''';
 
-  /// Update line items in checkout
-  static const String checkoutLineItemsUpdate = r'''
-    mutation CheckoutLineItemsUpdate($checkoutId: ID!, $lineItems: [CheckoutLineItemUpdateInput!]!) {
-      checkoutLineItemsUpdate(checkoutId: $checkoutId, lineItems: $lineItems) {
-        checkout {
+  /// Add lines to cart
+  static const String cartLinesAdd = r'''
+    mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
+      cartLinesAdd(cartId: $cartId, lines: $lines) {
+        cart {
           id
-          webUrl
-          lineItems(first: 10) {
+          checkoutUrl
+          lines(first: 50) {
             edges {
               node {
                 id
-                title
                 quantity
-                variant {
-                  id
-                  title
-                  price {
-                    amount
-                    currencyCode
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                    }
+                    price {
+                      amount
+                      currencyCode
+                    }
+                    compareAtPrice {
+                      amount
+                      currencyCode
+                    }
+                    image {
+                      url
+                    }
                   }
                 }
               }
             }
           }
-          totalPrice {
-            amount
-            currencyCode
+          cost {
+            subtotalAmount {
+              amount
+              currencyCode
+            }
+            totalAmount {
+              amount
+              currencyCode
+            }
           }
         }
-        checkoutUserErrors {
-          message
+        userErrors {
           field
+          message
         }
       }
     }
   ''';
 
-  /// Remove line items from checkout
-  static const String checkoutLineItemsRemove = r'''
-    mutation CheckoutLineItemsRemove($checkoutId: ID!, $lineItemIds: [ID!]!) {
-      checkoutLineItemsRemove(checkoutId: $checkoutId, lineItemIds: $lineItemIds) {
-        checkout {
+  /// Update cart lines
+  static const String cartLinesUpdate = r'''
+    mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+      cartLinesUpdate(cartId: $cartId, lines: $lines) {
+        cart {
           id
-          webUrl
-          lineItems(first: 10) {
+          checkoutUrl
+          lines(first: 50) {
             edges {
               node {
                 id
-                title
                 quantity
-                variant {
-                  id
-                  title
-                  price {
-                    amount
-                    currencyCode
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                    }
+                    price {
+                      amount
+                      currencyCode
+                    }
+                    compareAtPrice {
+                      amount
+                      currencyCode
+                    }
+                    image {
+                      url
+                    }
                   }
                 }
               }
             }
           }
-          totalPrice {
-            amount
-            currencyCode
+          cost {
+            subtotalAmount {
+              amount
+              currencyCode
+            }
+            totalAmount {
+              amount
+              currencyCode
+            }
           }
         }
-        checkoutUserErrors {
-          message
+        userErrors {
           field
+          message
+        }
+      }
+    }
+  ''';
+
+  /// Remove lines from cart
+  static const String cartLinesRemove = r'''
+    mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+      cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+        cart {
+          id
+          checkoutUrl
+          lines(first: 50) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                    }
+                    price {
+                      amount
+                      currencyCode
+                    }
+                    compareAtPrice {
+                      amount
+                      currencyCode
+                    }
+                    image {
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
+          cost {
+            subtotalAmount {
+              amount
+              currencyCode
+            }
+            totalAmount {
+              amount
+              currencyCode
+            }
+          }
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  ''';
+
+  // ========== BRAND/VENDOR QUERIES ==========
+
+  /// Get all unique vendors (brands) from products
+  /// This query fetches products and extracts unique vendors with their product count
+  static const String getBrands = r'''
+    query GetBrands($first: Int!) {
+      products(first: $first) {
+        edges {
+          node {
+            vendor
+          }
+        }
+      }
+    }
+  ''';
+
+  /// Get products by vendor (brand)
+  static const String getProductsByVendor = r'''
+    query GetProductsByVendor($first: Int!, $after: String, $vendor: String!) {
+      products(first: $first, after: $after, query: $vendor) {
+        edges {
+          node {
+            id
+            title
+            description
+            handle
+            vendor
+            featuredImage {
+              url
+            }
+            images(first: 5) {
+              edges {
+                node {
+                  url
+                }
+              }
+            }
+            priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+              maxVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            compareAtPriceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            availableForSale
+          }
+          cursor
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
         }
       }
     }
   ''';
 }
-

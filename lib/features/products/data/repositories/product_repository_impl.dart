@@ -3,6 +3,7 @@ import 'package:iconnect/core/error/failures.dart';
 import 'package:iconnect/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:iconnect/features/products/data/models/collection_model.dart';
 import 'package:iconnect/features/products/data/models/product_model.dart';
+import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
@@ -32,11 +33,13 @@ class ProductRepositoryImpl implements ProductRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on GraphQLException catch (e) {
-      return Left(GraphQLFailure(
-        message: e.message,
-        errorCode: e.errorCode,
-        statusCode: e.statusCode,
-      ));
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
     } on ApiException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
@@ -45,7 +48,9 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<Either<Failure, ProductEntity>> getProductByHandle(String handle) async {
+  Future<Either<Failure, ProductEntity>> getProductByHandle(
+    String handle,
+  ) async {
     try {
       final result = await remoteDataSource.getProductByHandle(handle);
       return Right(result);
@@ -56,11 +61,13 @@ class ProductRepositoryImpl implements ProductRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on GraphQLException catch (e) {
-      return Left(GraphQLFailure(
-        message: e.message,
-        errorCode: e.errorCode,
-        statusCode: e.statusCode,
-      ));
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
     } on ApiException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
@@ -80,11 +87,13 @@ class ProductRepositoryImpl implements ProductRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on GraphQLException catch (e) {
-      return Left(GraphQLFailure(
-        message: e.message,
-        errorCode: e.errorCode,
-        statusCode: e.statusCode,
-      ));
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
     } on ApiException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
@@ -104,11 +113,13 @@ class ProductRepositoryImpl implements ProductRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on GraphQLException catch (e) {
-      return Left(GraphQLFailure(
-        message: e.message,
-        errorCode: e.errorCode,
-        statusCode: e.statusCode,
-      ));
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
     } on ApiException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
@@ -122,14 +133,18 @@ class ProductRepositoryImpl implements ProductRepository {
     int first = 20,
   }) async {
     try {
+      print('🔍 DEBUG Repository: Calling API with handle: "$handle", first: $first');
       final result = await remoteDataSource.getCollectionByHandle(
         handle: handle,
         first: first,
       );
+      print('🔍 DEBUG Repository: API response received: ${result.keys.toList()}');
 
       // Parse collection data
       final collectionData = result['collection'] as Map<String, dynamic>?;
+      print('🔍 DEBUG Repository: Collection data: $collectionData');
       if (collectionData == null) {
+        print('🔍 DEBUG Repository: Collection not found in response');
         return const Left(NotFoundFailure(message: 'Collection not found'));
       }
 
@@ -145,7 +160,8 @@ class ProductRepositoryImpl implements ProductRepository {
         }
       }
 
-      final pageInfo = collectionData['products']?['pageInfo'] as Map<String, dynamic>?;
+      final pageInfo =
+          collectionData['products']?['pageInfo'] as Map<String, dynamic>?;
       final productsResult = ProductsResult(
         products: productsList,
         pageInfo: ProductsPageInfo(
@@ -154,10 +170,12 @@ class ProductRepositoryImpl implements ProductRepository {
         ),
       );
 
-      return Right(CollectionWithProducts(
-        collection: collection,
-        products: productsResult,
-      ));
+      return Right(
+        CollectionWithProducts(
+          collection: collection,
+          products: productsResult,
+        ),
+      );
     } on NotFoundException catch (e) {
       return Left(NotFoundFailure(message: e.message));
     } on NetworkException catch (e) {
@@ -165,11 +183,39 @@ class ProductRepositoryImpl implements ProductRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on GraphQLException catch (e) {
-      return Left(GraphQLFailure(
-        message: e.message,
-        errorCode: e.errorCode,
-        statusCode: e.statusCode,
-      ));
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
+    } on ApiException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BrandEntity>>> getBrands({
+    int first = 250,
+  }) async {
+    try {
+      final result = await remoteDataSource.getBrands(first: first);
+      return Right(result);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on GraphQLException catch (e) {
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
     } on ApiException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
@@ -177,4 +223,3 @@ class ProductRepositoryImpl implements ProductRepository {
     }
   }
 }
-

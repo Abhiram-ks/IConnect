@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
+import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
-import 'package:iconnect/features/products/presentation/bloc/product_state.dart';
 
 /// Product Grid Section - Displays real Shopify products in a grid
 class ShopifyProductGridSection extends StatefulWidget {
@@ -60,7 +60,7 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
         // Product Grid with real Shopify data
         BlocBuilder<ProductBloc, ProductState>(
           builder: (context, state) {
-            if (state is ProductLoading) {
+            if (state.products.status == Status.loading) {
               return SizedBox(
                 height: 300.h,
                 child: Center(
@@ -84,7 +84,7 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
               );
             }
 
-            if (state is ProductError) {
+            if (state.products.status == Status.error) {
               return Container(
                 height: 200.h,
                 margin: EdgeInsets.all(16.w),
@@ -115,7 +115,7 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 24.w),
                         child: Text(
-                          state.message,
+                          state.products.message ?? 'Unknown error',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12.sp,
@@ -143,8 +143,8 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
               );
             }
 
-            if (state is ProductsLoaded) {
-              final products = state.products;
+            if (state.products.status == Status.completed) {
+              final products = state.products.data ?? [];
 
               if (products.isEmpty) {
                 return Container(

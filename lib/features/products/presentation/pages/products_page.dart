@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
-import 'package:iconnect/features/products/presentation/bloc/product_state.dart';
 import 'package:iconnect/features/products/presentation/widgets/product_grid_widget.dart';
 
 /// Products Page - Example of how to use ProductBloc
@@ -29,13 +29,10 @@ class _ProductsPageState extends State<ProductsPage> {
   void _onScroll() {
     if (_isBottom) {
       final state = context.read<ProductBloc>().state;
-      if (state is ProductsLoaded && state.hasNextPage) {
+      if (state.products.status == Status.completed && state.hasNextPage) {
         context.read<ProductBloc>().add(
-              LoadProductsRequested(
-                after: state.endCursor,
-                loadMore: true,
-              ),
-            );
+          LoadProductsRequested(after: state.endCursor, loadMore: true),
+        );
       }
     }
   }
@@ -73,26 +70,26 @@ class _ProductsPageState extends State<ProductsPage> {
         },
         child: BlocBuilder<ProductBloc, ProductState>(
           builder: (context, state) {
-            if (state is ProductLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+            if (state.products.status == Status.loading) {
+              return const Center(child: CircularProgressIndicator());
             }
 
-            if (state is ProductError) {
+            if (state.products.status == Status.error) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Error: ${state.message}',
+                      'Error: ${state.products.message ?? 'Unknown error'}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        context.read<ProductBloc>().add(LoadProductsRequested());
+                        context.read<ProductBloc>().add(
+                          LoadProductsRequested(),
+                        );
                       },
                       child: const Text('Retry'),
                     ),
@@ -101,15 +98,11 @@ class _ProductsPageState extends State<ProductsPage> {
               );
             }
 
-            if (state is ProductsLoaded || state is ProductLoadingMore) {
-              final products = state is ProductsLoaded
-                  ? state.products
-                  : (state as ProductLoadingMore).currentProducts;
+            if (state.products.status == Status.completed) {
+              final products = state.products.data ?? [];
 
               if (products.isEmpty) {
-                return const Center(
-                  child: Text('No products found'),
-                );
+                return const Center(child: Text('No products found'));
               }
 
               return Column(
@@ -120,22 +113,14 @@ class _ProductsPageState extends State<ProductsPage> {
                       scrollController: _scrollController,
                     ),
                   ),
-                  if (state is ProductLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    ),
                 ],
               );
             }
 
-            return const Center(
-              child: Text('No products loaded'),
-            );
+            return const Center(child: Text('No products loaded'));
           },
         ),
       ),
     );
   }
 }
-

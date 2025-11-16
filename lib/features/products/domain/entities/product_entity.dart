@@ -5,6 +5,7 @@ class ProductEntity extends Equatable {
   final String id;
   final String title;
   final String description;
+  final String descriptionHtml;
   final String handle;
   final String? featuredImage;
   final List<String> images;
@@ -19,6 +20,7 @@ class ProductEntity extends Equatable {
     required this.id,
     required this.title,
     required this.description,
+    required this.descriptionHtml,
     required this.handle,
     this.featuredImage,
     required this.images,
@@ -66,6 +68,7 @@ class ProductVariantEntity extends Equatable {
   final double? compareAtPrice;
   final String currencyCode;
   final bool availableForSale;
+  final String? image;
 
   const ProductVariantEntity({
     required this.id,
@@ -74,6 +77,7 @@ class ProductVariantEntity extends Equatable {
     this.compareAtPrice,
     required this.currencyCode,
     required this.availableForSale,
+    this.image,
   });
 
   @override
@@ -84,6 +88,7 @@ class ProductVariantEntity extends Equatable {
         compareAtPrice,
         currencyCode,
         availableForSale,
+        image,
       ];
 }
 

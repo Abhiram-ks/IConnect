@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart' as dio;
-import 'package:graphql_flutter/graphql_flutter.dart' hide NetworkException, ServerException;
+import 'package:graphql_flutter/graphql_flutter.dart'
+    hide NetworkException, ServerException;
 import 'package:iconnect/services/api_exception.dart';
 import 'package:iconnect/services/key_store.dart';
 
@@ -8,7 +9,7 @@ import 'package:iconnect/services/key_store.dart';
 abstract class GraphQLBaseService {
   late final GraphQLClient _client;
   late final dio.Dio _dio;
-  
+
   GraphQLBaseService() {
     _initializeDio();
     _initializeClient();
@@ -66,7 +67,7 @@ abstract class GraphQLBaseService {
   GraphQLClient get client => _client;
 
   /// Execute GraphQL query with comprehensive error handling
-  /// 
+  ///
   /// Returns the data portion of the response
   /// Throws appropriate exceptions for errors
   Future<Map<String, dynamic>> executeQuery(
@@ -105,7 +106,7 @@ abstract class GraphQLBaseService {
   }
 
   /// Execute GraphQL mutation with comprehensive error handling
-  /// 
+  ///
   /// Returns the data portion of the response
   /// Throws appropriate exceptions for errors
   Future<Map<String, dynamic>> executeMutation(
@@ -146,9 +147,9 @@ abstract class GraphQLBaseService {
     // Handle link exception (network errors)
     if (exception.linkException != null) {
       final linkException = exception.linkException;
-      
+
       // Check if it's a network error
-      if (linkException is NetworkException || 
+      if (linkException is NetworkException ||
           linkException.toString().contains('network') ||
           linkException.toString().contains('connection')) {
         throw NetworkException(
@@ -230,36 +231,33 @@ abstract class GraphQLBaseService {
     for (final entry in data.entries) {
       if (entry.value is Map<String, dynamic>) {
         final mutationData = entry.value as Map<String, dynamic>;
-        
+
         // Check for customerUserErrors
         if (mutationData.containsKey('customerUserErrors')) {
           final errors = mutationData['customerUserErrors'] as List?;
           if (errors != null && errors.isNotEmpty) {
-            final errorMessages = errors
-                .map((e) => e['message'] as String)
-                .join(', ');
+            final errorMessages =
+                errors.map((e) => e['message'] as String).join(', ');
             throw ApiException(message: errorMessages);
           }
         }
-        
+
         // Check for checkoutUserErrors
         if (mutationData.containsKey('checkoutUserErrors')) {
           final errors = mutationData['checkoutUserErrors'] as List?;
           if (errors != null && errors.isNotEmpty) {
-            final errorMessages = errors
-                .map((e) => e['message'] as String)
-                .join(', ');
+            final errorMessages =
+                errors.map((e) => e['message'] as String).join(', ');
             throw ApiException(message: errorMessages);
           }
         }
-        
+
         // Check for userErrors (generic)
         if (mutationData.containsKey('userErrors')) {
           final errors = mutationData['userErrors'] as List?;
           if (errors != null && errors.isNotEmpty) {
-            final errorMessages = errors
-                .map((e) => e['message'] as String)
-                .join(', ');
+            final errorMessages =
+                errors.map((e) => e['message'] as String).join(', ');
             throw ApiException(message: errorMessages);
           }
         }
@@ -276,10 +274,11 @@ abstract class GraphQLBaseService {
 /// Concrete implementation of GraphQL Service for Shopify Storefront API
 class ShopifyGraphQLService extends GraphQLBaseService {
   /// Singleton instance
-  static final ShopifyGraphQLService _instance = ShopifyGraphQLService._internal();
-  
+  static final ShopifyGraphQLService _instance =
+      ShopifyGraphQLService._internal();
+
   factory ShopifyGraphQLService() => _instance;
-  
+
   ShopifyGraphQLService._internal();
 
   /// Fetch products with pagination
@@ -371,6 +370,9 @@ class ShopifyGraphQLService extends GraphQLBaseService {
                   amount
                 }
                 availableForSale
+                image {
+                  url
+                }
               }
             }
           }

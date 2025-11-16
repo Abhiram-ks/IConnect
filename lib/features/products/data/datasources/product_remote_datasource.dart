@@ -1,4 +1,5 @@
 import 'package:iconnect/core/graphql/graphql_queries.dart';
+import 'package:iconnect/features/products/data/models/brand_model.dart';
 import 'package:iconnect/features/products/data/models/collection_model.dart';
 import 'package:iconnect/features/products/data/models/product_model.dart';
 import 'package:iconnect/services/graphql_base_service.dart';
@@ -26,6 +27,9 @@ abstract class ProductRemoteDataSource {
     required String handle,
     int first = 20,
   });
+
+  /// Get all unique brands (vendors) from products
+  Future<List<BrandModel>> getBrands({int first = 250});
 }
 
 /// Product Remote Data Source Implementation
@@ -90,7 +94,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     );
 
     final collectionsList = <CollectionModel>[];
-    if (result['collections'] != null && result['collections']['edges'] != null) {
+    if (result['collections'] != null &&
+        result['collections']['edges'] != null) {
       final edges = result['collections']['edges'] as List;
       for (final edge in edges) {
         collectionsList.add(CollectionModel.fromJson(edge['node']));
@@ -105,15 +110,45 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     required String handle,
     int first = 20,
   }) async {
+    print('🔍 DEBUG DataSource: Executing GraphQL query with handle: "$handle", first: $first');
+    print('🔍 DEBUG DataSource: Query: ${GraphQLQueries.getCollectionByHandle}');
+    
     final result = await graphQLService.executeQuery(
       GraphQLQueries.getCollectionByHandle,
-      variables: {
-        'handle': handle,
-        'first': first,
-      },
+      variables: {'handle': handle, 'first': first},
     );
-
+    
+    print('🔍 DEBUG DataSource: GraphQL response: $result');
     return result;
   }
-}
 
+  @override
+  Future<List<BrandModel>> getBrands({int first = 250}) async {
+    // Fetch products to extract unique vendors
+    final result = await graphQLService.executeQuery(
+      GraphQLQueries.getBrands,
+      variables: {'first': first},
+    );
+
+    final vendorsSet = <String>{};
+
+    if (result['products'] != null && result['products']['edges'] != null) {
+      final edges = result['products']['edges'] as List;
+
+      for (final edge in edges) {
+        final node = edge['node'] as Map<String, dynamic>?;
+        if (node == null) continue;
+
+        final vendor = node['vendor'] as String?;
+        if (vendor != null && vendor.isNotEmpty) {
+          vendorsSet.add(vendor);
+        }
+      }
+    }
+
+    // Convert unique vendors to BrandModel list
+    return vendorsSet.map((vendor) {
+      return BrandModel.fromVendor(vendor: vendor);
+    }).toList();
+  }
+}

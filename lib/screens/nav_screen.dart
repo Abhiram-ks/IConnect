@@ -5,14 +5,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_drawer.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/constant/constant.dart';
+import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
-import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
+import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
+import 'package:iconnect/features/cart/presentation/widgets/cart_drawer_widget.dart';
 import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
 import 'package:iconnect/screens/detailed_cart_screen.dart';
 import 'package:iconnect/screens/home_screen.dart';
 import 'package:iconnect/screens/product_screen.dart';
 import 'package:iconnect/screens/search_screen.dart';
-import 'package:iconnect/widgets/cart_drawer.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 class BottomNavigationControllers extends StatelessWidget {
@@ -37,7 +38,7 @@ class BottomNavigationControllers extends StatelessWidget {
           child: SafeArea(
             child: Scaffold(
               drawer: AppDrawer(),
-              endDrawer: const CartDrawer(),
+              endDrawer: const CartDrawerWidget(),
               appBar: CustomAppBarDashbord(),
               body: Stack(
                 children: [
@@ -134,14 +135,22 @@ class BottomNavigationControllers extends StatelessWidget {
                           ),
                           BottomNavigationBarItem(
                             icon: BlocBuilder<CartCubit, CartState>(
+                              bloc: sl<CartCubit>(),
                               builder: (context, state) {
+                                int itemCount = 0;
+                                if (state is CartLoaded) {
+                                  itemCount = state.cart.itemCount;
+                                } else if (state is CartOperationInProgress) {
+                                  itemCount = state.currentCart.itemCount;
+                                }
+                                
                                 return Stack(
                                   children: [
                                     Icon(
                                       Icons.shopping_bag_outlined,
                                       size: 16.sp,
                                     ),
-                                    if (state.itemCount > 0)
+                                    if (itemCount > 0)
                                       Positioned(
                                         right: 0,
                                         top: 0,
@@ -152,7 +161,7 @@ class BottomNavigationControllers extends StatelessWidget {
                                             shape: BoxShape.circle,
                                           ),
                                           child: Text(
-                                            '${state.itemCount}',
+                                            '$itemCount',
                                             style: TextStyle(
                                               color: AppPalette.whiteColor,
                                               fontSize: 8.sp,
@@ -167,14 +176,22 @@ class BottomNavigationControllers extends StatelessWidget {
                             ),
                             label: 'Cart',
                             activeIcon: BlocBuilder<CartCubit, CartState>(
+                              bloc: sl<CartCubit>(),
                               builder: (context, state) {
+                                int itemCount = 0;
+                                if (state is CartLoaded) {
+                                  itemCount = state.cart.itemCount;
+                                } else if (state is CartOperationInProgress) {
+                                  itemCount = state.currentCart.itemCount;
+                                }
+                                
                                 return Stack(
                                   children: [
                                     const Icon(
                                       Icons.shopping_bag_rounded,
                                       color: AppPalette.blueColor,
                                     ),
-                                    if (state.itemCount > 0)
+                                    if (itemCount > 0)
                                       Positioned(
                                         right: 0,
                                         top: 0,
@@ -185,7 +202,7 @@ class BottomNavigationControllers extends StatelessWidget {
                                             shape: BoxShape.circle,
                                           ),
                                           child: Text(
-                                            '${state.itemCount}',
+                                            '$itemCount',
                                             style: TextStyle(
                                               color: AppPalette.whiteColor,
                                               fontSize: 8.sp,
@@ -321,8 +338,16 @@ class CustomAppBarDashbord extends StatelessWidget
                   ),
                 ),
                 BlocBuilder<CartCubit, CartState>(
+                  bloc: sl<CartCubit>(),
                   builder: (context, state) {
-                    if (state.itemCount > 0) {
+                    int itemCount = 0;
+                    if (state is CartLoaded) {
+                      itemCount = state.cart.itemCount;
+                    } else if (state is CartOperationInProgress) {
+                      itemCount = state.currentCart.itemCount;
+                    }
+                    
+                    if (itemCount > 0) {
                       return Positioned(
                         right: 8.w,
                         top: 8.h,
@@ -333,7 +358,7 @@ class CustomAppBarDashbord extends StatelessWidget
                             shape: BoxShape.circle,
                           ),
                           child: Text(
-                            '${state.itemCount}',
+                            '$itemCount',
                             style: TextStyle(
                               color: AppPalette.whiteColor,
                               fontSize: 10.sp,

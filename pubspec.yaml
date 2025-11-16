@@ -50,6 +50,9 @@ dependencies:
   get_it: ^7.6.0
   cached_network_image: ^3.3.0
   infinite_carousel: ^1.1.1
+  shared_preferences: ^2.2.2
+  flutter_html: ^3.0.0
+  flutter_html_table: ^3.0.0
 
 dev_dependencies:
   flutter_test:

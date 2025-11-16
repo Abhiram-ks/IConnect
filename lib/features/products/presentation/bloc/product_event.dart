@@ -37,11 +37,12 @@ class LoadProductByHandleRequested extends ProductEvent {
 /// Load collections event
 class LoadCollectionsRequested extends ProductEvent {
   final int first;
+  final bool forBanners;
 
-  LoadCollectionsRequested({this.first = 10});
+  LoadCollectionsRequested({this.first = 10, this.forBanners = false});
 
   @override
-  List<Object?> get props => [first];
+  List<Object?> get props => [first, forBanners];
 }
 
 /// Load collection with products event
@@ -49,15 +50,39 @@ class LoadCollectionByHandleRequested extends ProductEvent {
   final String handle;
   final int first;
 
-  LoadCollectionByHandleRequested({
-    required this.handle,
-    this.first = 20,
-  });
+  LoadCollectionByHandleRequested({required this.handle, this.first = 20});
 
   @override
   List<Object?> get props => [handle, first];
 }
 
+/// Load brands event
+class LoadBrandsRequested extends ProductEvent {
+  final int first;
+
+  LoadBrandsRequested({this.first = 250});
+
+  @override
+  List<Object?> get props => [first];
+}
+
+/// Load products by brand (vendor) event
+class LoadBrandProductsRequested extends ProductEvent {
+  final String vendor;
+  final int first;
+  final String? after;
+  final bool loadMore;
+
+  LoadBrandProductsRequested({
+    required this.vendor,
+    this.first = 20,
+    this.after,
+    this.loadMore = false,
+  });
+
+  @override
+  List<Object?> get props => [vendor, first, after, loadMore];
+}
+
 /// Refresh products event
 class RefreshProductsRequested extends ProductEvent {}
-

@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
+import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
-import 'package:iconnect/features/products/presentation/bloc/product_state.dart';
 
 /// New Arrivals Section - Displays real Shopify products
 class ShopifyNewArrivalsSection extends StatefulWidget {
@@ -74,7 +74,7 @@ class _ShopifyNewArrivalsSectionState extends State<ShopifyNewArrivalsSection> {
           height: 240.h,
           child: BlocBuilder<ProductBloc, ProductState>(
             builder: (context, state) {
-              if (state is ProductLoading) {
+              if (state.products.status == Status.loading) {
                 return Center(
                   child: CircularProgressIndicator(
                     color: AppPalette.blueColor,
@@ -82,7 +82,7 @@ class _ShopifyNewArrivalsSectionState extends State<ShopifyNewArrivalsSection> {
                 );
               }
 
-              if (state is ProductError) {
+              if (state.products.status == Status.error) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -113,8 +113,8 @@ class _ShopifyNewArrivalsSectionState extends State<ShopifyNewArrivalsSection> {
                 );
               }
 
-              if (state is ProductsLoaded) {
-                final products = state.products;
+              if (state.products.status == Status.completed) {
+                final products = state.products.data ?? [];
 
                 if (products.isEmpty) {
                   return Center(

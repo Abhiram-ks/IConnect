@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:iconnect/core/error/failures.dart';
+import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 
@@ -28,6 +29,9 @@ abstract class ProductRepository {
     required String handle,
     int first = 20,
   });
+
+  /// Get all unique brands (vendors) from products
+  Future<Either<Failure, List<BrandEntity>>> getBrands({int first = 250});
 }
 
 /// Collection with products result
@@ -40,4 +44,3 @@ class CollectionWithProducts {
     required this.products,
   });
 }
-

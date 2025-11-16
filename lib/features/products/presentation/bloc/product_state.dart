@@ -1,90 +1,64 @@
-import 'package:equatable/equatable.dart';
-import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
-import 'package:iconnect/features/products/domain/entities/product_entity.dart';
+part of 'product_bloc.dart';
 
-/// Product States
-abstract class ProductState extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
+class ProductState {
+  ApiResponse<List<ProductEntity>> products;
+  ApiResponse<ProductEntity> productDetail;
+  ApiResponse<List<CollectionEntity>> collections;
+  ApiResponse<List<CollectionEntity>> banners;
+  ApiResponse<CollectionWithProducts> collectionWithProducts;
+  ApiResponse<List<BrandEntity>> brands;
+  ApiResponse<List<ProductEntity>> brandProducts; // Separate state for brand products
+  bool hasNextPage;
+  String? endCursor;
+  bool brandProductsHasNextPage; // Separate pagination for brand products
+  String? brandProductsEndCursor;
 
-/// Initial state
-class ProductInitial extends ProductState {}
-
-/// Loading state
-class ProductLoading extends ProductState {}
-
-/// Load more state (for pagination)
-class ProductLoadingMore extends ProductState {
-  final List<ProductEntity> currentProducts;
-
-  ProductLoadingMore({required this.currentProducts});
-
-  @override
-  List<Object?> get props => [currentProducts];
-}
-
-/// Products loaded successfully
-class ProductsLoaded extends ProductState {
-  final List<ProductEntity> products;
-  final bool hasNextPage;
-  final String? endCursor;
-
-  ProductsLoaded({
-    required this.products,
-    required this.hasNextPage,
+  ProductState({
+    ApiResponse<List<ProductEntity>>? products,
+    ApiResponse<ProductEntity>? productDetail,
+    ApiResponse<List<CollectionEntity>>? collections,
+    ApiResponse<List<CollectionEntity>>? banners,
+    ApiResponse<CollectionWithProducts>? collectionWithProducts,
+    ApiResponse<List<BrandEntity>>? brands,
+    ApiResponse<List<ProductEntity>>? brandProducts,
+    this.hasNextPage = false,
     this.endCursor,
-  });
+    this.brandProductsHasNextPage = false,
+    this.brandProductsEndCursor,
+  })  : products = products ?? ApiResponse.initial(),
+        productDetail = productDetail ?? ApiResponse.initial(),
+        collections = collections ?? ApiResponse.initial(),
+        banners = banners ?? ApiResponse.initial(),
+        collectionWithProducts = collectionWithProducts ?? ApiResponse.initial(),
+        brands = brands ?? ApiResponse.initial(),
+        brandProducts = brandProducts ?? ApiResponse.initial();
 
-  @override
-  List<Object?> get props => [products, hasNextPage, endCursor];
-}
-
-/// Single product loaded successfully
-class ProductDetailLoaded extends ProductState {
-  final ProductEntity product;
-
-  ProductDetailLoaded({required this.product});
-
-  @override
-  List<Object?> get props => [product];
-}
-
-/// Collections loaded successfully
-class CollectionsLoaded extends ProductState {
-  final List<CollectionEntity> collections;
-
-  CollectionsLoaded({required this.collections});
-
-  @override
-  List<Object?> get props => [collections];
-}
-
-/// Collection with products loaded successfully
-class CollectionWithProductsLoaded extends ProductState {
-  final CollectionEntity collection;
-  final List<ProductEntity> products;
-  final bool hasNextPage;
-  final String? endCursor;
-
-  CollectionWithProductsLoaded({
-    required this.collection,
-    required this.products,
-    required this.hasNextPage,
-    this.endCursor,
-  });
-
-  @override
-  List<Object?> get props => [collection, products, hasNextPage, endCursor];
-}
-
-/// Error state
-class ProductError extends ProductState {
-  final String message;
-
-  ProductError({required this.message});
-
-  @override
-  List<Object?> get props => [message];
+  ProductState copyWith({
+    ApiResponse<List<ProductEntity>>? products,
+    ApiResponse<ProductEntity>? productDetail,
+    ApiResponse<List<CollectionEntity>>? collections,
+    ApiResponse<List<CollectionEntity>>? banners,
+    ApiResponse<CollectionWithProducts>? collectionWithProducts,
+    ApiResponse<List<BrandEntity>>? brands,
+    ApiResponse<List<ProductEntity>>? brandProducts,
+    bool? hasNextPage,
+    String? endCursor,
+    bool? brandProductsHasNextPage,
+    String? brandProductsEndCursor,
+  }) {
+    return ProductState(
+      products: products ?? this.products,
+      productDetail: productDetail ?? this.productDetail,
+      collections: collections ?? this.collections,
+      banners: banners ?? this.banners,
+      collectionWithProducts: collectionWithProducts ?? this.collectionWithProducts,
+      brands: brands ?? this.brands,
+      brandProducts: brandProducts ?? this.brandProducts,
+      hasNextPage: hasNextPage ?? this.hasNextPage,
+      endCursor: endCursor ?? this.endCursor,
+      brandProductsHasNextPage: brandProductsHasNextPage ?? this.brandProductsHasNextPage,
+      brandProductsEndCursor: brandProductsEndCursor ?? this.brandProductsEndCursor,
+    );
+  }
 }
 

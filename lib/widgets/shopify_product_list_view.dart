@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
+import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
-import 'package:iconnect/features/products/presentation/bloc/product_state.dart';
 import 'package:iconnect/features/products/presentation/widgets/shopify_product_card.dart';
 
 /// Shopify Product List View - Grid or List view with real Shopify products
-/// 
+///
 /// Usage in Product Screen:
 /// ```dart
 /// ShopifyProductListView(
@@ -35,7 +35,9 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
   void initState() {
     super.initState();
     // Load products from Shopify
-    context.read<ProductBloc>().add(LoadProductsRequested(first: widget.productCount));
+    context.read<ProductBloc>().add(
+      LoadProductsRequested(first: widget.productCount),
+    );
   }
 
   @override
@@ -43,21 +45,16 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
     return BlocBuilder<ProductBloc, ProductState>(
       builder: (context, state) {
         // Loading State
-        if (state is ProductLoading) {
+        if (state.products.status == Status.loading) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(
-                  color: AppPalette.blueColor,
-                ),
+                CircularProgressIndicator(color: AppPalette.blueColor),
                 SizedBox(height: 16.h),
                 Text(
                   'Loading products from Shopify...',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey),
                 ),
               ],
             ),
@@ -65,18 +62,14 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
         }
 
         // Error State
-        if (state is ProductError) {
+        if (state.products.status == Status.error) {
           return Center(
             child: Padding(
               padding: EdgeInsets.all(24.w),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64.sp,
-                    color: Colors.red,
-                  ),
+                  Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
                   SizedBox(height: 16.h),
                   Text(
                     'Failed to load products',
@@ -87,19 +80,16 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    state.message,
+                    state.products.message ?? 'Unknown error',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
                   ),
                   SizedBox(height: 24.h),
                   ElevatedButton.icon(
                     onPressed: () {
                       context.read<ProductBloc>().add(
-                            LoadProductsRequested(first: widget.productCount),
-                          );
+                        LoadProductsRequested(first: widget.productCount),
+                      );
                     },
                     icon: Icon(Icons.refresh),
                     label: Text('Retry'),
@@ -119,8 +109,8 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
         }
 
         // Products Loaded State
-        if (state is ProductsLoaded) {
-          final products = state.products;
+        if (state.products.status == Status.completed) {
+          final products = state.products.data ?? [];
 
           if (products.isEmpty) {
             return Center(
@@ -135,10 +125,7 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
                   SizedBox(height: 16.h),
                   Text(
                     'No products available',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 16.sp, color: Colors.grey),
                   ),
                 ],
               ),
@@ -200,28 +187,28 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8.r),
                           child: CachedNetworkImage(
-                            imageUrl: product.featuredImage ?? product.images.first,
+                            imageUrl:
+                                product.featuredImage ?? product.images.first,
                             width: 80.w,
                             height: 80.h,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[200],
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: AppPalette.blueColor,
-                                  strokeWidth: 2,
+                            placeholder:
+                                (context, url) => Container(
+                                  color: Colors.grey[200],
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppPalette.blueColor,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              width: 80.w,
-                              height: 80.h,
-                              color: Colors.grey[200],
-                              child: Icon(
-                                Icons.image,
-                                color: Colors.grey,
-                              ),
-                            ),
+                            errorWidget:
+                                (context, url, error) => Container(
+                                  width: 80.w,
+                                  height: 80.h,
+                                  color: Colors.grey[200],
+                                  child: Icon(Icons.image, color: Colors.grey),
+                                ),
                           ),
                         ),
                         SizedBox(width: 12.w),
@@ -260,7 +247,8 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
                                       color: AppPalette.blueColor,
                                     ),
                                   ),
-                                  if (product.hasDiscount && product.compareAtPrice != null) ...[
+                                  if (product.hasDiscount &&
+                                      product.compareAtPrice != null) ...[
                                     SizedBox(width: 8.w),
                                     Text(
                                       '${product.currencyCode} ${product.compareAtPrice!.toStringAsFixed(2)}',
@@ -320,14 +308,10 @@ class _ShopifyProductListViewState extends State<ShopifyProductListView> {
         return Center(
           child: Text(
             'No products loaded',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey),
           ),
         );
       },
     );
   }
 }
-

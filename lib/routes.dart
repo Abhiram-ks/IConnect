@@ -1,55 +1,95 @@
-
 import 'package:flutter/material.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/screens/product_details_screen.dart';
 import 'package:iconnect/screens/banner_details_screen.dart';
 import 'package:iconnect/screens/test_shopify_products.dart';
+import 'package:iconnect/screens/collection_products_screen.dart';
+import 'package:iconnect/features/products/presentation/pages/brand_details_page.dart';
 
 import 'constant/constant.dart';
 
 class AppRoutes {
   static const String navigation = '/';
-  static const String login  = '/login_screen';
-  static const String dashbord   = '/dashbord_screen';
+  static const String login = '/login_screen';
+  static const String dashbord = '/dashbord_screen';
   static const String pdiform = '/PdiformScreen';
   static const String createuser = '/createuser_screen';
   static const String tabbarExample = '/tabbar_example';
   static const String productDetails = '/product_details';
   static const String bannerDetails = '/banner_details';
+  static const String collectionProducts = '/collection_products';
+  static const String brandDetails = '/brand_details';
   static const String testShopify = '/test-shopify-products';
-
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case navigation:
-       return MaterialPageRoute(builder: (context) =>  BottomNavigationControllers());
+        return MaterialPageRoute(
+          builder: (context) => BottomNavigationControllers(),
+        );
       case productDetails:
         final args = settings.arguments as Map<String, dynamic>?;
-        final productId = args?['productId'] as int? ?? 1;
+        // Support both productHandle (new) and productId (old for backward compatibility)
+        final productHandle = args?['productHandle'] as String?;
+        final productId = args?['productId'] as int?;
+
+        // If productHandle is provided, use it; otherwise convert productId to handle
+        final handle = productHandle ?? 'product-$productId';
+
         return MaterialPageRoute(
-          builder: (context) => ProductDetailsScreen(productId: productId),
+          builder: (context) => ProductDetailsScreen(productHandle: handle),
         );
       case bannerDetails:
         final args = settings.arguments as Map<String, dynamic>?;
-        final bannerTitle = args?['bannerTitle'] as String? ?? 'Featured Products';
-        final bannerProducts = args?['bannerProducts'] as List<Map<String, dynamic>>? ?? [];
+        final bannerTitle =
+            args?['bannerTitle'] as String? ?? 'Featured Products';
+        final bannerProducts =
+            args?['bannerProducts'] as List<Map<String, dynamic>>? ?? [];
         return MaterialPageRoute(
-          builder: (context) => BannerDetailsScreen(
-            bannerTitle: bannerTitle,
-            bannerProducts: bannerProducts,
-          ),
+          builder:
+              (context) => BannerDetailsScreen(
+                bannerTitle: bannerTitle,
+                bannerProducts: bannerProducts,
+              ),
+        );
+      case collectionProducts:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final collectionHandle = args?['collectionHandle'] as String? ?? '';
+        final collectionTitle =
+            args?['collectionTitle'] as String? ?? 'Products';
+        return MaterialPageRoute(
+          builder:
+              (context) => CollectionProductsScreen(
+                collectionHandle: collectionHandle,
+                collectionTitle: collectionTitle,
+              ),
+        );
+      case brandDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final brandId = args?['brandId'] as int? ?? 0;
+        final brandName = args?['brandName'] as String? ?? 'Brand';
+        final brandVendor = args?['brandVendor'] as String? ?? '';
+        final brandImageUrl = args?['brandImageUrl'] as String? ?? '';
+        return MaterialPageRoute(
+          builder:
+              (context) => BrandDetailsPage(
+                brandId: brandId,
+                brandName: brandName,
+                brandVendor: brandVendor,
+                brandImageUrl: brandImageUrl,
+              ),
         );
       case testShopify:
         return MaterialPageRoute(
           builder: (context) => const TestShopifyProductsScreen(),
         );
       case login:
-     //   return MaterialPageRoute(builder: (context) => const LoginScreen());
+      //   return MaterialPageRoute(builder: (context) => const LoginScreen());
       case dashbord:
-    //    return MaterialPageRoute(builder: (context) => const DashboardScreen());
+      //    return MaterialPageRoute(builder: (context) => const DashboardScreen());
       case pdiform:
       //  return MaterialPageRoute(builder: (context) => const PdiformScreen());
-     
+
       default:
         return MaterialPageRoute(
           builder:
@@ -74,7 +114,7 @@ class AppRoutes {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                           ConstantWidgets.hight20(context),
+                            ConstantWidgets.hight20(context),
                             Text(
                               'The page you were looking for could not be found. '
                               'It might have been removed, renamed, or does not exist.',
