@@ -32,7 +32,7 @@ class ConstantWidgets {
 class WhatsAppConfig {
   // WhatsApp phone number (with country code, no + sign)
   // Qatar number: +974 7048 9798
-  static const String phoneNumber = '97470489798';
+  static const String phoneNumber = '7592979193';
   
   // Default message when opening WhatsApp
   static const String defaultMessage = 'Hello, I need help with my order';
@@ -41,4 +41,16 @@ class WhatsAppConfig {
 class PhoneConfig {
   // Phone number for direct calls
   static const String phoneNumber = '7592979193';
+}
+
+class WebsiteConfig {
+  // Base URL for public product pages (used in WhatsApp deep links)
+  // Update this to your live site domain. Example:
+  // https://iconnect.qa/products/
+  static const String productBaseUrl = 'https://iconnect.qa/products/';
+
+  static String productUrl(String handle) {
+    if (productBaseUrl.isEmpty) return '';
+    return '$productBaseUrl$handle';
+  }
 }

@@ -11,7 +11,6 @@ import 'package:iconnect/features/products/presentation/bloc/product_event.dart'
 import 'package:iconnect/features/products/presentation/widgets/category_card.dart';
 import 'package:infinite_carousel/infinite_carousel.dart';
 
-/// Categories Carousel Widget - Displays categories in a horizontal scrollable carousel
 class CategoriesCarousel extends StatefulWidget {
   const CategoriesCarousel({super.key});
 
@@ -85,20 +84,6 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProductBloc, ProductState>(
       builder: (context, state) {
-        // Debug: Print current state
-        print(
-          '🔍 Categories State: ${state.collections.status}',
-        );
-        if (state.collections.data != null) {
-          print(
-            '📦 Collections count: ${state.collections.data!.length}',
-          );
-        }
-        if (state.collections.message != null) {
-          print('❌ Error: ${state.collections.message}');
-        }
-
-        // Show loading indicator while fetching
         if (state.collections.status == Status.loading) {
           return SizedBox(
             height: 110.h,
@@ -301,7 +286,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
         }
 
         // Initial state - show loading
-        return Container(
+        return SizedBox(
           height: 110.h,
           child: Center(
             child: CircularProgressIndicator(

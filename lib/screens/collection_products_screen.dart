@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,12 +9,14 @@ import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
-import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
+import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart' as products;
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/screens/search_screen.dart';
-import 'package:iconnect/widgets/cart_drawer.dart';
+import 'package:iconnect/features/cart/presentation/widgets/cart_drawer_widget.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
+
+import '../widgets/shopify_product_grid_section.dart';
 
 class CollectionProductsScreen extends StatefulWidget {
   final String collectionHandle;
@@ -33,14 +37,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   @override
   void initState() {
     super.initState();
-    // Debug: Print the collection handle being used
-    print(
-      '🔍 DEBUG: Loading collection with handle: "${widget.collectionHandle}"',
-    );
-    print('🔍 DEBUG: Collection title: "${widget.collectionTitle}"');
-
-    // Load collection with products
-    context.read<ProductBloc>().add(
+    context.read<products.ProductBloc>().add(
       LoadCollectionByHandleRequested(
         handle: widget.collectionHandle,
         first: 20,
@@ -52,11 +49,11 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: AppDrawer(),
-      endDrawer: const CartDrawerWidget(),
+      endDrawer: CartDrawerWidget(),
       appBar: CustomAppBarDashbord(),
       body: Stack(
         children: [
-          BlocBuilder<ProductBloc, ProductState>(
+          BlocBuilder<products.ProductBloc, products.ProductState>(
             builder: (context, state) {
               // Loading state
               if (state.collectionWithProducts.status == Status.loading) {
@@ -94,7 +91,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                       SizedBox(height: 24.h),
                       ElevatedButton(
                         onPressed: () {
-                          context.read<ProductBloc>().add(
+                          context.read<products.ProductBloc>().add(
                             LoadCollectionByHandleRequested(
                               handle: widget.collectionHandle,
                               first: 20,
@@ -132,7 +129,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Collection Hero Section
-                      _buildCollectionHero(
+                      buildCollectionHero(
                         collection.title,
                         collection.description,
                         collection.imageUrl,
@@ -142,8 +139,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                       // Products Grid Section
                       _buildProductsSection(products),
 
-                      // Bottom padding for floating button
-                      SizedBox(height: 100.h),
                     ],
                   ),
                 );
@@ -317,7 +312,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
     );
   }
 
-  Widget _buildCollectionHero(
+  Widget buildCollectionHero(
     String title,
     String description,
     String? imageUrl,
@@ -325,7 +320,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   ) {
     return Container(
       width: double.infinity,
-      height: 250.h,
+      height: 150.h,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -387,12 +382,11 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 28.sp,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 8.h),
                 if (description.isNotEmpty)
                   Text(
                     description,
@@ -403,32 +397,13 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                SizedBox(height: 8.h),
                 Text(
                   '$productCount products available',
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: 14.sp,
+                  
                     color: Colors.white.withValues(alpha: 0.9),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 8.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Text(
-                    'Shop Now',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    fontWeight: FontWeight.w200,
                   ),
                 ),
               ],
@@ -502,8 +477,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
             ],
           ),
           SizedBox(height: 16.h),
-
-          // Products Grid
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -516,7 +489,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
-              return _buildProductCard(product);
+              return ShopifyGridProductCard(product: product);
             },
           ),
         ],
@@ -524,113 +497,4 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
     );
   }
 
-  Widget _buildProductCard(dynamic product) {
-    final imageUrl = product.featuredImage ?? '';
-    final title = product.title ?? 'No title';
-    final currencyCode = product.currencyCode ?? 'QAR';
-    final handle = product.handle ?? '';
-
-    return GestureDetector(
-      onTap: () {
-        if (handle.isNotEmpty) {
-          Navigator.pushNamed(
-            context,
-            '/product_details',
-            arguments: {'productHandle': handle},
-          );
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
-              child:
-                  imageUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        height: 150.h,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        placeholder:
-                            (context, url) => Container(
-                              height: 150.h,
-                              color: Colors.grey[200],
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: AppPalette.blueColor,
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                        errorWidget:
-                            (context, url, error) => Container(
-                              height: 150.h,
-                              color: Colors.grey[200],
-                              child: Icon(
-                                Icons.image_not_supported,
-                                color: Colors.grey,
-                                size: 40.sp,
-                              ),
-                            ),
-                      )
-                      : Container(
-                        height: 150.h,
-                        color: Colors.grey[200],
-                        child: Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                          size: 40.sp,
-                        ),
-                      ),
-            ),
-
-            // Product Details
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(12.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Spacer(),
-                    Text(
-                      '$currencyCode ${product.minPrice.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppPalette.blueColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

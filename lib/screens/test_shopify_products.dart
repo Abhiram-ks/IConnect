@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconnect/app_palette.dart';
-import 'package:iconnect/widgets/shopify_new_arrivals_section.dart';
+import 'package:iconnect/features/products/presentation/widgets/home_widgets/shopify_new_arrivals_section.dart';
 import 'package:iconnect/widgets/shopify_product_grid_section.dart';
 
 /// 🎯 Test Screen - See Real Shopify Products in Action!

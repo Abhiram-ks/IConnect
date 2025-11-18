@@ -1,23 +1,27 @@
+
+
+
 import 'package:get_it/get_it.dart';
-import 'package:iconnect/features/cart/data/datasources/cart_remote_datasource.dart';
-import 'package:iconnect/features/cart/data/repositories/cart_repository_impl.dart';
-import 'package:iconnect/features/cart/domain/repositories/cart_repository.dart';
-import 'package:iconnect/features/cart/domain/usecases/add_line_items_usecase.dart';
-import 'package:iconnect/features/cart/domain/usecases/create_checkout_usecase.dart';
-import 'package:iconnect/features/cart/domain/usecases/get_checkout_usecase.dart';
-import 'package:iconnect/features/cart/domain/usecases/remove_line_items_usecase.dart';
-import 'package:iconnect/features/cart/domain/usecases/update_line_items_usecase.dart';
-import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
-import 'package:iconnect/features/products/data/datasources/product_remote_datasource.dart';
-import 'package:iconnect/features/products/data/repositories/product_repository_impl.dart';
-import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
-import 'package:iconnect/features/products/domain/usecases/get_brands_usecase.dart';
-import 'package:iconnect/features/products/domain/usecases/get_collections_usecase.dart';
-import 'package:iconnect/features/products/domain/usecases/get_product_by_handle_usecase.dart';
-import 'package:iconnect/features/products/domain/usecases/get_products_usecase.dart';
-import 'package:iconnect/features/products/domain/usecases/get_collection_by_handle_usecase.dart';
-import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
-import 'package:iconnect/services/graphql_base_service.dart';
+
+import '../../features/cart/data/datasources/cart_remote_datasource.dart';
+import '../../features/cart/data/repositories/cart_repository_impl.dart';
+import '../../features/cart/domain/repositories/cart_repository.dart';
+import '../../features/cart/domain/usecases/add_line_items_usecase.dart';
+import '../../features/cart/domain/usecases/create_checkout_usecase.dart';
+import '../../features/cart/domain/usecases/get_checkout_usecase.dart';
+import '../../features/cart/domain/usecases/remove_line_items_usecase.dart';
+import '../../features/cart/domain/usecases/update_line_items_usecase.dart';
+import '../../features/cart/presentation/cubit/cart_cubit.dart';
+import '../../features/products/data/datasources/product_remote_datasource.dart';
+import '../../features/products/data/repositories/product_repository_impl.dart';
+import '../../features/products/domain/repositories/product_repository.dart';
+import '../../features/products/domain/usecases/get_brands_usecase.dart';
+import '../../features/products/domain/usecases/get_collection_by_handle_usecase.dart';
+import '../../features/products/domain/usecases/get_collections_usecase.dart';
+import '../../features/products/domain/usecases/get_product_by_handle_usecase.dart';
+import '../../features/products/domain/usecases/get_products_usecase.dart';
+import '../../features/products/presentation/bloc/product_bloc.dart';
+import '../../services/graphql_base_service.dart';
 
 /// Service Locator Instance
 final sl = GetIt.instance;

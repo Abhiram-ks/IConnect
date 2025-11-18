@@ -182,7 +182,7 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
                 ),
                 itemCount: products.length,
                 itemBuilder: (context, index) {
-                  return _ShopifyGridProductCard(product: products[index]);
+                  return ShopifyGridProductCard(product: products[index]);
                 },
               );
             }
@@ -196,10 +196,10 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
 }
 
 /// Product Card for Grid Layout
-class _ShopifyGridProductCard extends StatelessWidget {
+class ShopifyGridProductCard extends StatelessWidget {
   final ProductEntity product;
 
-  const _ShopifyGridProductCard({required this.product});
+  const ShopifyGridProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -217,7 +217,7 @@ class _ShopifyGridProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: Offset(0, 4),
             ),
