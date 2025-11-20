@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -44,7 +43,9 @@ class BannerSection extends StatelessWidget {
             return GestureDetector(
               onTap: () {
                 final bannersWithImages =
-                    banners.where((b) => (b.imageUrl ?? '').trim().isNotEmpty).toList();
+                    banners
+                        .where((b) => (b.imageUrl ?? '').trim().isNotEmpty)
+                        .toList();
 
                 if (bannersWithImages.isNotEmpty) {
                   final firstBanner = bannersWithImages[0];

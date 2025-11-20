@@ -25,7 +25,7 @@ class _ProductScreenState extends State<ProductScreen> {
     'https://iconnectqatar.com/cdn/shop/files/iMac_4.webp?v=1762517649&width=533',
   ];
 
-    final List<String> gridImages2 = [
+  final List<String> gridImages2 = [
     'https://iconnectqatar.com/cdn/shop/files/fold_and_flip_1.webp?v=1762518226&width=360',
     'https://iconnectqatar.com/cdn/shop/files/Page6.webp?v=1762518226&width=360',
     'https://iconnectqatar.com/cdn/shop/files/hONOR.webp?v=1762518226&width=533',
@@ -51,8 +51,11 @@ class _ProductScreenState extends State<ProductScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Banner Image with Error Handling
-              _buildBannerImage(context, 'https://iconnectqatar.com/cdn/shop/files/main_page_updated_5.webp?v=1762517648&width=940'),
-              
+              _buildBannerImage(
+                context,
+                'https://iconnectqatar.com/cdn/shop/files/main_page_updated_5.webp?v=1762517648&width=940',
+              ),
+
               ConstantWidgets.hight10(context),
 
               // Horizontal Scrolling Images
@@ -64,16 +67,18 @@ class _ProductScreenState extends State<ProductScreen> {
                   itemCount: gridImages.length,
                   itemBuilder: (context, index) {
                     return SizedBox(
-                        width: 250.w,
-                        child: _buildGridImage(gridImages[index], index),
-                      
+                      width: 250.w,
+                      child: _buildGridImage(gridImages[index], index),
                     );
                   },
                 ),
               ),
               ConstantWidgets.hight50(context),
-               _buildBannerImage(context, 'https://iconnectqatar.com/cdn/shop/files/ipad_new.webp?v=1762517649&width=360'),
-              
+              _buildBannerImage(
+                context,
+                'https://iconnectqatar.com/cdn/shop/files/ipad_new.webp?v=1762517649&width=360',
+              ),
+
               ConstantWidgets.hight10(context),
 
               // Horizontal Scrolling Images
@@ -85,9 +90,8 @@ class _ProductScreenState extends State<ProductScreen> {
                   itemCount: gridImages.length,
                   itemBuilder: (context, index) {
                     return SizedBox(
-                        width: 250.w,
-                        child: _buildGridImage(gridImages2[index], index),
-                      
+                      width: 250.w,
+                      child: _buildGridImage(gridImages2[index], index),
                     );
                   },
                 ),
@@ -108,7 +112,7 @@ class _ProductScreenState extends State<ProductScreen> {
         fit: BoxFit.contain,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          
+
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -120,10 +124,11 @@ class _ProductScreenState extends State<ProductScreen> {
                     color: AppPalette.blueColor,
                     backgroundColor: AppPalette.hintColor,
                     strokeWidth: 2.5,
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            (loadingProgress.expectedTotalBytes ?? 1)
-                        : null,
+                    value:
+                        loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                (loadingProgress.expectedTotalBytes ?? 1)
+                            : null,
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -185,7 +190,7 @@ class _ProductScreenState extends State<ProductScreen> {
 
   Widget _buildBannerImage(BuildContext context, String url) {
     String bannerUrl = url;
-  
+
     return Container(
       width: double.infinity,
       height: 500.h,
@@ -204,7 +209,7 @@ class _ProductScreenState extends State<ProductScreen> {
         fit: BoxFit.contain,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          
+
           return Container(
             color: Colors.grey[100],
             child: Center(
@@ -215,10 +220,11 @@ class _ProductScreenState extends State<ProductScreen> {
                     color: AppPalette.blueColor,
                     backgroundColor: AppPalette.hintColor,
                     strokeWidth: 3,
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            (loadingProgress.expectedTotalBytes ?? 1)
-                        : null,
+                    value:
+                        loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                (loadingProgress.expectedTotalBytes ?? 1)
+                            : null,
                   ),
                   SizedBox(height: 12.h),
                   Text(
@@ -273,7 +279,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 32.w),
                   child: Text(
-                   'Unable to load the banner image',
+                    'Unable to load the banner image',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12.sp,
@@ -281,7 +287,6 @@ class _ProductScreenState extends State<ProductScreen> {
                     ),
                   ),
                 ),
-
               ],
             ),
           );
@@ -289,5 +294,4 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
     );
   }
-
 }

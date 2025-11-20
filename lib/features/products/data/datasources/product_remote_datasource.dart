@@ -110,14 +110,18 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     required String handle,
     int first = 20,
   }) async {
-    print('🔍 DEBUG DataSource: Executing GraphQL query with handle: "$handle", first: $first');
-    print('🔍 DEBUG DataSource: Query: ${GraphQLQueries.getCollectionByHandle}');
-    
+    print(
+      '🔍 DEBUG DataSource: Executing GraphQL query with handle: "$handle", first: $first',
+    );
+    print(
+      '🔍 DEBUG DataSource: Query: ${GraphQLQueries.getCollectionByHandle}',
+    );
+
     final result = await graphQLService.executeQuery(
       GraphQLQueries.getCollectionByHandle,
       variables: {'handle': handle, 'first': first},
     );
-    
+
     print('🔍 DEBUG DataSource: GraphQL response: $result');
     return result;
   }

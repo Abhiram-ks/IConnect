@@ -42,7 +42,8 @@ class _HomeContentView extends StatefulWidget {
   State<_HomeContentView> createState() => _HomeContentViewState();
 }
 
-class _HomeContentViewState extends State<_HomeContentView> with AutomaticKeepAliveClientMixin      {
+class _HomeContentViewState extends State<_HomeContentView>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
