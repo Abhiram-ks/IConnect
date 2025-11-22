@@ -4,8 +4,8 @@ class GraphQLQueries {
 
   /// Get all products with pagination
   static const String getProducts = r'''
-    query GetProducts($first: Int!, $after: String, $query: String) {
-      products(first: $first, after: $after, query: $query) {
+    query GetProducts($first: Int!, $after: String, $query: String, $sortKey: ProductSortKeys, $reverse: Boolean) {
+      products(first: $first, after: $after, query: $query, sortKey: $sortKey, reverse: $reverse) {
         edges {
           node {
             id

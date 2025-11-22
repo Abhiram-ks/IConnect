@@ -11,17 +11,21 @@ class LoadProductsRequested extends ProductEvent {
   final int first;
   final String? after;
   final String? query;
+  final String? sortKey;
+  final bool? reverse;
   final bool loadMore;
 
   LoadProductsRequested({
     this.first = 20,
     this.after,
     this.query,
+    this.sortKey,
+    this.reverse,
     this.loadMore = false,
   });
 
   @override
-  List<Object?> get props => [first, after, query, loadMore];
+  List<Object?> get props => [first, after, query, sortKey, reverse, loadMore];
 }
 
 /// Load product by handle event

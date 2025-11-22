@@ -20,12 +20,16 @@ class ProductRepositoryImpl implements ProductRepository {
     int first = 20,
     String? after,
     String? query,
+    String? sortKey,
+    bool? reverse,
   }) async {
     try {
       final result = await remoteDataSource.getProducts(
         first: first,
         after: after,
         query: query,
+        sortKey: sortKey,
+        reverse: reverse,
       );
       return Right(result);
     } on NetworkException catch (e) {
@@ -133,18 +137,14 @@ class ProductRepositoryImpl implements ProductRepository {
     int first = 20,
   }) async {
     try {
-      print('🔍 DEBUG Repository: Calling API with handle: "$handle", first: $first');
       final result = await remoteDataSource.getCollectionByHandle(
         handle: handle,
         first: first,
       );
-      print('🔍 DEBUG Repository: API response received: ${result.keys.toList()}');
 
       // Parse collection data
       final collectionData = result['collection'] as Map<String, dynamic>?;
-      print('🔍 DEBUG Repository: Collection data: $collectionData');
       if (collectionData == null) {
-        print('🔍 DEBUG Repository: Collection not found in response');
         return const Left(NotFoundFailure(message: 'Collection not found'));
       }
 

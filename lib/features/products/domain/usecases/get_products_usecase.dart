@@ -17,6 +17,8 @@ class GetProductsUsecase implements Usecase<ProductsResult, GetProductsParams> {
       first: params.first,
       after: params.after,
       query: params.query,
+      sortKey: params.sortKey,
+      reverse: params.reverse,
     );
   }
 }
@@ -26,14 +28,18 @@ class GetProductsParams extends Equatable {
   final int first;
   final String? after;
   final String? query;
+  final String? sortKey;
+  final bool? reverse;
 
   const GetProductsParams({
     this.first = 20,
     this.after,
     this.query,
+    this.sortKey,
+    this.reverse,
   });
 
   @override
-  List<Object?> get props => [first, after, query];
+  List<Object?> get props => [first, after, query, sortKey, reverse];
 }
 

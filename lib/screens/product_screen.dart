@@ -3,11 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
-import 'package:iconnect/constant/constant.dart';
-import '../cubit/product_screen_cubit/product_screen_cubit.dart';
-// ✅ Import real Shopify data
+import 'package:iconnect/core/utils/api_response.dart';
+import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
+import 'package:iconnect/widgets/shopify_product_grid_section.dart';
+
+enum ProductSortFilter {
+  featured,
+  bestSelling,
+  alphabeticallyAZ,
+  alphabeticallyZA,
+  priceLowToHigh,
+  priceHighToLow,
+  dateOldToNew,
+  dateNewToOld,
+}
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -17,280 +28,359 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  // Array of 4 grid images
-  final List<String> gridImages = [
-    'https://iconnectqatar.com/cdn/shop/files/iphone_17_5.webp?v=1762517648&width=533',
-    'https://iconnectqatar.com/cdn/shop/files/ipad_new.webp?v=1762517649&width=533',
-    'https://iconnectqatar.com/cdn/shop/files/Page05_4.webp?v=1762517649&width=533',
-    'https://iconnectqatar.com/cdn/shop/files/iMac_4.webp?v=1762517649&width=533',
-  ];
-
-  final List<String> gridImages2 = [
-    'https://iconnectqatar.com/cdn/shop/files/fold_and_flip_1.webp?v=1762518226&width=360',
-    'https://iconnectqatar.com/cdn/shop/files/Page6.webp?v=1762518226&width=360',
-    'https://iconnectqatar.com/cdn/shop/files/hONOR.webp?v=1762518226&width=533',
-    'https://iconnectqatar.com/cdn/shop/files/Page10.webp?v=1762518226&width=533',
-  ];
+  ProductSortFilter _currentFilter = ProductSortFilter.alphabeticallyAZ;
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-    // ✅ Load real products from Shopify on init
-    context.read<ProductBloc>().add(LoadProductsRequested(first: 20));
+    // Load products with initial filter
+    _loadProducts();
+
+    // Setup scroll listener for pagination
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreProducts();
+    }
+  }
+
+  void _loadProducts() {
+    final bloc = context.read<ProductBloc>();
+    final sortParams = _getSortParamsForFilter();
+
+    bloc.add(
+      LoadProductsRequested(
+        first: 50,
+        sortKey: sortParams['sortKey'],
+        reverse: sortParams['reverse'],
+      ),
+    );
+  }
+
+  void _loadMoreProducts() {
+    if (_isLoadingMore) return;
+
+    final bloc = context.read<ProductBloc>();
+    final state = bloc.state;
+
+    if (state.hasNextPage && state.endCursor != null) {
+      setState(() => _isLoadingMore = true);
+
+      final sortParams = _getSortParamsForFilter();
+
+      bloc.add(
+        LoadProductsRequested(
+          first: 50,
+          after: state.endCursor,
+          sortKey: sortParams['sortKey'],
+          reverse: sortParams['reverse'],
+          loadMore: true,
+        ),
+      );
+
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() => _isLoadingMore = false);
+        }
+      });
+    }
+  }
+
+  Map<String, dynamic> _getSortParamsForFilter() {
+    switch (_currentFilter) {
+      case ProductSortFilter.featured:
+        return {'sortKey': 'RELEVANCE', 'reverse': false};
+      case ProductSortFilter.bestSelling:
+        return {'sortKey': 'BEST_SELLING', 'reverse': false};
+      case ProductSortFilter.alphabeticallyAZ:
+        return {'sortKey': 'TITLE', 'reverse': false};
+      case ProductSortFilter.alphabeticallyZA:
+        return {'sortKey': 'TITLE', 'reverse': true};
+      case ProductSortFilter.priceLowToHigh:
+        return {'sortKey': 'PRICE', 'reverse': false};
+      case ProductSortFilter.priceHighToLow:
+        return {'sortKey': 'PRICE', 'reverse': true};
+      case ProductSortFilter.dateOldToNew:
+        return {'sortKey': 'CREATED_AT', 'reverse': false};
+      case ProductSortFilter.dateNewToOld:
+        return {'sortKey': 'CREATED_AT', 'reverse': true};
+    }
+  }
+
+  String _getFilterDisplayName(ProductSortFilter filter) {
+    switch (filter) {
+      case ProductSortFilter.featured:
+        return 'Featured';
+      case ProductSortFilter.bestSelling:
+        return 'Best selling';
+      case ProductSortFilter.alphabeticallyAZ:
+        return 'Alphabetically, A-Z';
+      case ProductSortFilter.alphabeticallyZA:
+        return 'Alphabetically, Z-A';
+      case ProductSortFilter.priceLowToHigh:
+        return 'Price, low to high';
+      case ProductSortFilter.priceHighToLow:
+        return 'Price, high to low';
+      case ProductSortFilter.dateOldToNew:
+        return 'Date, old to new';
+      case ProductSortFilter.dateNewToOld:
+        return 'Date, new to old';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProductScreenCubit(),
-      child: Scaffold(
-        backgroundColor: AppPalette.whiteColor,
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Banner Image with Error Handling
-              _buildBannerImage(
-                context,
-                'https://iconnectqatar.com/cdn/shop/files/main_page_updated_5.webp?v=1762517648&width=940',
-              ),
+    return Scaffold(
+      backgroundColor: AppPalette.whiteColor,
+      body: Column(
+        children: [
+          // Filter Dropdown Header
+          _buildFilterHeader(),
 
-              ConstantWidgets.hight10(context),
+          // Products Grid
+          Expanded(
+            child: BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, state) {
+                switch (state.products.status) {
+                  case Status.initial:
+                    return const SizedBox.shrink();
+                  case Status.loading:
+                    return _buildLoadingState();
+                  case Status.completed:
+                    final products = state.products.data ?? [];
+                    if (products.isEmpty) {
+                      return _buildEmptyState();
+                    }
 
-              // Horizontal Scrolling Images
-              SizedBox(
-                height: 300.h,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: gridImages.length,
-                  itemBuilder: (context, index) {
-                    return SizedBox(
-                      width: 250.w,
-                      child: _buildGridImage(gridImages[index], index),
+                    // Products are already sorted by server
+                    return _buildProductsGrid(products, state.hasNextPage);
+                  case Status.error:
+                    return _buildErrorState(
+                      state.products.message ?? 'Unknown error',
                     );
-                  },
-                ),
-              ),
-              ConstantWidgets.hight50(context),
-              _buildBannerImage(
-                context,
-                'https://iconnectqatar.com/cdn/shop/files/ipad_new.webp?v=1762517649&width=360',
-              ),
-
-              ConstantWidgets.hight10(context),
-
-              // Horizontal Scrolling Images
-              SizedBox(
-                height: 300.h,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: gridImages.length,
-                  itemBuilder: (context, index) {
-                    return SizedBox(
-                      width: 250.w,
-                      child: _buildGridImage(gridImages2[index], index),
-                    );
-                  },
-                ),
-              ),
-              SizedBox(height: 80.h),
-            ],
+                }
+              },
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildGridImage(String imageUrl, int index) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8.r),
-      child: Image.network(
-        imageUrl,
-        fit: BoxFit.contain,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 30.w,
-                  height: 30.h,
-                  child: CircularProgressIndicator(
-                    color: AppPalette.blueColor,
-                    backgroundColor: AppPalette.hintColor,
-                    strokeWidth: 2.5,
-                    value:
-                        loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                (loadingProgress.expectedTotalBytes ?? 1)
-                            : null,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Loading...',
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: AppPalette.greyColor,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[100],
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.broken_image_rounded,
-                  size: 40.sp,
-                  color: AppPalette.greyColor,
-                ),
-                SizedBox(height: 8.h),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w),
-                  child: Text(
-                    'Failed to load',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      color: AppPalette.greyColor,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                IconButton(
-                  icon: Icon(
-                    Icons.refresh_rounded,
-                    size: 20.sp,
-                    color: AppPalette.blueColor,
-                  ),
-                  onPressed: () {
-                    setState(() {});
-                  },
-                  tooltip: 'Retry',
-                  padding: EdgeInsets.all(4.r),
-                  constraints: BoxConstraints(),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildBannerImage(BuildContext context, String url) {
-    String bannerUrl = url;
-
+  Widget _buildFilterHeader() {
     return Container(
-      width: double.infinity,
-      height: 500.h,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8.r,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4.r,
             offset: Offset(0, 2.h),
           ),
         ],
       ),
-      child: Image.network(
-        bannerUrl,
-        fit: BoxFit.contain,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-
-          return Container(
-            color: Colors.grey[100],
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: AppPalette.blueColor,
-                    backgroundColor: AppPalette.hintColor,
-                    strokeWidth: 3,
-                    value:
-                        loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                (loadingProgress.expectedTotalBytes ?? 1)
-                            : null,
+      child: Row(
+        children: [
+          Text(
+            'Sort by:',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: AppPalette.blackColor,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppPalette.greyColor.withOpacity(0.3),
+                ),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<ProductSortFilter>(
+                  value: _currentFilter,
+                  isExpanded: true,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppPalette.blackColor,
+                    size: 20.sp,
                   ),
-                  SizedBox(height: 12.h),
-                  Text(
-                    'Loading banner...',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppPalette.greyColor,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: AppPalette.blackColor,
+                    fontWeight: FontWeight.w500,
                   ),
-                  if (loadingProgress.expectedTotalBytes != null)
-                    Padding(
-                      padding: EdgeInsets.only(top: 8.h),
-                      child: Text(
-                        '${((loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)) * 100).toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          fontSize: 10.sp,
-                          color: AppPalette.greyColor,
-                        ),
-                      ),
-                    ),
-                ],
+                  items:
+                      ProductSortFilter.values.map((filter) {
+                        return DropdownMenuItem(
+                          value: filter,
+                          child: Text(_getFilterDisplayName(filter)),
+                        );
+                      }).toList(),
+                  onChanged: (newFilter) {
+                    if (newFilter != null && newFilter != _currentFilter) {
+                      setState(() {
+                        _currentFilter = newFilter;
+                      });
+                      _loadProducts();
+                    }
+                  },
+                ),
               ),
             ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[100],
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline_rounded,
-                  size: 60.sp,
-                  color: AppPalette.greyColor,
-                ),
-                SizedBox(height: 16.h),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32.w),
-                  child: Text(
-                    'Failed to Load Banner',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppPalette.blackColor,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32.w),
-                  child: Text(
-                    'Unable to load the banner image',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppPalette.greyColor,
-                    ),
-                  ),
-                ),
-              ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductsGrid(List<ProductEntity> products, bool hasNextPage) {
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(16.w),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.65,
+              crossAxisSpacing: 12.w,
+              mainAxisSpacing: 16.h,
             ),
-          );
-        },
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final product = products[index];
+              return ShopifyGridProductCard(product: product);
+            }, childCount: products.length),
+          ),
+        ),
+
+        // Loading more indicator
+        if (hasNextPage || _isLoadingMore)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: AppPalette.blueColor,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            ),
+          ),
+
+        // Bottom spacing
+        SliverToBoxAdapter(child: SizedBox(height: 80.h)),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            color: AppPalette.blueColor,
+            strokeWidth: 3,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Loading products...',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: AppPalette.greyColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inventory_2_outlined,
+            size: 80.sp,
+            color: AppPalette.greyColor,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'No Products Found',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppPalette.blackColor,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Try adjusting your filters',
+            style: TextStyle(fontSize: 14.sp, color: AppPalette.greyColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(32.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline_rounded, size: 80.sp, color: Colors.red),
+            SizedBox(height: 16.h),
+            Text(
+              'Failed to Load Products',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppPalette.blackColor,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14.sp, color: AppPalette.greyColor),
+            ),
+            SizedBox(height: 24.h),
+            ElevatedButton.icon(
+              onPressed: _loadProducts,
+              icon: Icon(Icons.refresh, size: 20.sp),
+              label: Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppPalette.blueColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -11,6 +11,8 @@ abstract class ProductRemoteDataSource {
     int first = 20,
     String? after,
     String? query,
+    String? sortKey,
+    bool? reverse,
   });
 
   /// Get product by handle
@@ -43,6 +45,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     int first = 20,
     String? after,
     String? query,
+    String? sortKey,
+    bool? reverse,
   }) async {
     final result = await graphQLService.executeQuery(
       GraphQLQueries.getProducts,
@@ -50,6 +54,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
         'first': first,
         if (after != null) 'after': after,
         if (query != null) 'query': query,
+        if (sortKey != null) 'sortKey': sortKey,
+        if (reverse != null) 'reverse': reverse,
       },
     );
 
@@ -110,19 +116,11 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     required String handle,
     int first = 20,
   }) async {
-    print(
-      '🔍 DEBUG DataSource: Executing GraphQL query with handle: "$handle", first: $first',
-    );
-    print(
-      '🔍 DEBUG DataSource: Query: ${GraphQLQueries.getCollectionByHandle}',
-    );
-
     final result = await graphQLService.executeQuery(
       GraphQLQueries.getCollectionByHandle,
       variables: {'handle': handle, 'first': first},
     );
 
-    print('🔍 DEBUG DataSource: GraphQL response: $result');
     return result;
   }
 

@@ -11,6 +11,8 @@ abstract class ProductRepository {
     int first = 20,
     String? after,
     String? query,
+    String? sortKey,
+    bool? reverse,
   });
 
   /// Get product by handle

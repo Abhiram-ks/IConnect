@@ -68,6 +68,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       first: event.first,
       after: event.after,
       query: event.query,
+      sortKey: event.sortKey,
+      reverse: event.reverse,
     );
 
     final result = await getProductsUsecase(params);
@@ -104,8 +106,6 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     final params = GetProductByHandleParams(handle: event.handle);
     final result = await getProductByHandleUsecase(params);
-
-    print('🔍 DEBUG ProductBloc: result: ${result}');
 
     result.fold(
       (failure) => {
@@ -165,25 +165,17 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     LoadCollectionByHandleRequested event,
     Emitter<ProductState> emit,
   ) async {
-    print(
-      '🔍 DEBUG ProductBloc: Loading collection by handle: "${event.handle}"',
-    );
     emit(state.copyWith(collectionWithProducts: ApiResponse.loading()));
 
     final params = GetCollectionByHandleParams(
       handle: event.handle,
       first: event.first,
     );
-    print(
-      '🔍 DEBUG ProductBloc: Calling usecase with params: handle="${params.handle}", first=${params.first}',
-    );
+
     final result = await getCollectionByHandleUsecase(params);
 
     result.fold(
       (failure) => {
-        print(
-          '🔍 DEBUG ProductBloc: API call failed with error: ${failure.message}',
-        ),
         emit(
           state.copyWith(
             collectionWithProducts: ApiResponse.error(failure.message),
@@ -191,13 +183,6 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         ),
       },
       (collectionWithProducts) => {
-        print('🔍 DEBUG ProductBloc: API call successful!'),
-        print(
-          '🔍 DEBUG ProductBloc: Collection title: ${collectionWithProducts.collection.title}',
-        ),
-        print(
-          '🔍 DEBUG ProductBloc: Products count: ${collectionWithProducts.products.products.length}',
-        ),
         emit(
           state.copyWith(
             collectionWithProducts: ApiResponse.completed(
