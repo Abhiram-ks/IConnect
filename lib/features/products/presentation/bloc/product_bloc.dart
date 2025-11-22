@@ -24,6 +24,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   // Keep track of current products for pagination
   List<ProductEntity> _currentProducts = [];
   List<ProductEntity> _currentBrandProducts = [];
+  // Keep track of category products for pagination
+  Map<String, List<ProductEntity>> _currentCategoryProducts = {};
 
   ProductBloc({
     required this.getProductsUsecase,
@@ -39,6 +41,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadBrandsRequested>(_onLoadBrandsRequested);
     on<LoadBrandProductsRequested>(_onLoadBrandProductsRequested);
     on<RefreshProductsRequested>(_onRefreshProductsRequested);
+    on<LoadCategoryProductsRequested>(_onLoadCategoryProductsRequested);
   }
 
   /// Handle load products event
@@ -162,19 +165,25 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     LoadCollectionByHandleRequested event,
     Emitter<ProductState> emit,
   ) async {
-    print('🔍 DEBUG ProductBloc: Loading collection by handle: "${event.handle}"');
+    print(
+      '🔍 DEBUG ProductBloc: Loading collection by handle: "${event.handle}"',
+    );
     emit(state.copyWith(collectionWithProducts: ApiResponse.loading()));
 
     final params = GetCollectionByHandleParams(
       handle: event.handle,
       first: event.first,
     );
-    print('🔍 DEBUG ProductBloc: Calling usecase with params: handle="${params.handle}", first=${params.first}');
+    print(
+      '🔍 DEBUG ProductBloc: Calling usecase with params: handle="${params.handle}", first=${params.first}',
+    );
     final result = await getCollectionByHandleUsecase(params);
 
     result.fold(
       (failure) => {
-        print('🔍 DEBUG ProductBloc: API call failed with error: ${failure.message}'),
+        print(
+          '🔍 DEBUG ProductBloc: API call failed with error: ${failure.message}',
+        ),
         emit(
           state.copyWith(
             collectionWithProducts: ApiResponse.error(failure.message),
@@ -183,8 +192,12 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       },
       (collectionWithProducts) => {
         print('🔍 DEBUG ProductBloc: API call successful!'),
-        print('🔍 DEBUG ProductBloc: Collection title: ${collectionWithProducts.collection.title}'),
-        print('🔍 DEBUG ProductBloc: Products count: ${collectionWithProducts.products.products.length}'),
+        print(
+          '🔍 DEBUG ProductBloc: Collection title: ${collectionWithProducts.collection.title}',
+        ),
+        print(
+          '🔍 DEBUG ProductBloc: Products count: ${collectionWithProducts.products.products.length}',
+        ),
         emit(
           state.copyWith(
             collectionWithProducts: ApiResponse.completed(
@@ -276,5 +289,72 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     // Reset and reload products
     _currentProducts = [];
     add(LoadProductsRequested());
+  }
+
+  /// Handle load category products event
+  Future<void> _onLoadCategoryProductsRequested(
+    LoadCategoryProductsRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    final categoryName = event.categoryName;
+
+    if (!event.loadMore) {
+      // Reset current category products and emit loading state
+      _currentCategoryProducts[categoryName] = [];
+
+      // Update the category data with loading state
+      final updatedCategoryProducts = Map<String, CategoryProductData>.from(
+        state.categoryProducts,
+      );
+      updatedCategoryProducts[categoryName] = CategoryProductData(
+        products: ApiResponse.loading(),
+        hasNextPage: false,
+        endCursor: null,
+      );
+
+      emit(state.copyWith(categoryProducts: updatedCategoryProducts));
+    }
+
+    // Use getCollectionByHandle to get products for this specific collection
+    final params = GetCollectionByHandleParams(
+      handle: event.collectionHandle,
+      first: event.first,
+    );
+
+    final result = await getCollectionByHandleUsecase(params);
+
+    result.fold(
+      (failure) {
+        final updatedCategoryProducts = Map<String, CategoryProductData>.from(
+          state.categoryProducts,
+        );
+        updatedCategoryProducts[categoryName] = CategoryProductData(
+          products: ApiResponse.error(failure.message),
+          hasNextPage: false,
+          endCursor: null,
+        );
+        emit(state.copyWith(categoryProducts: updatedCategoryProducts));
+      },
+      (collectionWithProducts) {
+        // Get products from the collection
+        final productsResult = collectionWithProducts.products;
+
+        // Set current category products (no pagination support for now as we load all at once)
+        _currentCategoryProducts[categoryName] = productsResult.products;
+
+        final updatedCategoryProducts = Map<String, CategoryProductData>.from(
+          state.categoryProducts,
+        );
+        updatedCategoryProducts[categoryName] = CategoryProductData(
+          products: ApiResponse.completed(
+            _currentCategoryProducts[categoryName] ?? [],
+          ),
+          hasNextPage: productsResult.pageInfo.hasNextPage,
+          endCursor: productsResult.pageInfo.endCursor,
+        );
+
+        emit(state.copyWith(categoryProducts: updatedCategoryProducts));
+      },
+    );
   }
 }

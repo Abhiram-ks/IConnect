@@ -3,11 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_drawer.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
-import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/models/cart_item.dart';
 import 'package:iconnect/screens/nav_screen.dart';
-import 'package:iconnect/screens/search_screen.dart';
 import 'package:iconnect/widgets/cart_drawer.dart';
+import 'package:iconnect/widgets/navbar_widgets.dart';
 import 'package:iconnect/widgets/product_card.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
@@ -47,168 +46,7 @@ class BannerDetailsScreen extends StatelessWidget {
           const WhatsAppFloatingButton(),
         ],
       ),
-      bottomNavigationBar: BlocBuilder<ButtomNavCubit, NavItem>(
-        builder: (context, state) {
-          return Builder(
-            builder: (BuildContext scaffoldContext) {
-              return SizedBox(
-                height: 70.0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppPalette.whiteColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppPalette.blackColor.withValues(alpha: 0.1),
-                        blurRadius: 6,
-                        offset: const Offset(0, -3),
-                      ),
-                    ],
-                  ),
-                  child: BottomNavigationBar(
-                    enableFeedback: true,
-                    useLegacyColorScheme: true,
-                    elevation: 0,
-                    iconSize: 26,
-                    selectedItemColor: AppPalette.blueColor,
-                    backgroundColor: Colors.transparent,
-                    landscapeLayout:
-                        BottomNavigationBarLandscapeLayout.spread,
-                    unselectedLabelStyle: TextStyle(
-                      color: AppPalette.hintColor,
-                    ),
-                    showSelectedLabels: true,
-                    showUnselectedLabels: true,
-                    type: BottomNavigationBarType.fixed,
-                    currentIndex: NavItem.values.indexOf(NavItem.home), // Always show home as selected
-                    onTap: (index) {
-                      if (NavItem.values[index] == NavItem.cart) {
-                        // Open cart drawer when cart icon is tapped
-                        Scaffold.of(scaffoldContext).openEndDrawer();
-                      } else if (NavItem.values[index] == NavItem.search) {
-                        // Navigate back to home screen and then open search
-                        Navigator.pushReplacementNamed(context, '/');
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          if (context.mounted) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SearchScreen(),
-                              ),
-                            );
-                          }
-                        });
-                      } else {
-                        // Navigate back to home and switch to the selected tab
-                        Navigator.pushReplacementNamed(context, '/');
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          if (context.mounted) {
-                            context.read<ButtomNavCubit>().selectItem(
-                              NavItem.values[index],
-                            );
-                          }
-                        });
-                      }
-                    },
-                    items: [
-                      const BottomNavigationBarItem(
-                        icon: Icon(Icons.home_outlined, size: 16),
-                        label: 'Home',
-                        activeIcon: Icon(
-                          Icons.home,
-                          color: AppPalette.blueColor,
-                        ),
-                      ),
-                      const BottomNavigationBarItem(
-                        icon: Icon(Icons.grid_view, size: 16),
-                        label: 'Product',
-                        activeIcon: Icon(
-                          Icons.grid_view_sharp,
-                          color: AppPalette.blueColor,
-                        ),
-                      ),
-                      BottomNavigationBarItem(
-                        icon: BlocBuilder<CartCubit, CartState>(
-                          builder: (context, state) {
-                            return Stack(
-                              children: [
-                                const Icon(
-                                  Icons.shopping_bag_outlined,
-                                  size: 16,
-                                ),
-                                if (state.itemCount > 0)
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: AppPalette.redColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '${state.itemCount}',
-                                        style: const TextStyle(
-                                          color: AppPalette.whiteColor,
-                                          fontSize: 8,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                        label: 'Cart',
-                        activeIcon: BlocBuilder<CartCubit, CartState>(
-                          builder: (context, state) {
-                            return Stack(
-                              children: [
-                                const Icon(
-                                  Icons.shopping_bag_rounded,
-                                  color: AppPalette.blueColor,
-                                ),
-                                if (state.itemCount > 0)
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: AppPalette.redColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '${state.itemCount}',
-                                        style: const TextStyle(
-                                          color: AppPalette.whiteColor,
-                                          fontSize: 8,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                      const BottomNavigationBarItem(
-                        icon: Icon(Icons.search, size: 16),
-                        label: 'Search',
-                        activeIcon: Icon(
-                          Icons.search,
-                          color: AppPalette.blueColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+      bottomNavigationBar: BottomNavWidget(),
     );
   }
 

@@ -86,3 +86,21 @@ class LoadBrandProductsRequested extends ProductEvent {
 
 /// Refresh products event
 class RefreshProductsRequested extends ProductEvent {}
+
+/// Load category products event
+class LoadCategoryProductsRequested extends ProductEvent {
+  final String categoryName;
+  final String collectionHandle;
+  final int first;
+  final bool loadMore;
+
+  LoadCategoryProductsRequested({
+    required this.categoryName,
+    required this.collectionHandle,
+    this.first = 10,
+    this.loadMore = false,
+  });
+
+  @override
+  List<Object?> get props => [categoryName, collectionHandle, first, loadMore];
+}
