@@ -624,4 +624,23 @@ class GraphQLQueries {
       }
     }
   ''';
+
+  // ========== MENU QUERIES ==========
+
+  /// Get menu by handle
+  static const String getMenu = r'''
+    query GetMenu($menuHandle: String!) {
+      menu(handle: $menuHandle) {
+        title
+        items {
+          title
+          url
+          items {
+            title
+            url
+          }
+        }
+      }
+    }
+  ''';
 }

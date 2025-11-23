@@ -12,6 +12,11 @@ import '../../features/cart/domain/usecases/get_checkout_usecase.dart';
 import '../../features/cart/domain/usecases/remove_line_items_usecase.dart';
 import '../../features/cart/domain/usecases/update_line_items_usecase.dart';
 import '../../features/cart/presentation/cubit/cart_cubit.dart';
+import '../../features/menu/data/datasources/menu_remote_datasource.dart';
+import '../../features/menu/data/repositories/menu_repository_impl.dart';
+import '../../features/menu/domain/repositories/menu_repository.dart';
+import '../../features/menu/domain/usecases/get_menu_usecase.dart';
+import '../../features/menu/presentation/cubit/menu_cubit.dart';
 import '../../features/products/data/datasources/product_remote_datasource.dart';
 import '../../features/products/data/repositories/product_repository_impl.dart';
 import '../../features/products/domain/repositories/product_repository.dart';
@@ -93,5 +98,24 @@ Future<void> initializeDependencies() async {
       updateLineItemsUsecase: sl(),
       removeLineItemsUsecase: sl(),
     ),
+  );
+
+  // ========== Menu Feature ==========
+  // Data Sources
+  sl.registerLazySingleton<MenuRemoteDataSource>(
+    () => MenuRemoteDataSourceImpl(graphQLService: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<MenuRepository>(
+    () => MenuRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetMenuUseCase(repository: sl()));
+
+  // Cubit (Factory - new instance each time for drawer)
+  sl.registerFactory(
+    () => MenuCubit(getMenuUseCase: sl()),
   );
 }

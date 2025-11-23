@@ -47,7 +47,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadBrandProductsRequested>(_onLoadBrandProductsRequested);
     on<RefreshProductsRequested>(_onRefreshProductsRequested);
     on<LoadCategoryProductsRequested>(_onLoadCategoryProductsRequested);
-    on<LoadProductRecommendationsRequested>(_onLoadProductRecommendationsRequested);
+    on<LoadProductRecommendationsRequested>(
+      _onLoadProductRecommendationsRequested,
+    );
   }
 
   /// Handle load products event
@@ -413,12 +415,16 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     result.fold(
       (failure) => {
-        emit(state.copyWith(
-            recommendedProducts: ApiResponse.error(failure.message))),
+        emit(
+          state.copyWith(
+            recommendedProducts: ApiResponse.error(failure.message),
+          ),
+        ),
       },
       (products) => {
-        emit(state.copyWith(
-            recommendedProducts: ApiResponse.completed(products))),
+        emit(
+          state.copyWith(recommendedProducts: ApiResponse.completed(products)),
+        ),
       },
     );
   }
