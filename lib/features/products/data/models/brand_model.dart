@@ -12,32 +12,19 @@ class BrandModel extends BrandEntity {
 
   /// Factory constructor from vendor name
   /// Automatically fetches logo from BrandLogos mapping
-  factory BrandModel.fromVendor({
-    required String vendor,
-    String? imageUrl,
-  }) {
+  factory BrandModel.fromVendor({required String vendor, String? imageUrl}) {
     // Generate ID from vendor name (convert to lowercase, replace spaces with hyphens)
     final id = vendor.toLowerCase().replaceAll(' ', '-');
-    
+
     // Get logo from mapping, fallback to provided imageUrl
     final logoUrl = imageUrl ?? BrandLogos.getLogoForVendor(vendor);
-    
-    return BrandModel(
-      id: id,
-      name: vendor,
-      vendor: vendor,
-      imageUrl: logoUrl,
-    );
+
+    return BrandModel(id: id, name: vendor, vendor: vendor, imageUrl: logoUrl);
   }
 
   /// Convert to JSON
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'vendor': vendor,
-      'imageUrl': imageUrl,
-    };
+    return {'id': id, 'name': name, 'vendor': vendor, 'imageUrl': imageUrl};
   }
 
   /// Copy with method
@@ -55,4 +42,3 @@ class BrandModel extends BrandEntity {
     );
   }
 }
-
