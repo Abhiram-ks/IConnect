@@ -222,4 +222,30 @@ class ProductRepositoryImpl implements ProductRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<ProductEntity>>> getProductRecommendations(
+    String productId,
+  ) async {
+    try {
+      final result = await remoteDataSource.getProductRecommendations(productId);
+      return Right(result);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on GraphQLException catch (e) {
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
+    } on ApiException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }

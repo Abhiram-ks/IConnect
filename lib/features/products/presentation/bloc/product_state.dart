@@ -33,6 +33,7 @@ class ProductState {
   ApiResponse<CollectionWithProducts> collectionWithProducts;
   ApiResponse<List<BrandEntity>> brands;
   ApiResponse<List<ProductEntity>> brandProducts; // Separate state for brand products
+  ApiResponse<List<ProductEntity>> recommendedProducts; // Recommended products
   bool hasNextPage;
   String? endCursor;
   bool brandProductsHasNextPage; // Separate pagination for brand products
@@ -49,6 +50,7 @@ class ProductState {
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
+    ApiResponse<List<ProductEntity>>? recommendedProducts,
     this.hasNextPage = false,
     this.endCursor,
     this.brandProductsHasNextPage = false,
@@ -61,6 +63,7 @@ class ProductState {
         collectionWithProducts = collectionWithProducts ?? ApiResponse.initial(),
         brands = brands ?? ApiResponse.initial(),
         brandProducts = brandProducts ?? ApiResponse.initial(),
+        recommendedProducts = recommendedProducts ?? ApiResponse.initial(),
         categoryProducts = categoryProducts ?? {};
 
   ProductState copyWith({
@@ -71,6 +74,7 @@ class ProductState {
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
+    ApiResponse<List<ProductEntity>>? recommendedProducts,
     bool? hasNextPage,
     String? endCursor,
     bool? brandProductsHasNextPage,
@@ -85,6 +89,7 @@ class ProductState {
       collectionWithProducts: collectionWithProducts ?? this.collectionWithProducts,
       brands: brands ?? this.brands,
       brandProducts: brandProducts ?? this.brandProducts,
+      recommendedProducts: recommendedProducts ?? this.recommendedProducts,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       endCursor: endCursor ?? this.endCursor,
       brandProductsHasNextPage: brandProductsHasNextPage ?? this.brandProductsHasNextPage,

@@ -108,3 +108,13 @@ class LoadCategoryProductsRequested extends ProductEvent {
   @override
   List<Object?> get props => [categoryName, collectionHandle, first, loadMore];
 }
+
+/// Load product recommendations event
+class LoadProductRecommendationsRequested extends ProductEvent {
+  final String productId;
+
+  LoadProductRecommendationsRequested({required this.productId});
+
+  @override
+  List<Object?> get props => [productId];
+}

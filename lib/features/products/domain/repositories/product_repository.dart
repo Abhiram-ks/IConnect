@@ -34,6 +34,10 @@ abstract class ProductRepository {
 
   /// Get all unique brands (vendors) from products
   Future<Either<Failure, List<BrandEntity>>> getBrands({int first = 250});
+
+  /// Get product recommendations
+  Future<Either<Failure, List<ProductEntity>>> getProductRecommendations(
+      String productId);
 }
 
 /// Collection with products result

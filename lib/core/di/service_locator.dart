@@ -19,6 +19,7 @@ import '../../features/products/domain/usecases/get_brands_usecase.dart';
 import '../../features/products/domain/usecases/get_collection_by_handle_usecase.dart';
 import '../../features/products/domain/usecases/get_collections_usecase.dart';
 import '../../features/products/domain/usecases/get_product_by_handle_usecase.dart';
+import '../../features/products/domain/usecases/get_product_recommendations_usecase.dart';
 import '../../features/products/domain/usecases/get_products_usecase.dart';
 import '../../features/products/presentation/bloc/product_bloc.dart';
 import '../../services/graphql_base_service.dart';
@@ -51,6 +52,7 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => GetCollectionsUsecase(sl()));
   sl.registerLazySingleton(() => GetCollectionByHandleUsecase(sl()));
   sl.registerLazySingleton(() => GetBrandsUsecase(sl()));
+  sl.registerLazySingleton(() => GetProductRecommendationsUsecase(sl()));
 
   // BLoC (Factory - new instance each time)
   sl.registerFactory(
@@ -60,6 +62,7 @@ Future<void> initializeDependencies() async {
       getCollectionsUsecase: sl(),
       getCollectionByHandleUsecase: sl(),
       getBrandsUsecase: sl(),
+      getProductRecommendationsUsecase: sl(),
     ),
   );
 

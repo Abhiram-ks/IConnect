@@ -584,4 +584,44 @@ class GraphQLQueries {
       }
     }
   ''';
+
+  /// Get product recommendations
+  static const String getProductRecommendations = r'''
+    query GetProductRecommendations($productId: ID!) {
+      productRecommendations(productId: $productId) {
+        id
+        title
+        description
+        handle
+        vendor
+        featuredImage {
+          url
+        }
+        images(first: 5) {
+          edges {
+            node {
+              url
+            }
+          }
+        }
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        compareAtPriceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        availableForSale
+      }
+    }
+  ''';
 }

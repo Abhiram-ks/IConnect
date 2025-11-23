@@ -32,6 +32,9 @@ abstract class ProductRemoteDataSource {
 
   /// Get all unique brands (vendors) from products
   Future<List<BrandModel>> getBrands({int first = 250});
+
+  /// Get product recommendations
+  Future<List<ProductModel>> getProductRecommendations(String productId);
 }
 
 /// Product Remote Data Source Implementation
@@ -152,5 +155,23 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     return vendorsSet.map((vendor) {
       return BrandModel.fromVendor(vendor: vendor);
     }).toList();
+  }
+
+  @override
+  Future<List<ProductModel>> getProductRecommendations(String productId) async {
+    final result = await graphQLService.executeQuery(
+      GraphQLQueries.getProductRecommendations,
+      variables: {'productId': productId},
+    );
+
+    final recommendationsList = <ProductModel>[];
+    if (result['productRecommendations'] != null) {
+      final recommendations = result['productRecommendations'] as List;
+      for (final productData in recommendations) {
+        recommendationsList.add(ProductModel.fromJson(productData));
+      }
+    }
+
+    return recommendationsList;
   }
 }

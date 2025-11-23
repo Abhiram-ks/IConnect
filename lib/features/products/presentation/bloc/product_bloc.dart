@@ -8,6 +8,7 @@ import 'package:iconnect/features/products/domain/usecases/get_collections_useca
 import 'package:iconnect/features/products/domain/usecases/get_product_by_handle_usecase.dart';
 import 'package:iconnect/features/products/domain/usecases/get_products_usecase.dart';
 import 'package:iconnect/features/products/domain/usecases/get_collection_by_handle_usecase.dart';
+import 'package:iconnect/features/products/domain/usecases/get_product_recommendations_usecase.dart';
 import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 
@@ -20,6 +21,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final GetCollectionsUsecase getCollectionsUsecase;
   final GetCollectionByHandleUsecase getCollectionByHandleUsecase;
   final GetBrandsUsecase getBrandsUsecase;
+  final GetProductRecommendationsUsecase getProductRecommendationsUsecase;
 
   // Keep track of current products for pagination
   List<ProductEntity> _currentProducts = [];
@@ -33,6 +35,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     required this.getCollectionsUsecase,
     required this.getCollectionByHandleUsecase,
     required this.getBrandsUsecase,
+    required this.getProductRecommendationsUsecase,
   }) : super(ProductState()) {
     on<LoadProductsRequested>(_onLoadProductsRequested);
     on<LoadProductByHandleRequested>(_onLoadProductByHandleRequested);
@@ -42,6 +45,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadBrandProductsRequested>(_onLoadBrandProductsRequested);
     on<RefreshProductsRequested>(_onRefreshProductsRequested);
     on<LoadCategoryProductsRequested>(_onLoadCategoryProductsRequested);
+    on<LoadProductRecommendationsRequested>(_onLoadProductRecommendationsRequested);
   }
 
   /// Handle load products event
@@ -339,6 +343,28 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         );
 
         emit(state.copyWith(categoryProducts: updatedCategoryProducts));
+      },
+    );
+  }
+
+  /// Handle load product recommendations event
+  Future<void> _onLoadProductRecommendationsRequested(
+    LoadProductRecommendationsRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(state.copyWith(recommendedProducts: ApiResponse.loading()));
+
+    final params = GetProductRecommendationsParams(productId: event.productId);
+    final result = await getProductRecommendationsUsecase(params);
+
+    result.fold(
+      (failure) => {
+        emit(state.copyWith(
+            recommendedProducts: ApiResponse.error(failure.message))),
+      },
+      (products) => {
+        emit(state.copyWith(
+            recommendedProducts: ApiResponse.completed(products))),
       },
     );
   }
