@@ -7,6 +7,7 @@ import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
+import 'package:iconnect/features/products/presentation/widgets/home_widgets/banner_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/brand_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/categories_carousel.dart';
 import 'package:iconnect/widgets/new_arrivals_section.dart' show ServiceBanner;
@@ -64,15 +65,15 @@ class _HomeContentViewState extends State<_HomeContentView>
     super.build(context);
     return LayoutBuilder(
       builder: (context, constraints) {
-        // final double width = constraints.maxWidth;
-        // final double height = constraints.maxHeight;
+        final double width = constraints.maxWidth;
+        final double height = constraints.maxHeight;
 
         return Scaffold(
           body: SingleChildScrollView(
             physics: BouncingScrollPhysics(),
             child: Column(
               children: [
-                // BannerSection(screenHeight: height, screenWidth: width),
+                BannerSection(screenHeight: height, screenWidth: width),
                 ConstantWidgets.hight10(context),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4.w),

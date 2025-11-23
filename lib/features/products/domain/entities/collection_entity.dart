@@ -7,6 +7,7 @@ class CollectionEntity extends Equatable {
   final String handle;
   final String description;
   final String? imageUrl;
+  final String? link; // URL/link for navigation (e.g., /products/..., /collections/..., /pages/...)
 
   const CollectionEntity({
     required this.id,
@@ -14,9 +15,10 @@ class CollectionEntity extends Equatable {
     required this.handle,
     required this.description,
     this.imageUrl,
+    this.link,
   });
 
   @override
-  List<Object?> get props => [id, title, handle, description, imageUrl];
+  List<Object?> get props => [id, title, handle, description, imageUrl, link];
 }
 

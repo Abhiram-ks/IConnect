@@ -8,6 +8,7 @@ class CollectionModel extends CollectionEntity {
     required super.handle,
     required super.description,
     super.imageUrl,
+    super.link,
   });
 
   /// Factory constructor from JSON (Shopify GraphQL response)
@@ -18,6 +19,7 @@ class CollectionModel extends CollectionEntity {
       handle: json['handle'] as String? ?? '',
       description: json['description'] as String? ?? '',
       imageUrl: json['image']?['url'] as String?,
+      link: json['link'] as String?,
     );
   }
 
@@ -29,6 +31,7 @@ class CollectionModel extends CollectionEntity {
       'handle': handle,
       'description': description,
       'imageUrl': imageUrl,
+      'link': link,
     };
   }
 
@@ -39,6 +42,7 @@ class CollectionModel extends CollectionEntity {
     String? handle,
     String? description,
     String? imageUrl,
+    String? link,
   }) {
     return CollectionModel(
       id: id ?? this.id,
@@ -46,6 +50,7 @@ class CollectionModel extends CollectionEntity {
       handle: handle ?? this.handle,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
+      link: link ?? this.link,
     );
   }
 }

@@ -28,8 +28,14 @@ class ImageScrollingWidget extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final cubit = context.read<ImageSliderCubit>();
+          // Calculate height based on banner aspect ratio (1920x367 = ~5.23:1)
+          // Use screen width to maintain proper aspect ratio
+          // Multiply by 3 to get 3x the original height
+          final bannerAspectRatio = 1920 / 367; // ~5.23
+          final calculatedHeight = (screenWidth / bannerAspectRatio) * 3;
+
           return SizedBox(
-            height: screenHeight * 0.3,
+            height: calculatedHeight,
             width: screenWidth,
             child: Stack(
               alignment: Alignment.center,
@@ -43,13 +49,14 @@ class ImageScrollingWidget extends StatelessWidget {
                         ? _buildNetworkImage(
                           imageUrl: imageList[index],
                           imageAsset: AppImages.demmyImage,
-                          height: 200.h,
+                          height: calculatedHeight,
                         )
                         : Image.asset(
                           AppImages.demmyImage,
                           fit: BoxFit.cover,
-                          height: double.infinity,
-                          width: double.infinity,
+                          alignment: Alignment.center,
+                          height: calculatedHeight,
+                          width: screenWidth,
                         );
                   },
                 ),
@@ -89,6 +96,7 @@ class ImageScrollingWidget extends StatelessWidget {
       child: Image.network(
         imageUrl,
         fit: BoxFit.cover,
+        alignment: Alignment.center,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
           return Container(
@@ -173,4 +181,3 @@ class ImageScrollingWidget extends StatelessWidget {
     );
   }
 }
-
