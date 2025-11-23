@@ -35,11 +35,11 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
     {
       'title': 'Samsung',
       'query':
-          "tag:galaxy-s25 OR tag:galaxy-s24 OR tag:galaxy-z-fold6 OR tag:galaxy-z-fold7", // Latest Samsung flagships
+          "tag:galaxy-s25 OR tag:galaxy-s24 OR tag:galaxy-z-fold6 OR tag:galaxy-z-fold7", 
     },
     {
       'title': 'Google',
-      'query': 'tag:pixel-9 OR tag:pixel-8', // Latest Google Pixel models
+      'query': 'tag:pixel-9 OR tag:pixel-8', 
     },
   ];
 
@@ -47,8 +47,7 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
-
-    // Initialize scroll controllers for each tab
+    
     for (int i = 0; i < _tabs.length; i++) {
       _scrollControllers[i] = ScrollController();
       _tabProducts[i] = [];
@@ -124,29 +123,25 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Tab Bar
-        Container(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.grey.shade300, width: 1),
-            ),
+        TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          labelColor: AppPalette.blackColor,
+          dividerColor: Colors.transparent,
+          
+          unselectedLabelColor: AppPalette.greyColor,
+          labelStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.normal,
           ),
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.grey,
-            labelStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
-            unselectedLabelStyle: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.normal,
-            ),
-            indicatorColor: Colors.black,
-            indicatorWeight: 2.5,
-            indicatorSize: TabBarIndicatorSize.label,
-            labelPadding: EdgeInsets.symmetric(horizontal: 20.w),
-            tabAlignment: TabAlignment.start,
-            tabs: _tabs.map((tab) => Tab(text: tab['title'])).toList(),
-          ),
+          indicatorColor: AppPalette.blackColor,
+          indicatorWeight: 1.5,
+          
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelPadding: EdgeInsets.symmetric(horizontal: 20.w),
+          tabAlignment: TabAlignment.start,
+          tabs: _tabs.map((tab) => Tab(text: tab['title'])).toList(),
         ),
 
         SizedBox(height: 16.h),

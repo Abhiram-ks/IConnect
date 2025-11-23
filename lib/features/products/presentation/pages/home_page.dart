@@ -93,7 +93,6 @@ class _HomeContentViewState extends State<_HomeContentView>
 
                             return Column(
                               children: [
-                                // Generate category sections for each collection
                                 for (
                                   int i = 0;
                                   i < collections.length;
