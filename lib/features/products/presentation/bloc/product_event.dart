@@ -118,3 +118,23 @@ class LoadProductRecommendationsRequested extends ProductEvent {
   @override
   List<Object?> get props => [productId];
 }
+
+/// Load all products event (for product screen)
+class LoadAllProductsRequested extends ProductEvent {
+  final int first;
+  final String? after;
+  final String? sortKey;
+  final bool? reverse;
+  final bool loadMore;
+
+  LoadAllProductsRequested({
+    this.first = 50,
+    this.after,
+    this.sortKey,
+    this.reverse,
+    this.loadMore = false,
+  });
+
+  @override
+  List<Object?> get props => [first, after, sortKey, reverse, loadMore];
+}

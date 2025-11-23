@@ -60,7 +60,7 @@ class _ProductScreenState extends State<ProductScreen> {
     final sortParams = _getSortParamsForFilter();
 
     bloc.add(
-      LoadProductsRequested(
+      LoadAllProductsRequested(
         first: 50,
         sortKey: sortParams['sortKey'],
         reverse: sortParams['reverse'],
@@ -74,15 +74,15 @@ class _ProductScreenState extends State<ProductScreen> {
     final bloc = context.read<ProductBloc>();
     final state = bloc.state;
 
-    if (state.hasNextPage && state.endCursor != null) {
+    if (state.allProductsHasNextPage && state.allProductsEndCursor != null) {
       setState(() => _isLoadingMore = true);
 
       final sortParams = _getSortParamsForFilter();
 
       bloc.add(
-        LoadProductsRequested(
+        LoadAllProductsRequested(
           first: 50,
-          after: state.endCursor,
+          after: state.allProductsEndCursor,
           sortKey: sortParams['sortKey'],
           reverse: sortParams['reverse'],
           loadMore: true,
@@ -152,22 +152,25 @@ class _ProductScreenState extends State<ProductScreen> {
           Expanded(
             child: BlocBuilder<ProductBloc, ProductState>(
               builder: (context, state) {
-                switch (state.products.status) {
+                switch (state.allProducts.status) {
                   case Status.initial:
                     return const SizedBox.shrink();
                   case Status.loading:
                     return _buildLoadingState();
                   case Status.completed:
-                    final products = state.products.data ?? [];
+                    final products = state.allProducts.data ?? [];
                     if (products.isEmpty) {
                       return _buildEmptyState();
                     }
 
                     // Products are already sorted by server
-                    return _buildProductsGrid(products, state.hasNextPage);
+                    return _buildProductsGrid(
+                      products,
+                      state.allProductsHasNextPage,
+                    );
                   case Status.error:
                     return _buildErrorState(
-                      state.products.message ?? 'Unknown error',
+                      state.allProducts.message ?? 'Unknown error',
                     );
                 }
               },

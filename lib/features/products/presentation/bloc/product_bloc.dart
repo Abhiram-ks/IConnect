@@ -25,6 +25,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   // Keep track of current products for pagination
   List<ProductEntity> _currentProducts = [];
+  List<ProductEntity> _currentAllProducts = [];
   List<ProductEntity> _currentBrandProducts = [];
   // Keep track of category products for pagination
   Map<String, List<ProductEntity>> _currentCategoryProducts = {};
@@ -38,6 +39,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     required this.getProductRecommendationsUsecase,
   }) : super(ProductState()) {
     on<LoadProductsRequested>(_onLoadProductsRequested);
+    on<LoadAllProductsRequested>(_onLoadAllProductsRequested);
     on<LoadProductByHandleRequested>(_onLoadProductByHandleRequested);
     on<LoadCollectionsRequested>(_onLoadCollectionsRequested);
     on<LoadCollectionByHandleRequested>(_onLoadCollectionByHandleRequested);
@@ -95,6 +97,58 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
             products: ApiResponse.completed(_currentProducts),
             hasNextPage: productsResult.pageInfo.hasNextPage,
             endCursor: productsResult.pageInfo.endCursor,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Handle load all products event (for product screen)
+  Future<void> _onLoadAllProductsRequested(
+    LoadAllProductsRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    if (event.loadMore) {
+      // Keep current products and don't show loading
+      emit(state.copyWith());
+    } else {
+      // Reset current products and emit loading state
+      _currentAllProducts = [];
+      emit(
+        state.copyWith(
+          allProducts: ApiResponse.loading(),
+          allProductsHasNextPage: false,
+          allProductsEndCursor: null,
+        ),
+      );
+    }
+
+    final params = GetProductsParams(
+      first: event.first,
+      after: event.after,
+      sortKey: event.sortKey,
+      reverse: event.reverse,
+    );
+
+    final result = await getProductsUsecase(params);
+
+    result.fold(
+      (failure) => {
+        emit(state.copyWith(allProducts: ApiResponse.error(failure.message))),
+      },
+      (productsResult) {
+        // Add new products to the list
+        if (event.loadMore) {
+          _currentAllProducts.addAll(productsResult.products);
+        } else {
+          _currentAllProducts = productsResult.products;
+        }
+
+        emit(
+          state.copyWith(
+            allProducts: ApiResponse.completed(_currentAllProducts),
+            allProductsHasNextPage: productsResult.pageInfo.hasNextPage,
+            allProductsEndCursor: productsResult.pageInfo.endCursor,
           ),
         );
       },

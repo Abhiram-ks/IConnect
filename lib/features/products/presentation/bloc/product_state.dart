@@ -27,6 +27,7 @@ class CategoryProductData {
 
 class ProductState {
   ApiResponse<List<ProductEntity>> products;
+  ApiResponse<List<ProductEntity>> allProducts; // Separate state for all products screen
   ApiResponse<ProductEntity> productDetail;
   ApiResponse<List<CollectionEntity>> collections;
   ApiResponse<List<CollectionEntity>> banners;
@@ -36,6 +37,8 @@ class ProductState {
   ApiResponse<List<ProductEntity>> recommendedProducts; // Recommended products
   bool hasNextPage;
   String? endCursor;
+  bool allProductsHasNextPage; // Separate pagination for all products
+  String? allProductsEndCursor;
   bool brandProductsHasNextPage; // Separate pagination for brand products
   String? brandProductsEndCursor;
   
@@ -44,6 +47,7 @@ class ProductState {
 
   ProductState({
     ApiResponse<List<ProductEntity>>? products,
+    ApiResponse<List<ProductEntity>>? allProducts,
     ApiResponse<ProductEntity>? productDetail,
     ApiResponse<List<CollectionEntity>>? collections,
     ApiResponse<List<CollectionEntity>>? banners,
@@ -53,10 +57,13 @@ class ProductState {
     ApiResponse<List<ProductEntity>>? recommendedProducts,
     this.hasNextPage = false,
     this.endCursor,
+    this.allProductsHasNextPage = false,
+    this.allProductsEndCursor,
     this.brandProductsHasNextPage = false,
     this.brandProductsEndCursor,
     Map<String, CategoryProductData>? categoryProducts,
   })  : products = products ?? ApiResponse.initial(),
+        allProducts = allProducts ?? ApiResponse.initial(),
         productDetail = productDetail ?? ApiResponse.initial(),
         collections = collections ?? ApiResponse.initial(),
         banners = banners ?? ApiResponse.initial(),
@@ -68,6 +75,7 @@ class ProductState {
 
   ProductState copyWith({
     ApiResponse<List<ProductEntity>>? products,
+    ApiResponse<List<ProductEntity>>? allProducts,
     ApiResponse<ProductEntity>? productDetail,
     ApiResponse<List<CollectionEntity>>? collections,
     ApiResponse<List<CollectionEntity>>? banners,
@@ -77,12 +85,15 @@ class ProductState {
     ApiResponse<List<ProductEntity>>? recommendedProducts,
     bool? hasNextPage,
     String? endCursor,
+    bool? allProductsHasNextPage,
+    String? allProductsEndCursor,
     bool? brandProductsHasNextPage,
     String? brandProductsEndCursor,
     Map<String, CategoryProductData>? categoryProducts,
   }) {
     return ProductState(
       products: products ?? this.products,
+      allProducts: allProducts ?? this.allProducts,
       productDetail: productDetail ?? this.productDetail,
       collections: collections ?? this.collections,
       banners: banners ?? this.banners,
@@ -92,6 +103,8 @@ class ProductState {
       recommendedProducts: recommendedProducts ?? this.recommendedProducts,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       endCursor: endCursor ?? this.endCursor,
+      allProductsHasNextPage: allProductsHasNextPage ?? this.allProductsHasNextPage,
+      allProductsEndCursor: allProductsEndCursor ?? this.allProductsEndCursor,
       brandProductsHasNextPage: brandProductsHasNextPage ?? this.brandProductsHasNextPage,
       brandProductsEndCursor: brandProductsEndCursor ?? this.brandProductsEndCursor,
       categoryProducts: categoryProducts ?? this.categoryProducts,
