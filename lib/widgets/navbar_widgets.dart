@@ -8,9 +8,7 @@ import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 
 class BottomNavWidget extends StatelessWidget {
-  const BottomNavWidget({
-    super.key,
-  });
+  const BottomNavWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +23,7 @@ class BottomNavWidget extends StatelessWidget {
                   color: AppPalette.whiteColor,
                   boxShadow: [
                     BoxShadow(
-                      color: AppPalette.blackColor.withValues(
-                        alpha: 0.1,
-                      ),
+                      color: AppPalette.blackColor.withValues(alpha: 0.1),
                       blurRadius: 6.r,
                       offset: Offset(0, -3.h),
                     ),
@@ -40,21 +36,14 @@ class BottomNavWidget extends StatelessWidget {
                   iconSize: 26.sp,
                   selectedItemColor: AppPalette.blueColor,
                   backgroundColor: Colors.transparent,
-                  landscapeLayout:
-                      BottomNavigationBarLandscapeLayout.spread,
-                  unselectedLabelStyle: TextStyle(
-                    color: AppPalette.hintColor,
-                  ),
+                  landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
+                  unselectedLabelStyle: TextStyle(color: AppPalette.hintColor),
                   showSelectedLabels: true,
                   showUnselectedLabels: true,
                   type: BottomNavigationBarType.fixed,
                   currentIndex: NavItem.values.indexOf(state),
                   onTap: (index) {
-                    if (NavItem.values[index] == NavItem.cart) {
-                      // Open cart drawer when cart icon is tapped
-                      Scaffold.of(scaffoldContext).openEndDrawer();
-                    } else if (NavItem.values[index] ==
-                        NavItem.search) {
+                    if (NavItem.values[index] == NavItem.search) {
                       // Open categories drawer when categories icon is tapped
                       Scaffold.of(scaffoldContext).openDrawer();
                     } else {
@@ -62,12 +51,12 @@ class BottomNavWidget extends StatelessWidget {
                       if (NavItem.values[index] == NavItem.home) {
                         context.read<HomeViewCubit>().showHome();
                       }
-    
-                      // Navigate to other screens normally
+
+                      // Navigate to screens normally (including cart)
                       context.read<ButtomNavCubit>().selectItem(
                         NavItem.values[index],
                       );
-    
+
                       // If navigating away from home, reset home view to default
                       if (NavItem.values[index] != NavItem.home) {
                         context.read<HomeViewCubit>().showHome();
@@ -79,7 +68,7 @@ class BottomNavWidget extends StatelessWidget {
                       icon: Icon(Icons.home_outlined, size: 16.sp),
                       label: 'Home',
                       activeIcon: Icon(
-                        Icons.home,
+                        Icons.home_rounded,
                         color: AppPalette.blueColor,
                       ),
                     ),
@@ -87,7 +76,7 @@ class BottomNavWidget extends StatelessWidget {
                       icon: Icon(Icons.grid_view, size: 16),
                       label: 'Product',
                       activeIcon: Icon(
-                        Icons.grid_view_sharp,
+                        Icons.grid_view_rounded,
                         color: AppPalette.blueColor,
                       ),
                     ),
@@ -101,13 +90,10 @@ class BottomNavWidget extends StatelessWidget {
                           } else if (state is CartOperationInProgress) {
                             itemCount = state.currentCart.itemCount;
                           }
-    
+
                           return Stack(
                             children: [
-                              Icon(
-                                Icons.shopping_bag_outlined,
-                                size: 16.sp,
-                              ),
+                              Icon(Icons.shopping_bag_outlined, size: 16.sp),
                               if (itemCount > 0)
                                 Positioned(
                                   right: 0,
@@ -142,7 +128,7 @@ class BottomNavWidget extends StatelessWidget {
                           } else if (state is CartOperationInProgress) {
                             itemCount = state.currentCart.itemCount;
                           }
-    
+
                           return Stack(
                             children: [
                               const Icon(
