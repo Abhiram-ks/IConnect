@@ -8,6 +8,8 @@ import 'package:iconnect/features/products/domain/entities/collection_entity.dar
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
 import 'package:iconnect/services/api_exception.dart';
+import 'package:flutter/foundation.dart';
+import 'package:iconnect/features/products/data/parsers/product_parsers.dart';
 
 /// Product Repository Implementation
 class ProductRepositoryImpl implements ProductRepository {
@@ -142,31 +144,32 @@ class ProductRepositoryImpl implements ProductRepository {
         first: first,
       );
 
-      // Parse collection data
-      final collectionData = result['collection'] as Map<String, dynamic>?;
-      if (collectionData == null) {
+      // Heavy parsing offloaded to isolate
+      final flattened =
+          await compute(parseFlattenedCollectionWithProducts, result);
+
+      final collectionMap =
+          flattened['collection'] as Map<String, dynamic>? ?? const {};
+      if (collectionMap.isEmpty) {
         return const Left(NotFoundFailure(message: 'Collection not found'));
       }
 
-      final collection = CollectionModel.fromJson(collectionData);
+      final collection = CollectionModel.fromFlattenedJson(collectionMap);
 
-      // Parse products data
-      final productsList = <ProductModel>[];
-      if (collectionData['products'] != null &&
-          collectionData['products']['edges'] != null) {
-        final edges = collectionData['products']['edges'] as List;
-        for (final edge in edges) {
-          productsList.add(ProductModel.fromJson(edge['node']));
-        }
-      }
+      final productsMaps =
+          (flattened['products'] as List<dynamic>? ?? const [])
+              .cast<Map<String, dynamic>>();
+      final productsList = productsMaps
+          .map((m) => ProductModel.fromFlattenedJson(m))
+          .toList();
 
-      final pageInfo =
-          collectionData['products']?['pageInfo'] as Map<String, dynamic>?;
+      final pageInfoMap =
+          flattened['pageInfo'] as Map<String, dynamic>? ?? const {};
       final productsResult = ProductsResult(
         products: productsList,
         pageInfo: ProductsPageInfo(
-          hasNextPage: pageInfo?['hasNextPage'] as bool? ?? false,
-          endCursor: pageInfo?['endCursor'] as String?,
+          hasNextPage: pageInfoMap['hasNextPage'] as bool? ?? false,
+          endCursor: pageInfoMap['endCursor'] as String?,
         ),
       );
 

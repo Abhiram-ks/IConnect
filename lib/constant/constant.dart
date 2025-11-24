@@ -32,7 +32,7 @@ class ConstantWidgets {
 class WhatsAppConfig {
   // WhatsApp phone number (with country code, no + sign)
   // Qatar number: +974 7048 9798
-  static const String phoneNumber = '7592979193';
+  static const String phoneNumber = '+974 7048 9798';
   
   // Default message when opening WhatsApp
   static const String defaultMessage = 'Hello, I need help with my order';
@@ -40,7 +40,7 @@ class WhatsAppConfig {
 
 class PhoneConfig {
   // Phone number for direct calls
-  static const String phoneNumber = '7592979193';
+  static const String phoneNumber = '+974 7048 9798';
 }
 
 class WebsiteConfig {

@@ -84,7 +84,7 @@ class _BrandDetailsPageState extends State<BrandDetailsPage> {
     return Scaffold(
       drawer: AppDrawer(),
       endDrawer: const CartDrawerWidget(),
-      appBar: CustomAppBarDashbord(),
+      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context),),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -101,7 +101,6 @@ class _BrandDetailsPageState extends State<BrandDetailsPage> {
           const WhatsAppFloatingButton(),
         ],
       ),
-      bottomNavigationBar: BottomNavWidget(),
     );
   }
 }

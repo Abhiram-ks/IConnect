@@ -33,7 +33,7 @@ class AppDrawer extends StatelessWidget {
               _buildHeader(context),
               ConstantWidgets.hight10(context),
               Expanded(child: _buildCategoriesSection(context)),
-              _buildFooter(context),
+             // _buildFooter(context),
             ],
           ),
         ),
@@ -116,23 +116,10 @@ class AppDrawer extends StatelessWidget {
         return ListView(
           padding: EdgeInsets.zero,
           children: [
-            // Padding(
-            //   padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 1.h),
-            //   child: Text(
-            //     'All Categories',
-            //     style: TextStyle(
-            //       fontSize: 16.sp,
-            //       fontWeight: FontWeight.bold,
-            //       color: Colors.black,
-            //     ),
-            //   ),
-            // ),
-
-            // Menu items from API
             ...menu.items.map(
               (menuItem) => _buildMenuItemTile(context, menuItem, 0),
             ),
-
+            Divider(color: const Color.fromARGB(255, 227, 227, 227), height: 1.h),
             ExpansionTile(
               childrenPadding: EdgeInsets.zero,
               iconColor: AppPalette.blackColor,
@@ -380,79 +367,56 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(bottom: 16.h),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'My Account',
-                style: TextStyle(
-                  fontSize: 19.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.left,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          CustomButton(
-            text: 'Log in',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-            },
-          ),
-          SizedBox(height: 5.h),
-          CustomButton(
-            text: 'Register',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-            },
-            bgColor: AppPalette.whiteColor,
-            textColor: AppPalette.blackColor,
-            borderColor: AppPalette.blackColor,
-          ),
+  // Widget _buildFooter(BuildContext context) {
+  //   return Container(
+  //     padding: EdgeInsets.all(16.w),
+  //     child: Column(
+  //       children: [
+  //         Padding(
+  //           padding: EdgeInsets.only(bottom: 16.h),
+  //           child: Align(
+  //             alignment: Alignment.centerLeft,
+  //             child: Text(
+  //               'My Account',
+  //               style: TextStyle(
+  //                 fontSize: 19.sp,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: Colors.black,
+  //               ),
+  //               textAlign: TextAlign.left,
+  //               maxLines: 1,
+  //               overflow: TextOverflow.ellipsis,
+  //             ),
+  //           ),
+  //         ),
+  //         CustomButton(
+  //           text: 'Log in',
+  //           onPressed: () {
+  //             Navigator.push(
+  //               context,
+  //               MaterialPageRoute(builder: (context) => LoginScreen()),
+  //             );
+  //           },
+  //         ),
+  //         SizedBox(height: 5.h),
+  //         CustomButton(
+  //           text: 'Register',
+  //           onPressed: () {
+  //             Navigator.push(
+  //               context,
+  //               MaterialPageRoute(builder: (context) => LoginScreen()),
+  //             );
+  //           },
+  //           bgColor: AppPalette.whiteColor,
+  //           textColor: AppPalette.blackColor,
+  //           borderColor: AppPalette.blackColor,
+  //         ),
 
-          SizedBox(height: 16.h),
-
-          // Language selector
-          Row(
-            children: [
-              Text(
-                'English',
-                style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-              ),
-              SizedBox(width: 4.w),
-              Icon(Icons.keyboard_arrow_down, size: 16.sp, color: Colors.grey),
-            ],
-          ),
-
-          SizedBox(height: 16.h),
-
-          // Version
-          Align(
-            alignment: Alignment.center,
-            child: Text(
-              "Version 1.0.0",
-              style: TextStyle(color: Colors.grey, fontSize: 12.sp),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  //         SizedBox(height: 16.h)
+  //       ],
+  //     ),
+  //   );
+  // }
 }
 
 class SettingWidget extends StatelessWidget {

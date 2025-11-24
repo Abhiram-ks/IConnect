@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
@@ -10,15 +9,23 @@ import 'package:iconnect/features/products/presentation/bloc/product_event.dart'
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/banner_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/brand_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/categories_carousel.dart';
-import 'package:iconnect/widgets/new_arrivals_section.dart' show ServiceBanner;
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/tabbed_products_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/category_products_section.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return BlocBuilder<HomeViewCubit, HomeViewData>(
       builder: (context, state) {
         return PopScope(
@@ -107,37 +114,6 @@ class _HomeContentViewState extends State<_HomeContentView>
                                   ),
 
                                   // Add service banners after every 4 categories
-                                  if ((i + 1) % 4 == 0 &&
-                                      i < collections.length - 1) ...[
-                                    ConstantWidgets.hight20(context),
-                                    ServiceBanner(
-                                      title:
-                                          i == 3
-                                              ? 'SMARTPHONES DISPLAY REPAIR'
-                                              : 'Repair Services',
-                                      subtitle:
-                                          i == 3
-                                              ? null
-                                              : 'Professional Electronic Repair',
-                                      imageUrl:
-                                          'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=120&fit=crop&crop=center',
-                                      onTap: () {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Opening repair services!',
-                                            ),
-                                            backgroundColor:
-                                                i == 3
-                                                    ? AppPalette.greenColor
-                                                    : AppPalette.blueColor,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
                                 ],
                               ],
                             );

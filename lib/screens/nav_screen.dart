@@ -15,7 +15,20 @@ import 'package:iconnect/screens/search_screen.dart';
 import 'package:iconnect/widgets/navbar_widgets.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
-class BottomNavigationControllers extends StatelessWidget {
+class BottomNavigationControllers extends StatefulWidget {
+  const BottomNavigationControllers({super.key});
+
+  @override
+  State<BottomNavigationControllers> createState() =>
+      _BottomNavigationControllersState();
+}
+
+class _BottomNavigationControllersState
+    extends State<BottomNavigationControllers>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   final List<Widget> _screens = [
     HomeScreen(),
     ProductScreen(),
@@ -23,10 +36,9 @@ class BottomNavigationControllers extends StatelessWidget {
     SearchScreen(),
   ];
 
-  BottomNavigationControllers({super.key});
-
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Theme(
       data: Theme.of(context).copyWith(
         splashColor: AppPalette.whiteColor.withAlpha((0.3 * 225).round()),
@@ -43,16 +55,11 @@ class BottomNavigationControllers extends StatelessWidget {
               children: [
                 BlocBuilder<ButtomNavCubit, NavItem>(
                   builder: (context, state) {
-                    switch (state) {
-                      case NavItem.home:
-                        return _screens[0];
-                      case NavItem.product:
-                        return _screens[1];
-                      case NavItem.cart:
-                        return _screens[2];
-                      case NavItem.search:
-                        return _screens[3];
-                    }
+                    final int currentIndex = _navIndex(state);
+                    return IndexedStack(
+                      index: currentIndex,
+                      children: _screens,
+                    );
                   },
                 ),
                 const WhatsAppFloatingButton(),
@@ -63,6 +70,19 @@ class BottomNavigationControllers extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+int _navIndex(NavItem item) {
+  switch (item) {
+    case NavItem.home:
+      return 0;
+    case NavItem.product:
+      return 1;
+    case NavItem.cart:
+      return 2;
+    case NavItem.search:
+      return 3;
   }
 }
 
@@ -102,9 +122,9 @@ class CustomAppBarDashbord extends StatelessWidget
               ? IconButton.filled(
                 tooltip: 'Back',
                 onPressed: onBack,
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.white,
                   shape: const CircleBorder(),
                 ),
               )
@@ -140,6 +160,7 @@ class CustomAppBarDashbord extends StatelessWidget
             shape: const CircleBorder(),
           ),
         ),
+            if(onBack == null )
         Builder(
           builder: (BuildContext scaffoldContext) {
             return Stack(
@@ -204,3 +225,5 @@ class CustomAppBarDashbord extends StatelessWidget
     );
   }
 }
+
+

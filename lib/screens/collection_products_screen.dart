@@ -46,9 +46,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: AppDrawer(),
-      endDrawer: CartDrawerWidget(),
-      appBar: CustomAppBarDashbord(),
+      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context),),
       body: Stack(
         children: [
           BlocBuilder<products.ProductBloc, products.ProductState>(
@@ -149,7 +147,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
           const WhatsAppFloatingButton(),
         ],
       ),
-      bottomNavigationBar: BottomNavWidget(),
     );
   }
 

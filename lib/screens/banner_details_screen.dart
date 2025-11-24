@@ -23,9 +23,9 @@ class BannerDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: AppDrawer(),
-      endDrawer: const CartDrawerWidget(),
-      appBar: CustomAppBarDashbord(),
+       drawer: AppDrawer(),
+            endDrawer: const CartDrawerWidget(),
+      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context),),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -46,7 +46,7 @@ class BannerDetailsScreen extends StatelessWidget {
           const WhatsAppFloatingButton(),
         ],
       ),
-      bottomNavigationBar: BottomNavWidget(),
+      
     );
   }
 

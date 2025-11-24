@@ -23,6 +23,18 @@ class CollectionModel extends CollectionEntity {
     );
   }
 
+  /// Factory constructor from a flattened map produced in an isolate.
+  factory CollectionModel.fromFlattenedJson(Map<String, dynamic> json) {
+    return CollectionModel(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      handle: json['handle'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      imageUrl: json['imageUrl'] as String?,
+      link: json['link'] as String?,
+    );
+  }
+
   /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {

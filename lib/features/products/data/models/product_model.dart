@@ -78,6 +78,34 @@ class ProductModel extends ProductEntity {
     );
   }
 
+  /// Factory constructor from a flattened map produced in an isolate.
+  /// Expects already-processed fields: images (List<String>), variants (List<Map>),
+  /// featuredImage (String?), prices as doubles, etc.
+  factory ProductModel.fromFlattenedJson(Map<String, dynamic> json) {
+    final variantsList = <ProductVariantModel>[];
+    final variantMaps = json['variants'] as List<dynamic>? ?? const [];
+    for (final v in variantMaps) {
+      variantsList.add(ProductVariantModel.fromFlattenedJson(v as Map<String, dynamic>));
+    }
+
+    return ProductModel(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      descriptionHtml: json['descriptionHtml'] as String? ?? '',
+      handle: json['handle'] as String? ?? '',
+      featuredImage: json['featuredImage'] as String?,
+      images: (json['images'] as List<dynamic>? ?? const []).cast<String>(),
+      minPrice: (json['minPrice'] as num?)?.toDouble() ?? 0.0,
+      maxPrice: (json['maxPrice'] as num?)?.toDouble() ??
+          ((json['minPrice'] as num?)?.toDouble() ?? 0.0),
+      compareAtPrice: (json['compareAtPrice'] as num?)?.toDouble(),
+      currencyCode: json['currencyCode'] as String? ?? 'USD',
+      availableForSale: json['availableForSale'] as bool? ?? true,
+      variants: variantsList,
+    );
+  }
+
   /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
@@ -166,6 +194,18 @@ class ProductVariantModel extends ProductVariantEntity {
       currencyCode: currencyCode,
       availableForSale: json['availableForSale'] as bool? ?? true,
       image: variantImage,
+    );
+  }
+
+  factory ProductVariantModel.fromFlattenedJson(Map<String, dynamic> json) {
+    return ProductVariantModel(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      compareAtPrice: (json['compareAtPrice'] as num?)?.toDouble(),
+      currencyCode: json['currencyCode'] as String? ?? 'USD',
+      availableForSale: json['availableForSale'] as bool? ?? true,
+      image: json['image'] as String?,
     );
   }
 

@@ -44,7 +44,7 @@ Widget buildActionButtons(ProductEntity product, BuildContext context, ProductVa
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => _makePhoneCall(context),
+                    onPressed: () => _makePhoneCall(context),
                       icon: const Icon(Icons.phone, size: 18),
                       label: const Text('Order By Call'),
                       style: ElevatedButton.styleFrom(
@@ -60,7 +60,7 @@ Widget buildActionButtons(ProductEntity product, BuildContext context, ProductVa
                   SizedBox(width: 8.w),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => _launchWhatsApp(context),
+                      onPressed: () =>  buyNow(builderContext, product, context, selectedVariant),
                       icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
                       label: const Text('WhatsApp'),
                       style: ElevatedButton.styleFrom(
@@ -131,18 +131,5 @@ Widget buildActionButtons(ProductEntity product, BuildContext context, ProductVa
       debugPrint('Error making phone call: $e');
       // ignore: use_build_context_synchronously
       CustomSnackBar.show(context, message: 'Error: $e', textAlign: TextAlign.center, backgroundColor: AppPalette.redColor);
-    }
-  }
-
-  Future<void> _launchWhatsApp(BuildContext context) async {
-    final phoneNumber = PhoneConfig.phoneNumber;
-    final Uri whatsappUri = Uri.parse('https://wa.me/$phoneNumber');
-
-    try {
-       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-      
-    } catch (e) {
-      // ignore: use_build_context_synchronously
-      CustomSnackBar.show(context, message: 'Error launching WhatsApp: $e', textAlign: TextAlign.center, backgroundColor: AppPalette.redColor);
     }
   }

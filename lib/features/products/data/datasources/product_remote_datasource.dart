@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:iconnect/core/graphql/graphql_queries.dart';
 import 'package:iconnect/features/products/data/models/brand_model.dart';
 import 'package:iconnect/features/products/data/models/collection_model.dart';
 import 'package:iconnect/features/products/data/models/product_model.dart';
+import 'package:iconnect/features/products/data/parsers/product_parsers.dart';
 import 'package:iconnect/services/graphql_base_service.dart';
 
 /// Abstract Product Remote Data Source
@@ -62,7 +64,19 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
       },
     );
 
-    return ProductsResultModel.fromJson(result);
+    // Heavy parsing offloaded to isolate
+    final flattened = await compute(parseFlattenedProducts, result);
+    final products = flattened
+        .map((m) => ProductModel.fromFlattenedJson(m))
+        .toList();
+
+    final pageInfo =
+        result['products']?['pageInfo'] as Map<String, dynamic>? ?? {};
+
+    return ProductsResultModel(
+      products: products,
+      pageInfo: ProductsPageInfoModel.fromJson(pageInfo),
+    );
   }
 
   @override
@@ -77,7 +91,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
       throw Exception('Product not found');
     }
 
-    return ProductModel.fromJson(productData);
+    final flattened = await compute(parseFlattenedProduct, productData);
+    return ProductModel.fromFlattenedJson(flattened);
   }
 
   @override
@@ -92,7 +107,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
       throw Exception('Product not found');
     }
 
-    return ProductModel.fromJson(productData);
+    final flattened = await compute(parseFlattenedProduct, productData);
+    return ProductModel.fromFlattenedJson(flattened);
   }
 
   @override
@@ -102,16 +118,10 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
       variables: {'first': first},
     );
 
-    final collectionsList = <CollectionModel>[];
-    if (result['collections'] != null &&
-        result['collections']['edges'] != null) {
-      final edges = result['collections']['edges'] as List;
-      for (final edge in edges) {
-        collectionsList.add(CollectionModel.fromJson(edge['node']));
-      }
-    }
-
-    return collectionsList;
+    final flattened = await compute(parseFlattenedCollections, result);
+    return flattened
+        .map((m) => CollectionModel.fromFlattenedJson(m))
+        .toList();
   }
 
   @override
@@ -135,24 +145,10 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
       variables: {'first': first},
     );
 
-    final vendorsSet = <String>{};
-
-    if (result['products'] != null && result['products']['edges'] != null) {
-      final edges = result['products']['edges'] as List;
-
-      for (final edge in edges) {
-        final node = edge['node'] as Map<String, dynamic>?;
-        if (node == null) continue;
-
-        final vendor = node['vendor'] as String?;
-        if (vendor != null && vendor.isNotEmpty) {
-          vendorsSet.add(vendor);
-        }
-      }
-    }
+    final vendors = await compute(parseUniqueVendors, result);
 
     // Convert unique vendors to BrandModel list
-    return vendorsSet.map((vendor) {
+    return vendors.map((vendor) {
       return BrandModel.fromVendor(vendor: vendor);
     }).toList();
   }
@@ -164,14 +160,9 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
       variables: {'productId': productId},
     );
 
-    final recommendationsList = <ProductModel>[];
-    if (result['productRecommendations'] != null) {
-      final recommendations = result['productRecommendations'] as List;
-      for (final productData in recommendations) {
-        recommendationsList.add(ProductModel.fromJson(productData));
-      }
-    }
-
-    return recommendationsList;
+    final flattened = await compute(parseFlattenedRecommendations, result);
+    return flattened
+        .map((m) => ProductModel.fromFlattenedJson(m))
+        .toList();
   }
 }
