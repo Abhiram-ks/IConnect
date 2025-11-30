@@ -8,8 +8,10 @@ import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:iconnect/features/cart/presentation/widgets/cart_drawer_widget.dart';
+import 'package:iconnect/screens/categories_screen.dart';
 import 'package:iconnect/screens/detailed_cart_screen.dart';
 import 'package:iconnect/screens/home_screen.dart';
+import 'package:iconnect/screens/iphone17_screen.dart';
 import 'package:iconnect/screens/product_screen.dart';
 import 'package:iconnect/screens/search_screen.dart';
 import 'package:iconnect/widgets/navbar_widgets.dart';
@@ -31,6 +33,8 @@ class _BottomNavigationControllersState
 
   final List<Widget> _screens = [
     HomeScreen(),
+    CategoriesScreen(),
+    IPhone17Screen(),
     ProductScreen(),
     DetailedCartScreen(),
     SearchScreen(),
@@ -77,12 +81,16 @@ int _navIndex(NavItem item) {
   switch (item) {
     case NavItem.home:
       return 0;
-    case NavItem.product:
+    case NavItem.categories:
       return 1;
-    case NavItem.cart:
+    case NavItem.iphone17:
       return 2;
-    case NavItem.search:
+    case NavItem.product:
       return 3;
+    case NavItem.cart:
+      return 4;
+    case NavItem.search:
+      return 5;
   }
 }
 
@@ -160,70 +168,68 @@ class CustomAppBarDashbord extends StatelessWidget
             shape: const CircleBorder(),
           ),
         ),
-            if(onBack == null )
-        Builder(
-          builder: (BuildContext scaffoldContext) {
-            return Stack(
-              children: [
-                IconButton.filled(
-                  icon: const Icon(
-                    Icons.shopping_bag_outlined,
-                    color: AppPalette.blackColor,
+        if (onBack == null)
+          Builder(
+            builder: (BuildContext scaffoldContext) {
+              return Stack(
+                children: [
+                  IconButton.filled(
+                    icon: const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: AppPalette.blackColor,
+                    ),
+                    onPressed: () {
+                      // Open cart drawer when header cart icon is tapped
+                      Scaffold.of(scaffoldContext).openEndDrawer();
+                    },
+                    tooltip: 'Shopping Cart',
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      disabledBackgroundColor: Colors.transparent,
+                      shadowColor: Colors.black26,
+                      shape: const CircleBorder(),
+                    ),
                   ),
-                  onPressed: () {
-                    // Open cart drawer when header cart icon is tapped
-                    Scaffold.of(scaffoldContext).openEndDrawer();
-                  },
-                  tooltip: 'Shopping Cart',
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    disabledBackgroundColor: Colors.transparent,
-                    shadowColor: Colors.black26,
-                    shape: const CircleBorder(),
-                  ),
-                ),
-                BlocBuilder<CartCubit, CartState>(
-                  bloc: sl<CartCubit>(),
-                  builder: (context, state) {
-                    int itemCount = 0;
-                    if (state is CartLoaded) {
-                      itemCount = state.cart.itemCount;
-                    } else if (state is CartOperationInProgress) {
-                      itemCount = state.currentCart.itemCount;
-                    }
+                  BlocBuilder<CartCubit, CartState>(
+                    bloc: sl<CartCubit>(),
+                    builder: (context, state) {
+                      int itemCount = 0;
+                      if (state is CartLoaded) {
+                        itemCount = state.cart.itemCount;
+                      } else if (state is CartOperationInProgress) {
+                        itemCount = state.currentCart.itemCount;
+                      }
 
-                    if (itemCount > 0) {
-                      return Positioned(
-                        right: 8.w,
-                        top: 8.h,
-                        child: Container(
-                          padding: EdgeInsets.all(4.r),
-                          decoration: const BoxDecoration(
-                            color: AppPalette.redColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            '$itemCount',
-                            style: TextStyle(
-                              color: AppPalette.whiteColor,
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.bold,
+                      if (itemCount > 0) {
+                        return Positioned(
+                          right: 8.w,
+                          top: 8.h,
+                          child: Container(
+                            padding: EdgeInsets.all(4.r),
+                            decoration: const BoxDecoration(
+                              color: AppPalette.redColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '$itemCount',
+                              style: TextStyle(
+                                color: AppPalette.whiteColor,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-              ],
-            );
-          },
-        ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ConstantWidgets.width20(context),
       ],
     );
   }
 }
-
-

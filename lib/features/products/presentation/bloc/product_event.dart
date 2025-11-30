@@ -49,6 +49,26 @@ class LoadCollectionsRequested extends ProductEvent {
   List<Object?> get props => [first, forBanners];
 }
 
+/// Load home categories event (first 20 for homepage)
+class LoadHomeCategoriesRequested extends ProductEvent {
+  final int first;
+
+  LoadHomeCategoriesRequested({this.first = 20});
+
+  @override
+  List<Object?> get props => [first];
+}
+
+/// Load all categories event (for all categories page, with imageUrls only)
+class LoadAllCategoriesRequested extends ProductEvent {
+  final int first;
+
+  LoadAllCategoriesRequested({this.first = 250});
+
+  @override
+  List<Object?> get props => [first];
+}
+
 /// Load collection with products event
 class LoadCollectionByHandleRequested extends ProductEvent {
   final String handle;
@@ -137,4 +157,20 @@ class LoadAllProductsRequested extends ProductEvent {
 
   @override
   List<Object?> get props => [first, after, sortKey, reverse, loadMore];
+}
+
+/// Load iPhone 17 products event (for iPhone 17 screen)
+class LoadIPhone17ProductsRequested extends ProductEvent {
+  final int first;
+  final String? after;
+  final String query;
+
+  LoadIPhone17ProductsRequested({
+    this.first = 100,
+    this.after,
+    this.query = 'iPhone 17',
+  });
+
+  @override
+  List<Object?> get props => [first, after, query];
 }

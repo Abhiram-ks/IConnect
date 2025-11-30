@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,13 +27,11 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
   void initState() {
     super.initState();
     infiniteScrollController = InfiniteScrollController(initialItem: 0);
-    
-    // Load categories (collections) from Shopify
+
+    // Load home categories (first 20) from Shopify
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
-        context.read<ProductBloc>().add(
-          LoadCollectionsRequested(first: 20, forBanners: false),
-        );
+        context.read<ProductBloc>().add(LoadHomeCategoriesRequested(first: 20));
       }
     });
 
@@ -84,7 +81,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProductBloc, ProductState>(
       builder: (context, state) {
-        if (state.collections.status == Status.loading) {
+        if (state.homeCategories.status == Status.loading) {
           return SizedBox(
             height: 110.h,
             child: Center(
@@ -98,10 +95,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
                   SizedBox(height: 8.h),
                   Text(
                     'Loading categories...',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                   ),
                 ],
               ),
@@ -110,70 +104,9 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
         }
 
         // Show error state with message
-        if (state.collections.status == Status.error) {
-          return Container(
-            height: 110.h,
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: AppPalette.redColor,
-                    size: 32.sp,
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Failed to load categories',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    state.collections.message ?? '',
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      color: Colors.red,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8.h),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<ProductBloc>().add(
-                        LoadCollectionsRequested(
-                          first: 20,
-                          forBanners: false,
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppPalette.blueColor,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 8.h,
-                      ),
-                    ),
-                    child: Text(
-                      'Retry',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.sp,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
         // Show categories if loaded
-        if (state.collections.status == Status.completed) {
-          final collections = state.collections.data ?? [];
+        if (state.homeCategories.status == Status.completed) {
+          final collections = state.homeCategories.data ?? [];
 
           // If no collections at all, show message
           if (collections.isEmpty) {
@@ -183,10 +116,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
               child: Center(
                 child: Text(
                   'No categories available',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                 ),
               ),
             );
@@ -195,11 +125,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
           // Filter collections with images for categories
           final categoriesWithImages =
               collections
-                  .where(
-                    (c) =>
-                        c.imageUrl != null &&
-                        c.imageUrl!.isNotEmpty,
-                  )
+                  .where((c) => c.imageUrl != null && c.imageUrl!.isNotEmpty)
                   .toList();
 
           // If no collections have images, show all collections with placeholder
@@ -210,9 +136,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
 
           // Update categories count for auto-scroll
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted &&
-                _categoriesCount !=
-                    displayCategories.length) {
+            if (mounted && _categoriesCount != displayCategories.length) {
               setState(() {
                 _categoriesCount = displayCategories.length;
               });
@@ -220,27 +144,16 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
           });
 
           return SizedBox(
-            height: 110.h,
+            height: 90.h,
             child: GestureDetector(
               onPanDown: (_) => _stopAutoScroll(),
               onPanEnd: (_) => _resumeAutoScroll(),
               onPanCancel: () => _resumeAutoScroll(),
               child: InfiniteCarousel.builder(
                 itemCount: displayCategories.length,
-                itemExtent: 110.w,
+                itemExtent: 80.w,
                 center: true,
                 anchor: 0.0,
-                scrollBehavior:
-                    kIsWeb
-                        ? ScrollConfiguration.of(
-                          context,
-                        ).copyWith(
-                          dragDevices: {
-                            PointerDeviceKind.touch,
-                            PointerDeviceKind.mouse,
-                          },
-                        )
-                        : null,
                 loop: true,
                 velocityFactor: 0.15,
                 physics: const BouncingScrollPhysics(),
@@ -252,12 +165,9 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
                 controller: infiniteScrollController,
                 axisDirection: Axis.horizontal,
                 itemBuilder: (context, itemIndex, __) {
-                  final collection =
-                      displayCategories[itemIndex];
+                  final collection = displayCategories[itemIndex];
                   return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
                     child: CategoryCard(
                       imageUrl:
                           collection.imageUrl ??
@@ -270,10 +180,8 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
                           context,
                           '/collection_products',
                           arguments: {
-                            'collectionHandle':
-                                collection.handle,
-                            'collectionTitle':
-                                collection.title,
+                            'collectionHandle': collection.handle,
+                            'collectionTitle': collection.title,
                           },
                         );
                       },
@@ -299,4 +207,3 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
     );
   }
 }
-

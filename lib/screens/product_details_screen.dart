@@ -6,6 +6,8 @@ import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
+import 'package:iconnect/screens/nav_screen.dart';
+import 'package:iconnect/widgets/navbar_widgets.dart';
 
 import '../features/products/presentation/widgets/product_detail_widget/product_detal_staring_body.dart';
 
@@ -40,20 +42,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 8,
-        shadowColor: Colors.black.withValues(alpha: 0.15),
-        surfaceTintColor: Colors.white,
-        centerTitle: true,
-        title: Center(
-          child: Image.asset(
-            'assets/iconnect_logo.png',
-            height: 25.h,
-            fit: BoxFit.contain,
-          ),
-        ),
-      ),
+      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
           if (state.productDetail.status == Status.loading) {
@@ -68,21 +57,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ),
             );
-          } 
-                  if (state.productDetail.status == Status.completed) {
-          final product = state.productDetail.data;
-
-          if (product == null) {
-            return  const Center(child: Text('Product not found'));
-         
           }
+          if (state.productDetail.status == Status.completed) {
+            final product = state.productDetail.data;
 
-          if (_selectedVariant == null && product.variants.isNotEmpty) {
-            _selectedVariant = product.variants.first;
+            if (product == null) {
+              return const Center(child: Text('Product not found'));
+            }
+
+            if (_selectedVariant == null && product.variants.isNotEmpty) {
+              _selectedVariant = product.variants.first;
+            }
+
+            return buildProductDetails(product, context, _selectedVariant);
           }
-
-          return buildProductDetails(product, context, _selectedVariant);
-        }
 
           return Center(
             child: Column(
@@ -127,6 +115,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           );
         },
       ),
+      bottomNavigationBar: BottomNavWidget(),
     );
   }
 }

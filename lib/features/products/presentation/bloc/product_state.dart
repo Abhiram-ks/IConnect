@@ -30,11 +30,14 @@ class ProductState {
   ApiResponse<List<ProductEntity>> allProducts; // Separate state for all products screen
   ApiResponse<ProductEntity> productDetail;
   ApiResponse<List<CollectionEntity>> collections;
+  ApiResponse<List<CollectionEntity>> homeCategories; // Separate state for homepage categories (first 20)
+  ApiResponse<List<CollectionEntity>> allCategories; // Separate state for all categories page (with imageUrls)
   ApiResponse<List<CollectionEntity>> banners;
   ApiResponse<CollectionWithProducts> collectionWithProducts;
   ApiResponse<List<BrandEntity>> brands;
   ApiResponse<List<ProductEntity>> brandProducts; // Separate state for brand products
   ApiResponse<List<ProductEntity>> recommendedProducts; // Recommended products
+  ApiResponse<List<ProductEntity>> iphone17Products; // Separate state for iPhone 17 products
   bool hasNextPage;
   String? endCursor;
   bool allProductsHasNextPage; // Separate pagination for all products
@@ -50,11 +53,14 @@ class ProductState {
     ApiResponse<List<ProductEntity>>? allProducts,
     ApiResponse<ProductEntity>? productDetail,
     ApiResponse<List<CollectionEntity>>? collections,
+    ApiResponse<List<CollectionEntity>>? homeCategories,
+    ApiResponse<List<CollectionEntity>>? allCategories,
     ApiResponse<List<CollectionEntity>>? banners,
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
     ApiResponse<List<ProductEntity>>? recommendedProducts,
+    ApiResponse<List<ProductEntity>>? iphone17Products,
     this.hasNextPage = false,
     this.endCursor,
     this.allProductsHasNextPage = false,
@@ -66,11 +72,14 @@ class ProductState {
         allProducts = allProducts ?? ApiResponse.initial(),
         productDetail = productDetail ?? ApiResponse.initial(),
         collections = collections ?? ApiResponse.initial(),
+        homeCategories = homeCategories ?? ApiResponse.initial(),
+        allCategories = allCategories ?? ApiResponse.initial(),
         banners = banners ?? ApiResponse.initial(),
         collectionWithProducts = collectionWithProducts ?? ApiResponse.initial(),
         brands = brands ?? ApiResponse.initial(),
         brandProducts = brandProducts ?? ApiResponse.initial(),
         recommendedProducts = recommendedProducts ?? ApiResponse.initial(),
+        iphone17Products = iphone17Products ?? ApiResponse.initial(),
         categoryProducts = categoryProducts ?? {};
 
   ProductState copyWith({
@@ -78,11 +87,14 @@ class ProductState {
     ApiResponse<List<ProductEntity>>? allProducts,
     ApiResponse<ProductEntity>? productDetail,
     ApiResponse<List<CollectionEntity>>? collections,
+    ApiResponse<List<CollectionEntity>>? homeCategories,
+    ApiResponse<List<CollectionEntity>>? allCategories,
     ApiResponse<List<CollectionEntity>>? banners,
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
     ApiResponse<List<ProductEntity>>? recommendedProducts,
+    ApiResponse<List<ProductEntity>>? iphone17Products,
     bool? hasNextPage,
     String? endCursor,
     bool? allProductsHasNextPage,
@@ -96,11 +108,14 @@ class ProductState {
       allProducts: allProducts ?? this.allProducts,
       productDetail: productDetail ?? this.productDetail,
       collections: collections ?? this.collections,
+      homeCategories: homeCategories ?? this.homeCategories,
+      allCategories: allCategories ?? this.allCategories,
       banners: banners ?? this.banners,
       collectionWithProducts: collectionWithProducts ?? this.collectionWithProducts,
       brands: brands ?? this.brands,
       brandProducts: brandProducts ?? this.brandProducts,
       recommendedProducts: recommendedProducts ?? this.recommendedProducts,
+      iphone17Products: iphone17Products ?? this.iphone17Products,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       endCursor: endCursor ?? this.endCursor,
       allProductsHasNextPage: allProductsHasNextPage ?? this.allProductsHasNextPage,

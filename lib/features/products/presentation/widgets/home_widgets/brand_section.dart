@@ -81,7 +81,7 @@ class _BrandSectionState extends State<BrandSection> {
     final duplicatedBrands = [...brands, ...brands];
 
     return SizedBox(
-      height: 50.h,
+      height: 40.h,
       child: GestureDetector(
         onPanDown: (_) => _stopAutoScroll(),
         onPanEnd: (_) => _resumeAutoScroll(),

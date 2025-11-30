@@ -58,10 +58,15 @@ class _HomeContentViewState extends State<_HomeContentView>
   @override
   void initState() {
     super.initState();
-    // Load collections for both banners and categories
+    // Load collections for banners
     context.read<ProductBloc>().add(
       LoadCollectionsRequested(first: 10, forBanners: true),
     );
+    // Load home categories (first 20)
+    context.read<ProductBloc>().add(
+      LoadHomeCategoriesRequested(first: 20),
+    );
+    // Load collections for category products sections
     context.read<ProductBloc>().add(
       LoadCollectionsRequested(first: 50, forBanners: false),
     );

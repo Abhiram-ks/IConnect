@@ -27,6 +27,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   List<ProductEntity> _currentProducts = [];
   List<ProductEntity> _currentAllProducts = [];
   List<ProductEntity> _currentBrandProducts = [];
+  List<ProductEntity> _currentIPhone17Products = [];
   // Keep track of category products for pagination
   Map<String, List<ProductEntity>> _currentCategoryProducts = {};
 
@@ -42,6 +43,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadAllProductsRequested>(_onLoadAllProductsRequested);
     on<LoadProductByHandleRequested>(_onLoadProductByHandleRequested);
     on<LoadCollectionsRequested>(_onLoadCollectionsRequested);
+    on<LoadHomeCategoriesRequested>(_onLoadHomeCategoriesRequested);
+    on<LoadAllCategoriesRequested>(_onLoadAllCategoriesRequested);
     on<LoadCollectionByHandleRequested>(_onLoadCollectionByHandleRequested);
     on<LoadBrandsRequested>(_onLoadBrandsRequested);
     on<LoadBrandProductsRequested>(_onLoadBrandProductsRequested);
@@ -50,6 +53,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadProductRecommendationsRequested>(
       _onLoadProductRecommendationsRequested,
     );
+    on<LoadIPhone17ProductsRequested>(_onLoadIPhone17ProductsRequested);
   }
 
   /// Handle load products event
@@ -218,6 +222,60 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         },
       );
     }
+  }
+
+  /// Handle load home categories event (first 20 for homepage)
+  Future<void> _onLoadHomeCategoriesRequested(
+    LoadHomeCategoriesRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(state.copyWith(homeCategories: ApiResponse.loading()));
+
+    final params = GetCollectionsParams(first: event.first);
+    final result = await getCollectionsUsecase(params);
+
+    result.fold(
+      (failure) => {
+        emit(state.copyWith(homeCategories: ApiResponse.error(failure.message))),
+      },
+      (collections) {
+        // Limit to first 20 for homepage
+        final homeCategoriesList = collections.take(event.first).toList();
+        emit(
+          state.copyWith(
+            homeCategories: ApiResponse.completed(homeCategoriesList),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Handle load all categories event (for all categories page, with imageUrls only)
+  Future<void> _onLoadAllCategoriesRequested(
+    LoadAllCategoriesRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(state.copyWith(allCategories: ApiResponse.loading()));
+
+    final params = GetCollectionsParams(first: event.first);
+    final result = await getCollectionsUsecase(params);
+
+    result.fold(
+      (failure) => {
+        emit(state.copyWith(allCategories: ApiResponse.error(failure.message))),
+      },
+      (collections) {
+        // Filter only collections that have imageUrls
+        final categoriesWithImages = collections
+            .where((c) => c.imageUrl != null && c.imageUrl!.isNotEmpty)
+            .toList();
+        emit(
+          state.copyWith(
+            allCategories: ApiResponse.completed(categoriesWithImages),
+          ),
+        );
+      },
+    );
   }
 
   /// Handle load collection by handle event
@@ -425,6 +483,47 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         emit(
           state.copyWith(recommendedProducts: ApiResponse.completed(products)),
         ),
+      },
+    );
+  }
+
+  /// Handle load iPhone 17 products event
+  Future<void> _onLoadIPhone17ProductsRequested(
+    LoadIPhone17ProductsRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    // Reset current iPhone 17 products and emit loading state
+    _currentIPhone17Products = [];
+    emit(
+      state.copyWith(
+        iphone17Products: ApiResponse.loading(),
+      ),
+    );
+
+    final params = GetProductsParams(
+      first: event.first,
+      after: event.after,
+      query: event.query,
+    );
+
+    final result = await getProductsUsecase(params);
+
+    result.fold(
+      (failure) => {
+        emit(
+          state.copyWith(
+            iphone17Products: ApiResponse.error(failure.message),
+          ),
+        ),
+      },
+      (productsResult) {
+        _currentIPhone17Products = productsResult.products;
+
+        emit(
+          state.copyWith(
+            iphone17Products: ApiResponse.completed(_currentIPhone17Products),
+          ),
+        );
       },
     );
   }

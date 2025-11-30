@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,30 +5,36 @@ import 'package:iconnect/app_palette.dart';
 
 class BrandCard extends StatelessWidget {
   final String imageUrl;
-  final String name;  
+  final String name;
   final VoidCallback onTap;
   final double? width;
   final double? height;
 
-  const BrandCard({super.key, required this.imageUrl, required this.onTap, required this.name, this.width, this.height});
+  const BrandCard({
+    super.key,
+    required this.imageUrl,
+    required this.onTap,
+    required this.name,
+    this.width,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-
       onTap: onTap,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 4.w),
         child: Image.network(
           imageUrl,
-          width: 100.w,
-          height: 21.h,
+          width: 80.w,
+          height: 20.h,
           fit: BoxFit.contain,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
             return SizedBox(
-              width: width ?? 100.w,
-              height: height ?? 20.h,
+              width: 80.w,
+              height: 10.h,
               child: Center(
                 child: CircularProgressIndicator(
                   color: AppPalette.blueColor,
@@ -46,7 +51,7 @@ class BrandCard extends StatelessWidget {
           errorBuilder: (context, error, stackTrace) {
             return Center(
               child: SizedBox(
-                width: 100.w,
+                width: 80.w,
                 height: 20.h,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -74,7 +79,7 @@ class BrandCard extends StatelessWidget {
             );
           },
         ),
-      )
+      ),
     );
-    }
+  }
 }

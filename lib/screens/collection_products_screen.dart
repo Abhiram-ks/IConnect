@@ -4,14 +4,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iconnect/app_drawer.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/core/utils/api_response.dart';
-import 'package:iconnect/features/cart/presentation/widgets/cart_drawer_widget.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart' as products;
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/screens/nav_screen.dart';
-import 'package:iconnect/widgets/navbar_widgets.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 import '../widgets/shopify_product_grid_section.dart';
