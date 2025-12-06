@@ -19,7 +19,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
+class _HomePageState extends State<HomePage>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -63,9 +64,7 @@ class _HomeContentViewState extends State<_HomeContentView>
       LoadCollectionsRequested(first: 10, forBanners: true),
     );
     // Load home categories (first 20)
-    context.read<ProductBloc>().add(
-      LoadHomeCategoriesRequested(first: 20),
-    );
+    context.read<ProductBloc>().add(LoadHomeCategoriesRequested(first: 20));
     // Load collections for category products sections
     context.read<ProductBloc>().add(
       LoadCollectionsRequested(first: 50, forBanners: false),
@@ -97,6 +96,13 @@ class _HomeContentViewState extends State<_HomeContentView>
                       const BrandSection(),
                       ConstantWidgets.hight30(context),
                       const TabbedProductsSection(),
+                      ConstantWidgets.hight30(context),
+                      CategoryProductsSection(
+                        categoryName: "New Arrivals",
+                        collectionHandle:
+                            "new-arrivals-in-qatar-iconnect-qatar",
+                        initialProductCount: 30,
+                      ),
 
                       // Dynamic Category Sections from Collections
                       BlocBuilder<ProductBloc, ProductState>(
@@ -115,7 +121,7 @@ class _HomeContentViewState extends State<_HomeContentView>
                                   CategoryProductsSection(
                                     categoryName: collections[i].title,
                                     collectionHandle: collections[i].handle,
-                                    initialProductCount: 10,
+                                    initialProductCount: 20,
                                   ),
 
                                   // Add service banners after every 4 categories

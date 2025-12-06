@@ -74,11 +74,18 @@ class LoadAllCategoriesRequested extends ProductEvent {
 class LoadCollectionByHandleRequested extends ProductEvent {
   final String handle;
   final int first;
+  final String? after;
+  final bool loadMore;
 
-  LoadCollectionByHandleRequested({required this.handle, this.first = 20});
+  LoadCollectionByHandleRequested({
+    required this.handle,
+    this.first = 20,
+    this.after,
+    this.loadMore = false,
+  });
 
   @override
-  List<Object?> get props => [handle, first];
+  List<Object?> get props => [handle, first, after, loadMore];
 }
 
 /// Load brands event
@@ -166,11 +173,7 @@ class LoadSeriesProduct extends ProductEvent {
   final int first;
   final String? after;
 
-  LoadSeriesProduct({
-    required this.model,
-    this.first = 100,
-    this.after,
-  });
+  LoadSeriesProduct({required this.model, this.first = 100, this.after});
 
   @override
   List<Object?> get props => [model, first, after];

@@ -169,9 +169,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 4.w),
                     child: CategoryCard(
-                      imageUrl:
-                          collection.imageUrl ??
-                          'https://via.placeholder.com/150',
+                      imageUrl: collection.imageUrl ?? '',
                       title: collection.title,
                       onTap: () {
                         _stopAutoScroll();

@@ -30,6 +30,7 @@ abstract class ProductRepository {
   Future<Either<Failure, CollectionWithProducts>> getCollectionByHandle({
     required String handle,
     int first = 20,
+    String? after,
   });
 
   /// Get all unique brands (vendors) from products

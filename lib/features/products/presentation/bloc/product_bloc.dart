@@ -29,6 +29,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   List<ProductEntity> _currentAllProducts = [];
   List<ProductEntity> _currentBrandProducts = [];
   Map<String, List<ProductEntity>> _currentCategoryProducts = {};
+  List<ProductEntity> _currentCollectionProducts = [];
+  CollectionEntity? _currentCollection;
 
   ProductBloc({
     required this.getProductsUsecase,
@@ -285,11 +287,26 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     LoadCollectionByHandleRequested event,
     Emitter<ProductState> emit,
   ) async {
-    emit(state.copyWith(collectionWithProducts: ApiResponse.loading()));
+    if (event.loadMore) {
+      // Keep current collection and don't show loading
+      emit(state.copyWith());
+    } else {
+      // Reset current collection products and emit loading state
+      _currentCollectionProducts = [];
+      _currentCollection = null;
+      emit(
+        state.copyWith(
+          collectionWithProducts: ApiResponse.loading(),
+          collectionProductsHasNextPage: false,
+          collectionProductsEndCursor: null,
+        ),
+      );
+    }
 
     final params = GetCollectionByHandleParams(
       handle: event.handle,
       first: event.first,
+      after: event.after,
     );
 
     final result = await getCollectionByHandleUsecase(params);
@@ -302,14 +319,41 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           ),
         ),
       },
-      (collectionWithProducts) => {
+      (collectionWithProducts) {
+        // Store collection info (only on first load)
+        if (!event.loadMore) {
+          _currentCollection = collectionWithProducts.collection;
+        }
+
+        // Add new products to the list
+        if (event.loadMore) {
+          _currentCollectionProducts.addAll(
+            collectionWithProducts.products.products,
+          );
+        } else {
+          _currentCollectionProducts = collectionWithProducts.products.products;
+        }
+
+        // Create updated CollectionWithProducts with accumulated products
+        final updatedCollectionWithProducts = CollectionWithProducts(
+          collection: _currentCollection ?? collectionWithProducts.collection,
+          products: ProductsResult(
+            products: _currentCollectionProducts,
+            pageInfo: collectionWithProducts.products.pageInfo,
+          ),
+        );
+
         emit(
           state.copyWith(
             collectionWithProducts: ApiResponse.completed(
-              collectionWithProducts,
+              updatedCollectionWithProducts,
             ),
+            collectionProductsHasNextPage:
+                collectionWithProducts.products.pageInfo.hasNextPage,
+            collectionProductsEndCursor:
+                collectionWithProducts.products.pageInfo.endCursor,
           ),
-        ),
+        );
       },
     );
   }

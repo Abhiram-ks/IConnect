@@ -1,12 +1,11 @@
-
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/core/utils/api_response.dart';
-import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart' as products;
+import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
+    as products;
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
@@ -29,6 +28,9 @@ class CollectionProductsScreen extends StatefulWidget {
 }
 
 class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoadingMore = false;
+
   @override
   void initState() {
     super.initState();
@@ -38,12 +40,47 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
         first: 20,
       ),
     );
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isLoadingMore) return;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    final delta = 200.0; // Trigger when 200px from bottom
+
+    if (currentScroll >= (maxScroll - delta)) {
+      final state = context.read<products.ProductBloc>().state;
+      if (state.collectionProductsHasNextPage &&
+          state.collectionWithProducts.status == Status.completed) {
+        setState(() {
+          _isLoadingMore = true;
+        });
+
+        context.read<products.ProductBloc>().add(
+          LoadCollectionByHandleRequested(
+            handle: widget.collectionHandle,
+            first: 20,
+            after: state.collectionProductsEndCursor,
+            loadMore: true,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context),),
+      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
       body: Stack(
         children: [
           BlocBuilder<products.ProductBloc, products.ProductState>(
@@ -117,7 +154,19 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                 final collection = collectionData.collection;
                 final products = collectionData.products.products;
 
+                // Reset loading more flag when new data arrives
+                if (_isLoadingMore) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {
+                        _isLoadingMore = false;
+                      });
+                    }
+                  });
+                }
+
                 return SingleChildScrollView(
+                  controller: _scrollController,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -130,8 +179,10 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                       ),
 
                       // Products Grid Section
-                      _buildProductsSection(products),
-
+                      _buildProductsSection(
+                        products,
+                        state.collectionProductsHasNextPage,
+                      ),
                     ],
                   ),
                 );
@@ -236,7 +287,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                   '$productCount products available',
                   style: TextStyle(
                     fontSize: 14.sp,
-                  
+
                     color: Colors.white.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w200,
                   ),
@@ -249,7 +300,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
     );
   }
 
-  Widget _buildProductsSection(List<dynamic> products) {
+  Widget _buildProductsSection(List<dynamic> products, bool hasNextPage) {
     if (products.isEmpty) {
       return Padding(
         padding: EdgeInsets.all(24.w),
@@ -294,21 +345,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                   color: Colors.black87,
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: AppPalette.blueColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Text(
-                  '${products.length} items',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppPalette.blueColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
             ],
           ),
           SizedBox(height: 16.h),
@@ -327,9 +363,16 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
               return ShopifyGridProductCard(product: product);
             },
           ),
+          // Loading indicator at bottom when loading more
+          if (_isLoadingMore && hasNextPage)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              child: Center(
+                child: CircularProgressIndicator(color: AppPalette.blueColor),
+              ),
+            ),
         ],
       ),
     );
   }
-
 }

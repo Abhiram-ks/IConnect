@@ -27,23 +27,31 @@ class CategoryProductData {
 
 class ProductState {
   ApiResponse<List<ProductEntity>> products;
-  ApiResponse<List<ProductEntity>> allProducts; // Separate state for all products screen
+  ApiResponse<List<ProductEntity>>
+  allProducts; // Separate state for all products screen
   ApiResponse<ProductEntity> productDetail;
   ApiResponse<List<CollectionEntity>> collections;
-  ApiResponse<List<CollectionEntity>> homeCategories; // Separate state for homepage categories (first 20)
-  ApiResponse<List<CollectionEntity>> allCategories; // Separate state for all categories page (with imageUrls)
+  ApiResponse<List<CollectionEntity>>
+  homeCategories; // Separate state for homepage categories (first 20)
+  ApiResponse<List<CollectionEntity>>
+  allCategories; // Separate state for all categories page (with imageUrls)
   ApiResponse<List<CollectionEntity>> banners;
   ApiResponse<CollectionWithProducts> collectionWithProducts;
   ApiResponse<List<BrandEntity>> brands;
-  ApiResponse<List<ProductEntity>> brandProducts; // Separate state for brand products
+  ApiResponse<List<ProductEntity>>
+  brandProducts; // Separate state for brand products
   ApiResponse<List<ProductEntity>> recommendedProducts; // Recommended products
-  Map<ModelName, SeriesModel>? seriesProducts; // Separate state for series products
+  Map<ModelName, SeriesModel>?
+  seriesProducts; // Separate state for series products
   bool hasNextPage;
   String? endCursor;
   bool allProductsHasNextPage; // Separate pagination for all products
   String? allProductsEndCursor;
   bool brandProductsHasNextPage; // Separate pagination for brand products
   String? brandProductsEndCursor;
+  bool
+  collectionProductsHasNextPage; // Separate pagination for collection products
+  String? collectionProductsEndCursor;
   // Category products - Map<CategoryName, CategoryProductData>
   Map<String, CategoryProductData> categoryProducts;
 
@@ -66,20 +74,22 @@ class ProductState {
     this.allProductsEndCursor,
     this.brandProductsHasNextPage = false,
     this.brandProductsEndCursor,
+    this.collectionProductsHasNextPage = false,
+    this.collectionProductsEndCursor,
     Map<String, CategoryProductData>? categoryProducts,
-  })  : products = products ?? ApiResponse.initial(),
-        allProducts = allProducts ?? ApiResponse.initial(),
-        productDetail = productDetail ?? ApiResponse.initial(),
-        collections = collections ?? ApiResponse.initial(),
-        homeCategories = homeCategories ?? ApiResponse.initial(),
-        allCategories = allCategories ?? ApiResponse.initial(),
-        banners = banners ?? ApiResponse.initial(),
-        collectionWithProducts = collectionWithProducts ?? ApiResponse.initial(),
-        brands = brands ?? ApiResponse.initial(),
-        brandProducts = brandProducts ?? ApiResponse.initial(),
-        recommendedProducts = recommendedProducts ?? ApiResponse.initial(),
-        seriesProducts = seriesProducts ?? {},
-        categoryProducts = categoryProducts ?? {};
+  }) : products = products ?? ApiResponse.initial(),
+       allProducts = allProducts ?? ApiResponse.initial(),
+       productDetail = productDetail ?? ApiResponse.initial(),
+       collections = collections ?? ApiResponse.initial(),
+       homeCategories = homeCategories ?? ApiResponse.initial(),
+       allCategories = allCategories ?? ApiResponse.initial(),
+       banners = banners ?? ApiResponse.initial(),
+       collectionWithProducts = collectionWithProducts ?? ApiResponse.initial(),
+       brands = brands ?? ApiResponse.initial(),
+       brandProducts = brandProducts ?? ApiResponse.initial(),
+       recommendedProducts = recommendedProducts ?? ApiResponse.initial(),
+       seriesProducts = seriesProducts ?? {},
+       categoryProducts = categoryProducts ?? {};
 
   ProductState copyWith({
     ApiResponse<List<ProductEntity>>? products,
@@ -100,6 +110,8 @@ class ProductState {
     String? allProductsEndCursor,
     bool? brandProductsHasNextPage,
     String? brandProductsEndCursor,
+    bool? collectionProductsHasNextPage,
+    String? collectionProductsEndCursor,
     Map<String, CategoryProductData>? categoryProducts,
   }) {
     return ProductState(
@@ -110,19 +122,26 @@ class ProductState {
       homeCategories: homeCategories ?? this.homeCategories,
       allCategories: allCategories ?? this.allCategories,
       banners: banners ?? this.banners,
-      collectionWithProducts: collectionWithProducts ?? this.collectionWithProducts,
+      collectionWithProducts:
+          collectionWithProducts ?? this.collectionWithProducts,
       brands: brands ?? this.brands,
       brandProducts: brandProducts ?? this.brandProducts,
       recommendedProducts: recommendedProducts ?? this.recommendedProducts,
       seriesProducts: seriesProducts ?? this.seriesProducts,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       endCursor: endCursor ?? this.endCursor,
-      allProductsHasNextPage: allProductsHasNextPage ?? this.allProductsHasNextPage,
+      allProductsHasNextPage:
+          allProductsHasNextPage ?? this.allProductsHasNextPage,
       allProductsEndCursor: allProductsEndCursor ?? this.allProductsEndCursor,
-      brandProductsHasNextPage: brandProductsHasNextPage ?? this.brandProductsHasNextPage,
-      brandProductsEndCursor: brandProductsEndCursor ?? this.brandProductsEndCursor,
+      brandProductsHasNextPage:
+          brandProductsHasNextPage ?? this.brandProductsHasNextPage,
+      brandProductsEndCursor:
+          brandProductsEndCursor ?? this.brandProductsEndCursor,
+      collectionProductsHasNextPage:
+          collectionProductsHasNextPage ?? this.collectionProductsHasNextPage,
+      collectionProductsEndCursor:
+          collectionProductsEndCursor ?? this.collectionProductsEndCursor,
       categoryProducts: categoryProducts ?? this.categoryProducts,
     );
   }
 }
-

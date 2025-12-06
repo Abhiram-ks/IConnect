@@ -30,6 +30,7 @@ abstract class ProductRemoteDataSource {
   Future<Map<String, dynamic>> getCollectionByHandle({
     required String handle,
     int first = 20,
+    String? after,
   });
 
   /// Get all unique brands (vendors) from products
@@ -66,9 +67,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
 
     // Heavy parsing offloaded to isolate
     final flattened = await compute(parseFlattenedProducts, result);
-    final products = flattened
-        .map((m) => ProductModel.fromFlattenedJson(m))
-        .toList();
+    final products =
+        flattened.map((m) => ProductModel.fromFlattenedJson(m)).toList();
 
     final pageInfo =
         result['products']?['pageInfo'] as Map<String, dynamic>? ?? {};
@@ -119,19 +119,22 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     );
 
     final flattened = await compute(parseFlattenedCollections, result);
-    return flattened
-        .map((m) => CollectionModel.fromFlattenedJson(m))
-        .toList();
+    return flattened.map((m) => CollectionModel.fromFlattenedJson(m)).toList();
   }
 
   @override
   Future<Map<String, dynamic>> getCollectionByHandle({
     required String handle,
     int first = 20,
+    String? after,
   }) async {
     final result = await graphQLService.executeQuery(
       GraphQLQueries.getCollectionByHandle,
-      variables: {'handle': handle, 'first': first},
+      variables: {
+        'handle': handle,
+        'first': first,
+        if (after != null) 'after': after,
+      },
     );
 
     return result;
@@ -161,8 +164,6 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     );
 
     final flattened = await compute(parseFlattenedRecommendations, result);
-    return flattened
-        .map((m) => ProductModel.fromFlattenedJson(m))
-        .toList();
+    return flattened.map((m) => ProductModel.fromFlattenedJson(m)).toList();
   }
 }

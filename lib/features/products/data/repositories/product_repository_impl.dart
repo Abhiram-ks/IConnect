@@ -137,16 +137,20 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Either<Failure, CollectionWithProducts>> getCollectionByHandle({
     required String handle,
     int first = 20,
+    String? after,
   }) async {
     try {
       final result = await remoteDataSource.getCollectionByHandle(
         handle: handle,
         first: first,
+        after: after,
       );
 
       // Heavy parsing offloaded to isolate
-      final flattened =
-          await compute(parseFlattenedCollectionWithProducts, result);
+      final flattened = await compute(
+        parseFlattenedCollectionWithProducts,
+        result,
+      );
 
       final collectionMap =
           flattened['collection'] as Map<String, dynamic>? ?? const {};
@@ -159,9 +163,8 @@ class ProductRepositoryImpl implements ProductRepository {
       final productsMaps =
           (flattened['products'] as List<dynamic>? ?? const [])
               .cast<Map<String, dynamic>>();
-      final productsList = productsMaps
-          .map((m) => ProductModel.fromFlattenedJson(m))
-          .toList();
+      final productsList =
+          productsMaps.map((m) => ProductModel.fromFlattenedJson(m)).toList();
 
       final pageInfoMap =
           flattened['pageInfo'] as Map<String, dynamic>? ?? const {};
@@ -231,7 +234,9 @@ class ProductRepositoryImpl implements ProductRepository {
     String productId,
   ) async {
     try {
-      final result = await remoteDataSource.getProductRecommendations(productId);
+      final result = await remoteDataSource.getProductRecommendations(
+        productId,
+      );
       return Right(result);
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message));
