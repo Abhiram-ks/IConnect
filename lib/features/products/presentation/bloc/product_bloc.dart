@@ -11,6 +11,7 @@ import 'package:iconnect/features/products/domain/usecases/get_collection_by_han
 import 'package:iconnect/features/products/domain/usecases/get_product_recommendations_usecase.dart';
 import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
+import 'package:iconnect/models/series_model.dart';
 
 part 'product_state.dart';
 
@@ -27,8 +28,6 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   List<ProductEntity> _currentProducts = [];
   List<ProductEntity> _currentAllProducts = [];
   List<ProductEntity> _currentBrandProducts = [];
-  List<ProductEntity> _currentIPhone17Products = [];
-  // Keep track of category products for pagination
   Map<String, List<ProductEntity>> _currentCategoryProducts = {};
 
   ProductBloc({
@@ -53,7 +52,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadProductRecommendationsRequested>(
       _onLoadProductRecommendationsRequested,
     );
-    on<LoadIPhone17ProductsRequested>(_onLoadIPhone17ProductsRequested);
+    on<LoadSeriesProduct>(_onLoadSeriesProduct);
   }
 
   /// Handle load products event
@@ -236,7 +235,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     result.fold(
       (failure) => {
-        emit(state.copyWith(homeCategories: ApiResponse.error(failure.message))),
+        emit(
+          state.copyWith(homeCategories: ApiResponse.error(failure.message)),
+        ),
       },
       (collections) {
         // Limit to first 20 for homepage
@@ -266,9 +267,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       },
       (collections) {
         // Filter only collections that have imageUrls
-        final categoriesWithImages = collections
-            .where((c) => c.imageUrl != null && c.imageUrl!.isNotEmpty)
-            .toList();
+        final categoriesWithImages =
+            collections
+                .where((c) => c.imageUrl != null && c.imageUrl!.isNotEmpty)
+                .toList();
         emit(
           state.copyWith(
             allCategories: ApiResponse.completed(categoriesWithImages),
@@ -487,43 +489,60 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     );
   }
 
+  /// Get collection handle for a given model
+  String _getCollectionHandleForModel(ModelName model) {
+    switch (model) {
+      case ModelName.iPhone17:
+        return 'iphones-in-qatar';
+      case ModelName.samsung:
+        return 'samsung-in-qatar';
+      case ModelName.google:
+        return 'google-pixel-qatar-iconnect-qatar';
+    }
+  }
+
   /// Handle load iPhone 17 products event
-  Future<void> _onLoadIPhone17ProductsRequested(
-    LoadIPhone17ProductsRequested event,
+  Future<void> _onLoadSeriesProduct(
+    LoadSeriesProduct event,
     Emitter<ProductState> emit,
   ) async {
-    // Reset current iPhone 17 products and emit loading state
-    _currentIPhone17Products = [];
     emit(
-      state.copyWith(
-        iphone17Products: ApiResponse.loading(),
-      ),
+      state.copyWith(seriesProducts: {event.model: SeriesModel(loading: true)}),
     );
 
-    final params = GetProductsParams(
+    // Get collection handle for the model
+    final collectionHandle = _getCollectionHandleForModel(event.model);
+
+    final params = GetCollectionByHandleParams(
+      handle: collectionHandle,
       first: event.first,
-      after: event.after,
-      query: event.query,
     );
 
-    final result = await getProductsUsecase(params);
+    final result = await getCollectionByHandleUsecase(params);
 
     result.fold(
-      (failure) => {
+      (failure) {
+        // Keep the model data but set loading to false on error
         emit(
           state.copyWith(
-            iphone17Products: ApiResponse.error(failure.message),
-          ),
-        ),
-      },
-      (productsResult) {
-        _currentIPhone17Products = productsResult.products;
-
-        emit(
-          state.copyWith(
-            iphone17Products: ApiResponse.completed(_currentIPhone17Products),
+            seriesProducts: {event.model: SeriesModel(loading: false)},
           ),
         );
+      },
+      (collectionWithProducts) {
+        // Extract products from collection result
+        final productsResult = collectionWithProducts.products;
+
+        // Update only the model that matches the event
+        // Note: getCollectionByHandle doesn't support pagination with 'after',
+        // so we replace products for now
+        final updatedSeriesModel = {
+          event.model: SeriesModel(
+            products: productsResult.products,
+            loading: false,
+          ),
+        };
+        emit(state.copyWith(seriesProducts: updatedSeriesModel));
       },
     );
   }

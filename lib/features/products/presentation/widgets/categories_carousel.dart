@@ -144,7 +144,7 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
           });
 
           return SizedBox(
-            height: 90.h,
+            height: 95.h,
             child: GestureDetector(
               onPanDown: (_) => _stopAutoScroll(),
               onPanEnd: (_) => _resumeAutoScroll(),

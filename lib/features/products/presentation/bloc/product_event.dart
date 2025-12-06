@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:iconnect/models/series_model.dart';
 
 /// Product Events
 abstract class ProductEvent extends Equatable {
@@ -160,17 +161,17 @@ class LoadAllProductsRequested extends ProductEvent {
 }
 
 /// Load iPhone 17 products event (for iPhone 17 screen)
-class LoadIPhone17ProductsRequested extends ProductEvent {
+class LoadSeriesProduct extends ProductEvent {
+  final ModelName model;
   final int first;
   final String? after;
-  final String query;
 
-  LoadIPhone17ProductsRequested({
+  LoadSeriesProduct({
+    required this.model,
     this.first = 100,
     this.after,
-    this.query = 'iPhone 17',
   });
 
   @override
-  List<Object?> get props => [first, after, query];
+  List<Object?> get props => [model, first, after];
 }

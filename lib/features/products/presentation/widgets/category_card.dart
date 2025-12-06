@@ -18,6 +18,53 @@ class CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if image URL is valid (not null, not empty, and not a placeholder)
+    final bool hasValidImage =
+        imageUrl.isNotEmpty &&
+        !imageUrl.contains('placeholder') &&
+        !imageUrl.contains('via.placeholder');
+
+    // If no valid image, show circular avatar with title
+    if (!hasValidImage) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 30.r,
+              backgroundColor: AppPalette.blueColor.withOpacity(0.1),
+              child: Text(
+                title.isNotEmpty ? title[0].toUpperCase() : '?',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppPalette.blueColor,
+                ),
+              ),
+            ),
+            SizedBox(height: 8.h),
+            SizedBox(
+              width: 60.w,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppPalette.blackColor,
+                  height: 1.2, // Line height for better spacing
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     // Parse URL to check path extension, ignoring query parameters
     bool showTitle = false;
     try {
@@ -29,16 +76,56 @@ class CategoryCard extends StatelessWidget {
       showTitle = imageUrl.toLowerCase().endsWith('.webp');
     }
 
+    // Helper widget for showing avatar with title
+    Widget _buildAvatarCard({bool showTitleBelow = true}) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 30.r,
+            backgroundColor: AppPalette.blueColor.withOpacity(0.1),
+            child: Text(
+              title.isNotEmpty ? title[0].toUpperCase() : '?',
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w600,
+                color: AppPalette.blueColor,
+              ),
+            ),
+          ),
+          if (showTitleBelow) ...[
+            SizedBox(height: 8.h),
+            SizedBox(
+              width: 60.w,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppPalette.blackColor,
+                  height: 1.2, // Line height for better spacing
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
-        width: 60.w,
-        height: 60.h,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.r),
-          child:
-              showTitle
-                  ? Stack(
+      child:
+          showTitle
+              ? SizedBox(
+                width: 60.w,
+                height: 60.h,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: Stack(
                     children: [
                       SizedBox(
                         width: 60.w,
@@ -71,16 +158,7 @@ class CategoryCard extends StatelessWidget {
                             );
                           },
                           errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 60.w,
-                              height: 60.h,
-                              color: Colors.grey[200],
-                              child: Icon(
-                                CupertinoIcons.photo,
-                                color: AppPalette.greyColor,
-                                size: 20.sp,
-                              ),
-                            );
+                            return _buildAvatarCard(showTitleBelow: false);
                           },
                         ),
                       ),
@@ -103,47 +181,67 @@ class CategoryCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                  )
-                  : Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    // width: 60.w,
-                    // height: 60.h,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        width: 60.w,
-                        height: 60.h,
-                        color: Colors.grey[200],
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppPalette.blueColor,
-                            strokeWidth: 2,
-                            value:
-                                loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        (loadingProgress.expectedTotalBytes ??
-                                            1)
-                                    : null,
-                          ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 60.w,
-                        height: 60.h,
-                        color: Colors.grey[200],
-                        child: Icon(
-                          CupertinoIcons.photo,
-                          color: AppPalette.greyColor,
-                          size: 20.sp,
-                        ),
-                      );
-                    },
                   ),
-        ),
-      ),
+                ),
+              )
+              : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 60.w,
+                    height: 60.h,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12.r),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            width: 60.w,
+                            height: 60.h,
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppPalette.blueColor,
+                                strokeWidth: 2,
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            (loadingProgress
+                                                    .expectedTotalBytes ??
+                                                1)
+                                        : null,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildAvatarCard(showTitleBelow: true);
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  SizedBox(
+                    width: 60.w,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppPalette.blackColor,
+                        height: 1.2, // Line height for better spacing
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
     );
   }
 }

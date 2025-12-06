@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
-import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/features/products/presentation/widgets/shopify_product_card.dart';
+import 'package:iconnect/models/series_model.dart';
 
 class IPhone17Screen extends StatefulWidget {
   const IPhone17Screen({super.key});
@@ -33,7 +33,7 @@ class _IPhone17ScreenState extends State<IPhone17Screen>
     super.initState();
     // Load all iPhone 17 products with a general query
     context.read<ProductBloc>().add(
-      LoadIPhone17ProductsRequested(first: 100, query: 'iPhone 17'),
+      LoadSeriesProduct(model: ModelName.iPhone17, first: 100),
     );
   }
 
@@ -76,10 +76,14 @@ class _IPhone17ScreenState extends State<IPhone17Screen>
   Widget _buildIPhoneSection(String title, String query) {
     return BlocBuilder<ProductBloc, ProductState>(
       builder: (context, state) {
+        // Only use products if the model matches iPhone 17
+        final seriesData = state.seriesProducts?[ModelName.iPhone17];
+        if (seriesData == null) {
+          return const SizedBox.shrink();
+        }
         // Filter products by query - match products that contain the query string
-        final allProducts = state.iphone17Products.data ?? [];
         final filteredProducts =
-            allProducts.where((product) {
+            seriesData.products.where((product) {
               final productTitle = product.title.toLowerCase();
               final queryLower = query.toLowerCase();
 
@@ -105,9 +109,7 @@ class _IPhone17ScreenState extends State<IPhone17Screen>
               return productTitle.contains(queryLower);
             }).toList();
 
-        // Don't show section if no products match
-        if (state.iphone17Products.status == Status.completed &&
-            filteredProducts.isEmpty) {
+        if (filteredProducts.isEmpty) {
           return const SizedBox.shrink();
         }
 
@@ -144,46 +146,10 @@ class _IPhone17ScreenState extends State<IPhone17Screen>
     ProductState state,
     List<ProductEntity> filteredProducts,
   ) {
-    if (state.iphone17Products.status == Status.loading) {
+    final seriesData = state.seriesProducts?[ModelName.iPhone17];
+    if (seriesData == null || seriesData.loading == true) {
       return Center(
         child: CircularProgressIndicator(color: AppPalette.blueColor),
-      );
-    }
-
-    if (state.iphone17Products.status == Status.error) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 40.sp),
-            SizedBox(height: 8.h),
-            Text(
-              'Failed to load products',
-              style: TextStyle(fontSize: 14.sp, color: Colors.red),
-            ),
-            SizedBox(height: 8.h),
-            ElevatedButton(
-              onPressed: () {
-                context.read<ProductBloc>().add(
-                  LoadIPhone17ProductsRequested(first: 100, query: 'iPhone 17'),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppPalette.blueColor,
-              ),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (filteredProducts.isEmpty) {
-      return Center(
-        child: Text(
-          'No products available',
-          style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-        ),
       );
     }
 

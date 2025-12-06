@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
-import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
+import 'package:iconnect/models/series_model.dart';
 import 'package:iconnect/widgets/shopify_product_grid_section.dart';
 
 /// Tabbed Products Section with horizontal scrolling and pagination
@@ -21,42 +21,22 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
   late TabController _tabController;
   final Map<int, ScrollController> _scrollControllers = {};
   final Map<int, List<ProductEntity>> _tabProducts = {};
-  final Map<int, bool> _isLoadingMore = {};
-  final Map<int, String?> _endCursors = {};
-  final Map<int, bool> _hasNextPage = {};
 
-  // Define tabs with specific search queries for latest models only
-  // Customize these queries based on your actual product titles in Shopify
-  final List<Map<String, String>> _tabs = [
-    {
-      'title': 'iPhone 17 Series',
-      'query': 'tag:iphone-17 OR tag:iphone-17-pro OR tag:iphone-17-pro-max',
-    },
-    {
-      'title': 'Samsung',
-      'query':
-          "tag:galaxy-s25 OR tag:galaxy-s24 OR tag:galaxy-z-fold6 OR tag:galaxy-z-fold7", 
-    },
-    {
-      'title': 'Google',
-      'query': 'tag:pixel-9 OR tag:pixel-8', 
-    },
+  // Define tabs with ModelName for collection handles
+  final List<Map<String, dynamic>> _tabs = [
+    {'title': 'iPhone 17 Series', 'model': ModelName.iPhone17},
+    {'title': 'Samsung', 'model': ModelName.samsung},
+    {'title': 'Google', 'model': ModelName.google},
   ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
-    
+
     for (int i = 0; i < _tabs.length; i++) {
       _scrollControllers[i] = ScrollController();
       _tabProducts[i] = [];
-      _isLoadingMore[i] = false;
-      _endCursors[i] = null;
-      _hasNextPage[i] = false;
-
-      // Add scroll listener for pagination
-      _scrollControllers[i]!.addListener(() => _onScroll(i));
     }
 
     // Load initial products for first tab
@@ -73,38 +53,10 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
     });
   }
 
-  void _onScroll(int tabIndex) {
-    final scrollController = _scrollControllers[tabIndex]!;
-    if (scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent - 200 &&
-        !_isLoadingMore[tabIndex]! &&
-        _hasNextPage[tabIndex]!) {
-      _loadMoreProducts(tabIndex);
-    }
-  }
-
   void _loadProducts(int tabIndex) {
-    final query = _tabs[tabIndex]['query']!;
+    final model = _tabs[tabIndex]['model'] as ModelName;
     context.read<ProductBloc>().add(
-      LoadProductsRequested(first: 20, query: query, loadMore: false),
-    );
-  }
-
-  void _loadMoreProducts(int tabIndex) {
-    if (_isLoadingMore[tabIndex]! || !_hasNextPage[tabIndex]!) return;
-
-    setState(() {
-      _isLoadingMore[tabIndex] = true;
-    });
-
-    final query = _tabs[tabIndex]['query']!;
-    context.read<ProductBloc>().add(
-      LoadProductsRequested(
-        first: 20,
-        query: query,
-        after: _endCursors[tabIndex],
-        loadMore: true,
-      ),
+      LoadSeriesProduct(model: model, first: 100),
     );
   }
 
@@ -128,7 +80,7 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
           isScrollable: true,
           labelColor: AppPalette.blackColor,
           dividerColor: Colors.transparent,
-          
+
           unselectedLabelColor: AppPalette.greyColor,
           labelStyle: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
           unselectedLabelStyle: TextStyle(
@@ -137,7 +89,7 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
           ),
           indicatorColor: AppPalette.blackColor,
           indicatorWeight: 1.5,
-          
+
           indicatorSize: TabBarIndicatorSize.tab,
           labelPadding: EdgeInsets.symmetric(horizontal: 20.w),
           tabAlignment: TabAlignment.start,
@@ -162,51 +114,29 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
   }
 
   Widget _buildTabContent(int tabIndex) {
-    return BlocConsumer<ProductBloc, ProductState>(
-      listener: (context, state) {
-        if (state.products.status == Status.completed) {
-          setState(() {
-            if (_isLoadingMore[tabIndex]!) {
-              // Append products for pagination
-              _tabProducts[tabIndex]!.addAll(state.products.data ?? []);
-              _isLoadingMore[tabIndex] = false;
-            } else {
-              // Replace products for initial load
-              _tabProducts[tabIndex] = List.from(state.products.data ?? []);
+    return BlocBuilder<ProductBloc, ProductState>(
+      builder: (context, state) {
+        final model = _tabs[tabIndex]['model'] as ModelName;
+        final seriesData = state.seriesProducts?[model];
+
+        // Get products from series data or use cached products
+        final products = seriesData?.products ?? _tabProducts[tabIndex] ?? [];
+
+        // Update cached products when series data is available
+        if (seriesData != null && seriesData.products.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _tabProducts[tabIndex] = List.from(seriesData.products);
+              });
             }
-            _endCursors[tabIndex] = state.endCursor;
-            _hasNextPage[tabIndex] = state.hasNextPage;
-          });
-        } else if (state.products.status == Status.error) {
-          setState(() {
-            _isLoadingMore[tabIndex] = false;
           });
         }
-      },
-      builder: (context, state) {
-        final products = _tabProducts[tabIndex] ?? [];
 
         // Show loading for initial load
-        if (products.isEmpty && state.products.status == Status.loading) {
+        if (products.isEmpty && (seriesData?.loading ?? false)) {
           return Center(
             child: CircularProgressIndicator(color: AppPalette.blueColor),
-          );
-        }
-
-        // Show error
-        if (products.isEmpty && state.products.status == Status.error) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
-                SizedBox(height: 8.h),
-                Text(
-                  state.products.message ?? 'Failed to load products',
-                  style: TextStyle(fontSize: 14.sp, color: Colors.red),
-                ),
-              ],
-            ),
           );
         }
 
@@ -232,18 +162,8 @@ class _TabbedProductsSectionState extends State<TabbedProductsSection>
           controller: _scrollControllers[tabIndex],
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: 16.w),
-          itemCount: products.length + (_hasNextPage[tabIndex]! ? 1 : 0),
+          itemCount: products.length,
           itemBuilder: (context, index) {
-            if (index == products.length) {
-              // Loading indicator for pagination
-              return Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.w),
-                  child: CircularProgressIndicator(color: AppPalette.blueColor),
-                ),
-              );
-            }
-
             return Padding(
               padding: EdgeInsets.only(right: 12.w),
               child: SizedBox(

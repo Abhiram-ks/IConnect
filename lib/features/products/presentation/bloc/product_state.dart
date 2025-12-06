@@ -37,14 +37,13 @@ class ProductState {
   ApiResponse<List<BrandEntity>> brands;
   ApiResponse<List<ProductEntity>> brandProducts; // Separate state for brand products
   ApiResponse<List<ProductEntity>> recommendedProducts; // Recommended products
-  ApiResponse<List<ProductEntity>> iphone17Products; // Separate state for iPhone 17 products
+  Map<ModelName, SeriesModel>? seriesProducts; // Separate state for series products
   bool hasNextPage;
   String? endCursor;
   bool allProductsHasNextPage; // Separate pagination for all products
   String? allProductsEndCursor;
   bool brandProductsHasNextPage; // Separate pagination for brand products
   String? brandProductsEndCursor;
-  
   // Category products - Map<CategoryName, CategoryProductData>
   Map<String, CategoryProductData> categoryProducts;
 
@@ -60,7 +59,7 @@ class ProductState {
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
     ApiResponse<List<ProductEntity>>? recommendedProducts,
-    ApiResponse<List<ProductEntity>>? iphone17Products,
+    Map<ModelName, SeriesModel>? seriesProducts,
     this.hasNextPage = false,
     this.endCursor,
     this.allProductsHasNextPage = false,
@@ -79,7 +78,7 @@ class ProductState {
         brands = brands ?? ApiResponse.initial(),
         brandProducts = brandProducts ?? ApiResponse.initial(),
         recommendedProducts = recommendedProducts ?? ApiResponse.initial(),
-        iphone17Products = iphone17Products ?? ApiResponse.initial(),
+        seriesProducts = seriesProducts ?? {},
         categoryProducts = categoryProducts ?? {};
 
   ProductState copyWith({
@@ -94,7 +93,7 @@ class ProductState {
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
     ApiResponse<List<ProductEntity>>? recommendedProducts,
-    ApiResponse<List<ProductEntity>>? iphone17Products,
+    Map<ModelName, SeriesModel>? seriesProducts,
     bool? hasNextPage,
     String? endCursor,
     bool? allProductsHasNextPage,
@@ -115,7 +114,7 @@ class ProductState {
       brands: brands ?? this.brands,
       brandProducts: brandProducts ?? this.brandProducts,
       recommendedProducts: recommendedProducts ?? this.recommendedProducts,
-      iphone17Products: iphone17Products ?? this.iphone17Products,
+      seriesProducts: seriesProducts ?? this.seriesProducts,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       endCursor: endCursor ?? this.endCursor,
       allProductsHasNextPage: allProductsHasNextPage ?? this.allProductsHasNextPage,
