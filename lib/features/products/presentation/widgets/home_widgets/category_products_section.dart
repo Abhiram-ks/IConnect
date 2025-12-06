@@ -72,7 +72,7 @@ class _CategoryProductsSectionState extends State<CategoryProductsSection> {
 
         // Horizontal product list with pagination
         SizedBox(
-          height: 240.h,
+          height: 250.h,
           child: BlocBuilder<ProductBloc, ProductState>(
             builder: (context, state) {
               final categoryData = state.categoryProducts[widget.categoryName];

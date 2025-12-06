@@ -36,7 +36,7 @@ class CategoryCard extends StatelessWidget {
               radius: 30.r,
               backgroundColor: AppPalette.blueColor.withOpacity(0.1),
               child: Text(
-                title.isNotEmpty ? title[0].toUpperCase() : '?',
+                title.isNotEmpty ? title[0].toUpperCase() : 'N/A',
                 style: TextStyle(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w600,
@@ -86,7 +86,7 @@ class CategoryCard extends StatelessWidget {
             radius: 30.r,
             backgroundColor: AppPalette.blueColor.withOpacity(0.1),
             child: Text(
-              title.isNotEmpty ? title[0].toUpperCase() : '?',
+              title.isNotEmpty ? title[0].toUpperCase() : 'N/A',
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.w600,
@@ -163,7 +163,7 @@ class CategoryCard extends StatelessWidget {
                         ),
                       ),
                       Positioned(
-                        bottom: 7.h,
+                        bottom: 16.h,
                         left: 0,
                         right: 8.w,
                         child: Container(
@@ -230,10 +230,9 @@ class CategoryCard extends StatelessWidget {
                     child: Text(
                       title,
                       style: TextStyle(
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w500,
-                        color: AppPalette.blackColor,
-                        height: 1.2, // Line height for better spacing
+                        color: Colors.black,
+                        fontSize: 8.sp,
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

@@ -26,7 +26,8 @@ class ShopifyProductGridSection extends StatefulWidget {
   });
 
   @override
-  State<ShopifyProductGridSection> createState() => _ShopifyProductGridSectionState();
+  State<ShopifyProductGridSection> createState() =>
+      _ShopifyProductGridSectionState();
 }
 
 class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
@@ -35,8 +36,8 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
     super.initState();
     // Load real products from Shopify
     context.read<ProductBloc>().add(
-          LoadProductsRequested(first: widget.productCount),
-        );
+      LoadProductsRequested(first: widget.productCount),
+    );
   }
 
   @override
@@ -67,16 +68,11 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(
-                        color: AppPalette.blueColor,
-                      ),
+                      CircularProgressIndicator(color: AppPalette.blueColor),
                       SizedBox(height: 12.h),
                       Text(
                         'Loading products from Shopify...',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 14.sp, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -127,8 +123,8 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
                       ElevatedButton.icon(
                         onPressed: () {
                           context.read<ProductBloc>().add(
-                                LoadProductsRequested(first: widget.productCount),
-                              );
+                            LoadProductsRequested(first: widget.productCount),
+                          );
                         },
                         icon: Icon(Icons.refresh),
                         label: Text('Retry'),
@@ -154,15 +150,15 @@ class _ShopifyProductGridSectionState extends State<ShopifyProductGridSection> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.inventory_2_outlined,
-                            size: 48.sp, color: Colors.grey),
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 48.sp,
+                          color: Colors.grey,
+                        ),
                         SizedBox(height: 12.h),
                         Text(
                           'No products available',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 16.sp, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -212,6 +208,7 @@ class ShopifyGridProductCard extends StatelessWidget {
         );
       },
       child: Container(
+        margin: EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.r),
@@ -232,29 +229,32 @@ class ShopifyGridProductCard extends StatelessWidget {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(12.r)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(12.r),
+                    ),
                     child: CachedNetworkImage(
                       imageUrl: product.featuredImage ?? product.images.first,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppPalette.blueColor,
-                            strokeWidth: 2,
+                      placeholder:
+                          (context, url) => Container(
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppPalette.blueColor,
+                                strokeWidth: 2,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                          size: 40.sp,
-                        ),
-                      ),
+                      errorWidget:
+                          (context, url, error) => Container(
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey,
+                              size: 40.sp,
+                            ),
+                          ),
                     ),
                   ),
                   // Discount Badge
@@ -263,8 +263,10 @@ class ShopifyGridProductCard extends StatelessWidget {
                       top: 8.h,
                       right: 8.w,
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red,
                           borderRadius: BorderRadius.circular(4.r),
@@ -285,13 +287,16 @@ class ShopifyGridProductCard extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.black54,
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(12.r)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(12.r),
+                          ),
                         ),
                         child: Center(
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 12.w, vertical: 6.h),
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(4.r),
@@ -366,4 +371,3 @@ class ShopifyGridProductCard extends StatelessWidget {
     );
   }
 }
-
