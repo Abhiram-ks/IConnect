@@ -133,7 +133,7 @@ class BottomNavWidget extends StatelessWidget {
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.category_rounded, size: 16.sp),
-                      label: 'Categories',
+                      label: 'Category',
                       activeIcon: Icon(
                         Icons.category_rounded,
                         color: AppPalette.blueColor,
