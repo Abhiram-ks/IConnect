@@ -12,16 +12,22 @@ import 'package:iconnect/features/menu/domain/entities/menu_entity.dart';
 import 'package:iconnect/features/menu/presentation/cubit/menu_cubit.dart';
 import 'package:iconnect/features/menu/presentation/cubit/menu_state.dart';
 import 'package:iconnect/screens/collection_products_screen.dart';
-
-import 'screens/register_screen.dart';
+import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
+import 'package:iconnect/routes.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<MenuCubit>()..loadMenu('main-menu'),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => sl<MenuCubit>()..loadMenu('main-menu'),
+        ),
+        BlocProvider.value(value: sl<AuthCubit>()),
+      ],
       child: Drawer(
         backgroundColor: AppPalette.whiteColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
@@ -33,7 +39,7 @@ class AppDrawer extends StatelessWidget {
               _buildHeader(context),
               ConstantWidgets.hight10(context),
               Expanded(child: _buildCategoriesSection(context)),
-             // _buildFooter(context),
+              _buildFooter(context),
             ],
           ),
         ),
@@ -119,7 +125,10 @@ class AppDrawer extends StatelessWidget {
             ...menu.items.map(
               (menuItem) => _buildMenuItemTile(context, menuItem, 0),
             ),
-            Divider(color: const Color.fromARGB(255, 227, 227, 227), height: 1.h),
+            Divider(
+              color: const Color.fromARGB(255, 227, 227, 227),
+              height: 1.h,
+            ),
             ExpansionTile(
               childrenPadding: EdgeInsets.zero,
               iconColor: AppPalette.blackColor,
@@ -367,56 +376,66 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // Widget _buildFooter(BuildContext context) {
-  //   return Container(
-  //     padding: EdgeInsets.all(16.w),
-  //     child: Column(
-  //       children: [
-  //         Padding(
-  //           padding: EdgeInsets.only(bottom: 16.h),
-  //           child: Align(
-  //             alignment: Alignment.centerLeft,
-  //             child: Text(
-  //               'My Account',
-  //               style: TextStyle(
-  //                 fontSize: 19.sp,
-  //                 fontWeight: FontWeight.bold,
-  //                 color: Colors.black,
-  //               ),
-  //               textAlign: TextAlign.left,
-  //               maxLines: 1,
-  //               overflow: TextOverflow.ellipsis,
-  //             ),
-  //           ),
-  //         ),
-  //         CustomButton(
-  //           text: 'Log in',
-  //           onPressed: () {
-  //             Navigator.push(
-  //               context,
-  //               MaterialPageRoute(builder: (context) => LoginScreen()),
-  //             );
-  //           },
-  //         ),
-  //         SizedBox(height: 5.h),
-  //         CustomButton(
-  //           text: 'Register',
-  //           onPressed: () {
-  //             Navigator.push(
-  //               context,
-  //               MaterialPageRoute(builder: (context) => LoginScreen()),
-  //             );
-  //           },
-  //           bgColor: AppPalette.whiteColor,
-  //           textColor: AppPalette.blackColor,
-  //           borderColor: AppPalette.blackColor,
-  //         ),
+  Widget _buildFooter(BuildContext context) {
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        final isLoggedIn =
+            authState is AuthLoginSuccess || authState is AuthSignupSuccess;
+        final isLoading = authState is AuthLoading;
 
-  //         SizedBox(height: 16.h)
-  //       ],
-  //     ),
-  //   );
-  // }
+        return Container(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(bottom: 16.h),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'My Account',
+                    style: TextStyle(
+                      fontSize: 19.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.left,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              if (isLoggedIn)
+                CustomButton(
+                  text: isLoading ? 'Logging out...' : 'Log out',
+                  onPressed:
+                      isLoading
+                          ? null
+                          : () async {
+                            await context.read<AuthCubit>().logout();
+                            // UI will automatically update via BlocBuilder
+                          },
+                  bgColor: AppPalette.whiteColor,
+                  textColor: AppPalette.blackColor,
+                  borderColor: AppPalette.blackColor,
+                )
+              else
+                Column(
+                  children: [
+                    CustomButton(
+                      text: 'Log in',
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.login);
+                      },
+                    ),
+                  ],
+                ),
+              SizedBox(height: 16.h),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class SettingWidget extends StatelessWidget {

@@ -28,6 +28,12 @@ import '../../features/products/domain/usecases/get_product_recommendations_usec
 import '../../features/products/domain/usecases/get_products_usecase.dart';
 import '../../features/products/presentation/bloc/product_bloc.dart';
 import '../../services/graphql_base_service.dart';
+import '../../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/login_usecase.dart';
+import '../../features/auth/domain/usecases/signup_usecase.dart';
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
 
 /// Service Locator Instance
 final sl = GetIt.instance;
@@ -117,5 +123,28 @@ Future<void> initializeDependencies() async {
   // Cubit (Factory - new instance each time for drawer)
   sl.registerFactory(
     () => MenuCubit(getMenuUseCase: sl()),
+  );
+
+  // ========== Auth Feature ==========
+  // Data Sources
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(graphQLService: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => LoginUsecase(sl()));
+  sl.registerLazySingleton(() => SignupUsecase(sl()));
+
+  // Cubit (Factory - new instance each time)
+  sl.registerFactory(
+    () => AuthCubit(
+      loginUsecase: sl(),
+      signupUsecase: sl(),
+    ),
   );
 }

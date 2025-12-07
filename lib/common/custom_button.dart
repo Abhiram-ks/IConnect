@@ -42,16 +42,25 @@ class CustomButton extends StatelessWidget {
                         : BorderSide.none,
               ),
             ),
-            onPressed:  onPressed,
+            onPressed: onPressed,
             child: Center(
-              child:Text(
-                        text,
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          color: textColor,
-                          fontWeight: fontWeight,
-                        ),
+              child: onPressed == null
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(textColor),
                       ),
+                    )
+                  : Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: fontSize,
+                        color: textColor,
+                        fontWeight: fontWeight,
+                      ),
+                    ),
             ),
           )
     );

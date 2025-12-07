@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/screens/product_details_screen.dart';
 import 'package:iconnect/screens/banner_details_screen.dart';
 import 'package:iconnect/screens/test_shopify_products.dart';
 import 'package:iconnect/screens/collection_products_screen.dart';
 import 'package:iconnect/features/products/presentation/pages/brand_details_page.dart';
+import 'package:iconnect/features/auth/presentation/pages/register_screen.dart';
+import 'package:iconnect/features/auth/presentation/pages/signup_screen.dart';
+import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:iconnect/core/di/service_locator.dart';
 
 import 'constant/constant.dart';
 
 class AppRoutes {
   static const String navigation = '/';
   static const String login = '/login_screen';
+  static const String signup = '/signup_screen';
   static const String dashbord = '/dashbord_screen';
   static const String pdiform = '/PdiformScreen';
   static const String createuser = '/createuser_screen';
@@ -84,7 +90,16 @@ class AppRoutes {
           builder: (context) => const TestShopifyProductsScreen(),
         );
       case login:
-      //   return MaterialPageRoute(builder: (context) => const LoginScreen());
+        return MaterialPageRoute(
+          builder: (context) => const LoginScreen(),
+        );
+      case signup:
+        return MaterialPageRoute(
+          builder: (context) => BlocProvider.value(
+            value: sl<AuthCubit>(),
+            child: const SignupScreen(),
+          ),
+        );
       case dashbord:
       //    return MaterialPageRoute(builder: (context) => const DashboardScreen());
       case pdiform:
