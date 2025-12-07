@@ -9,6 +9,8 @@ import 'package:iconnect/features/products/presentation/pages/brand_details_page
 import 'package:iconnect/features/auth/presentation/pages/register_screen.dart';
 import 'package:iconnect/features/auth/presentation/pages/signup_screen.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:iconnect/features/profile/presentation/pages/profile_page.dart';
+import 'package:iconnect/features/orders/presentation/pages/orders_page.dart';
 import 'package:iconnect/core/di/service_locator.dart';
 
 import 'constant/constant.dart';
@@ -17,6 +19,8 @@ class AppRoutes {
   static const String navigation = '/';
   static const String login = '/login_screen';
   static const String signup = '/signup_screen';
+  static const String profile = '/profile';
+  static const String orders = '/orders';
   static const String dashbord = '/dashbord_screen';
   static const String pdiform = '/PdiformScreen';
   static const String createuser = '/createuser_screen';
@@ -99,6 +103,14 @@ class AppRoutes {
             value: sl<AuthCubit>(),
             child: const SignupScreen(),
           ),
+        );
+      case profile:
+        return MaterialPageRoute(
+          builder: (context) => const ProfilePage(),
+        );
+      case orders:
+        return MaterialPageRoute(
+          builder: (context) => const OrdersPage(),
         );
       case dashbord:
       //    return MaterialPageRoute(builder: (context) => const DashboardScreen());

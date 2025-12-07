@@ -14,7 +14,9 @@ import 'package:iconnect/features/menu/presentation/cubit/menu_state.dart';
 import 'package:iconnect/screens/collection_products_screen.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
+import 'package:iconnect/core/storage/secure_storage_service.dart';
 import 'package:iconnect/routes.dart';
+import 'package:shimmer/shimmer.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -377,63 +379,144 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
-    return BlocBuilder<AuthCubit, AuthState>(
-      builder: (context, authState) {
-        final isLoggedIn =
-            authState is AuthLoginSuccess || authState is AuthSignupSuccess;
-        final isLoading = authState is AuthLoading;
+    return _FooterWidget();
+  }
+}
 
-        return Container(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(bottom: 16.h),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'My Account',
-                    style: TextStyle(
-                      fontSize: 19.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.left,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+class _FooterWidget extends StatefulWidget {
+  const _FooterWidget();
+
+  @override
+  State<_FooterWidget> createState() => _FooterWidgetState();
+}
+
+class _FooterWidgetState extends State<_FooterWidget> {
+  String? _token;
+  bool _isLoadingToken = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final token = await SecureStorageService.getAccessToken();
+    if (mounted) {
+      setState(() {
+        _token = token;
+        _isLoadingToken = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthCubit, AuthState>(
+      listener: (context, authState) {
+        // Update token when auth state changes (login/logout)
+        if (authState is AuthInitial ||
+            authState is AuthLoginSuccess ||
+            authState is AuthSignupSuccess) {
+          _loadToken();
+        }
+      },
+      child: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, authState) {
+          final isLoading = authState is AuthLoading;
+          final isLoggedIn = _token != null && _token!.isNotEmpty;
+
+          if (_isLoadingToken) {
+            return Container(
+              padding: EdgeInsets.all(16.w),
+              child: Center(
+                child: Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    width: 100.w,
+                    height: 100.h,
                   ),
                 ),
               ),
-              if (isLoggedIn)
-                CustomButton(
-                  text: isLoading ? 'Logging out...' : 'Log out',
-                  onPressed:
-                      isLoading
-                          ? null
-                          : () async {
-                            await context.read<AuthCubit>().logout();
-                            // UI will automatically update via BlocBuilder
-                          },
-                  bgColor: AppPalette.whiteColor,
-                  textColor: AppPalette.blackColor,
-                  borderColor: AppPalette.blackColor,
-                )
-              else
-                Column(
-                  children: [
-                    CustomButton(
-                      text: 'Log in',
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.login);
-                      },
+            );
+          }
+
+          return Container(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(bottom: 16.h),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'My Account',
+                      style: TextStyle(
+                        fontSize: 19.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.left,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
+                  ),
                 ),
-              SizedBox(height: 16.h),
-            ],
-          ),
-        );
-      },
+                if (isLoggedIn)
+                  Column(
+                    children: [
+                      CustomButton(
+                        text: 'Profile',
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, AppRoutes.profile);
+                        },
+                      ),
+                      SizedBox(height: 5.h),
+                      CustomButton(
+                        text: 'Orders',
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, AppRoutes.orders);
+                        },
+                        bgColor: AppPalette.whiteColor,
+                        textColor: AppPalette.blackColor,
+                        borderColor: AppPalette.blackColor,
+                      ),
+                      SizedBox(height: 5.h),
+                      CustomButton(
+                        text: isLoading ? 'Logging out...' : 'Log out',
+                        onPressed:
+                            isLoading
+                                ? null
+                                : () async {
+                                  await context.read<AuthCubit>().logout();
+                                  // Token will be updated via BlocListener
+                                },
+                        bgColor: AppPalette.whiteColor,
+                        textColor: AppPalette.blackColor,
+                        borderColor: AppPalette.blackColor,
+                      ),
+                    ],
+                  )
+                else
+                  Column(
+                    children: [
+                      CustomButton(
+                        text: 'Log in',
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRoutes.login);
+                        },
+                      ),
+                    ],
+                  ),
+                SizedBox(height: 16.h),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

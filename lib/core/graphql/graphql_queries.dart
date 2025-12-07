@@ -643,4 +643,88 @@ class GraphQLQueries {
       }
     }
   ''';
+
+  // ========== CUSTOMER QUERIES ==========
+
+  /// Get customer profile information
+  static const String getCustomer = r'''
+    query GetCustomer($customerAccessToken: String!) {
+      customer(customerAccessToken: $customerAccessToken) {
+        id
+        email
+        firstName
+        lastName
+        phone
+        defaultAddress {
+          id
+          address1
+          address2
+          city
+          province
+          zip
+          country
+        }
+        addresses(first: 10) {
+          edges {
+            node {
+              id
+              address1
+              address2
+              city
+              province
+              zip
+              country
+            }
+          }
+        }
+      }
+    }
+  ''';
+
+  /// Get customer orders
+  static const String getCustomerOrders = r'''
+    query GetCustomerOrders($customerAccessToken: String!, $first: Int!, $after: String) {
+      customer(customerAccessToken: $customerAccessToken) {
+        orders(first: $first, after: $after) {
+          edges {
+            node {
+              id
+              name
+              orderNumber
+              processedAt
+              totalPrice {
+                amount
+                currencyCode
+              }
+              fulfillmentStatus
+              financialStatus
+              lineItems(first: 10) {
+                edges {
+                  node {
+                    title
+                    quantity
+                    originalTotalPrice {
+                      amount
+                      currencyCode
+                    }
+                    variant {
+                      id
+                      title
+                      image {
+                        url
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  ''';
 }

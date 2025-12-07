@@ -1,6 +1,3 @@
-
-
-
 import 'package:get_it/get_it.dart';
 
 import '../../features/cart/data/datasources/cart_remote_datasource.dart';
@@ -34,6 +31,15 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/signup_usecase.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/profile/data/datasources/profile_remote_datasource.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/domain/usecases/get_profile_usecase.dart';
+import '../../features/orders/data/datasources/orders_remote_datasource.dart';
+import '../../features/orders/data/repositories/orders_repository_impl.dart';
+import '../../features/orders/domain/repositories/orders_repository.dart';
+import '../../features/orders/domain/usecases/get_orders_usecase.dart';
+import '../../features/orders/presentation/cubit/orders_cubit.dart';
 
 /// Service Locator Instance
 final sl = GetIt.instance;
@@ -121,9 +127,7 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => GetMenuUseCase(repository: sl()));
 
   // Cubit (Factory - new instance each time for drawer)
-  sl.registerFactory(
-    () => MenuCubit(getMenuUseCase: sl()),
-  );
+  sl.registerFactory(() => MenuCubit(getMenuUseCase: sl()));
 
   // ========== Auth Feature ==========
   // Data Sources
@@ -140,11 +144,43 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => LoginUsecase(sl()));
   sl.registerLazySingleton(() => SignupUsecase(sl()));
 
+  // ========== Profile Feature ==========
+  // Data Sources
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(graphQLService: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetProfileUsecase(sl()));
+
   // Cubit (Factory - new instance each time)
   sl.registerFactory(
     () => AuthCubit(
       loginUsecase: sl(),
       signupUsecase: sl(),
+      getProfileUsecase: sl(),
     ),
   );
+
+  // ========== Orders Feature ==========
+  // Data Sources
+  sl.registerLazySingleton<OrdersRemoteDataSource>(
+    () => OrdersRemoteDataSourceImpl(graphQLService: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<OrdersRepository>(
+    () => OrdersRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => GetOrdersUsecase(sl()));
+
+  // Cubit (Factory - new instance each time)
+  sl.registerFactory(() => OrdersCubit(getOrdersUsecase: sl()));
 }

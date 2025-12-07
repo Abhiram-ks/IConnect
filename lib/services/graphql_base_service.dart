@@ -46,18 +46,10 @@ abstract class GraphQLBaseService {
 
     _client = GraphQLClient(
       link: httpLink,
-      cache: GraphQLCache(
-        store: InMemoryStore(),
-      ),
+      cache: GraphQLCache(store: InMemoryStore()),
       defaultPolicies: DefaultPolicies(
-        query: Policies(
-          fetch: FetchPolicy.noCache,
-          error: ErrorPolicy.all,
-        ),
-        mutate: Policies(
-          fetch: FetchPolicy.noCache,
-          error: ErrorPolicy.all,
-        ),
+        query: Policies(fetch: FetchPolicy.noCache, error: ErrorPolicy.all),
+        mutate: Policies(fetch: FetchPolicy.noCache, error: ErrorPolicy.all),
       ),
       queryRequestTimeout: const Duration(seconds: 20),
     );
@@ -157,9 +149,7 @@ abstract class GraphQLBaseService {
         );
       }
 
-      throw ApiException(
-        message: 'Network error: ${linkException.toString()}',
-      );
+      throw ApiException(message: 'Network error: ${linkException.toString()}');
     }
 
     // Handle GraphQL errors
@@ -196,28 +186,19 @@ abstract class GraphQLBaseService {
       }
 
       if (statusCode != null && statusCode >= 500) {
-        throw ServerException(
-          message: message,
-          statusCode: statusCode,
-        );
+        throw ServerException(message: message, statusCode: statusCode);
       }
 
       // Handle GraphQL-specific errors with error codes
       if (errorCode != null) {
         throw GraphQLException.fromResponse({
           'errors': [
-            {
-              'message': message,
-              'extensions': extensions,
-            }
-          ]
+            {'message': message, 'extensions': extensions},
+          ],
         }, statusCode: statusCode);
       }
 
-      throw ApiException(
-        message: message,
-        statusCode: statusCode,
-      );
+      throw ApiException(message: message, statusCode: statusCode);
     }
 
     // Generic exception
@@ -236,8 +217,9 @@ abstract class GraphQLBaseService {
         if (mutationData.containsKey('customerUserErrors')) {
           final errors = mutationData['customerUserErrors'] as List?;
           if (errors != null && errors.isNotEmpty) {
-            final errorMessages =
-                errors.map((e) => e['message'] as String).join(', ');
+            final errorMessages = errors
+                .map((e) => e['message'] as String)
+                .join(', ');
             throw ApiException(message: errorMessages);
           }
         }
@@ -246,8 +228,9 @@ abstract class GraphQLBaseService {
         if (mutationData.containsKey('checkoutUserErrors')) {
           final errors = mutationData['checkoutUserErrors'] as List?;
           if (errors != null && errors.isNotEmpty) {
-            final errorMessages =
-                errors.map((e) => e['message'] as String).join(', ');
+            final errorMessages = errors
+                .map((e) => e['message'] as String)
+                .join(', ');
             throw ApiException(message: errorMessages);
           }
         }
@@ -256,8 +239,9 @@ abstract class GraphQLBaseService {
         if (mutationData.containsKey('userErrors')) {
           final errors = mutationData['userErrors'] as List?;
           if (errors != null && errors.isNotEmpty) {
-            final errorMessages =
-                errors.map((e) => e['message'] as String).join(', ');
+            final errorMessages = errors
+                .map((e) => e['message'] as String)
+                .join(', ');
             throw ApiException(message: errorMessages);
           }
         }
@@ -436,9 +420,7 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     return executeMutation(
       mutationString,
       variables: {
-        'input': {
-          'lineItems': lineItems,
-        }
+        'input': {'lineItems': lineItems},
       },
     );
   }
@@ -466,10 +448,7 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     return executeMutation(
       mutationString,
       variables: {
-        'input': {
-          'email': email,
-          'password': password,
-        }
+        'input': {'email': email, 'password': password},
       },
     );
   }
@@ -506,7 +485,113 @@ class ShopifyGraphQLService extends GraphQLBaseService {
           'password': password,
           if (firstName != null) 'firstName': firstName,
           if (lastName != null) 'lastName': lastName,
+        },
+      },
+    );
+  }
+
+  /// Get customer profile
+  Future<Map<String, dynamic>> getCustomer({
+    required String customerAccessToken,
+  }) async {
+    const queryString = r'''
+      query GetCustomer($customerAccessToken: String!) {
+        customer(customerAccessToken: $customerAccessToken) {
+          id
+          email
+          firstName
+          lastName
+          phone
+          defaultAddress {
+            id
+            address1
+            address2
+            city
+            province
+            zip
+            country
+          }
+          addresses(first: 10) {
+            edges {
+              node {
+                id
+                address1
+                address2
+                city
+                province
+                zip
+                country
+              }
+            }
+          }
         }
+      }
+    ''';
+
+    return executeQuery(
+      queryString,
+      variables: {'customerAccessToken': customerAccessToken},
+    );
+  }
+
+  /// Get customer orders
+  Future<Map<String, dynamic>> getCustomerOrders({
+    required String customerAccessToken,
+    int first = 10,
+    String? after,
+  }) async {
+    const queryString = r'''
+      query GetCustomerOrders($customerAccessToken: String!, $first: Int!, $after: String) {
+        customer(customerAccessToken: $customerAccessToken) {
+          orders(first: $first, after: $after) {
+            edges {
+              node {
+                id
+                name
+                orderNumber
+                processedAt
+                totalPrice {
+                  amount
+                  currencyCode
+                }
+                fulfillmentStatus
+                financialStatus
+                lineItems(first: 10) {
+                  edges {
+                    node {
+                      title
+                      quantity
+                      originalTotalPrice {
+                        amount
+                        currencyCode
+                      }
+                      variant {
+                        id
+                        title
+                        image {
+                          url
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      }
+    ''';
+
+    return executeQuery(
+      queryString,
+      variables: {
+        'customerAccessToken': customerAccessToken,
+        'first': first,
+        if (after != null) 'after': after,
       },
     );
   }
