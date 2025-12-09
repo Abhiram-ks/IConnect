@@ -625,6 +625,32 @@ class GraphQLQueries {
     }
   ''';
 
+  // ========== HOME BANNER QUERIES ==========
+
+  /// Get home banners from metaobjects
+  static const String getHomeBanners = r'''
+    query GetHomeBanners($first: Int!) {
+      metaobjects(type: "home_banner", first: $first) {
+        nodes {
+          handle
+          title: field(key: "title") {
+            value
+          }
+          image: field(key: "image") {
+            reference {
+              ... on MediaImage {
+                image {
+                  url
+                  altText
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ''';
+
   // ========== MENU QUERIES ==========
 
   /// Get menu by handle

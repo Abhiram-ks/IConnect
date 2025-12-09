@@ -189,4 +189,39 @@ List<String> parseUniqueVendors(Map<String, dynamic> data) {
   return set.toList();
 }
 
+// ===================== BANNERS =====================
+
+/// Flattens Shopify `metaobjects` (home_banner type) to simple banner maps.
+/// Flattens nested structures: title.field.value -> title, image.reference.image.url -> imageUrl
+List<Map<String, dynamic>> parseFlattenedBanners(Map<String, dynamic> data) {
+  final banners = <Map<String, dynamic>>[];
+  final metaobjects = data['metaobjects'] as Map<String, dynamic>?;
+  if (metaobjects == null) return banners;
+  
+  final nodes = metaobjects['nodes'] as List<dynamic>? ?? const [];
+  for (final node in nodes) {
+    final nodeMap = node as Map<String, dynamic>? ?? const {};
+    final handle = nodeMap['handle'] as String? ?? '';
+    
+    // Extract title from nested structure: title.field.value
+    final titleField = nodeMap['title'] as Map<String, dynamic>?;
+    final title = titleField?['value'] as String?;
+    
+    // Extract image from nested structure: image.reference.image.url and image.reference.image.altText
+    final imageField = nodeMap['image'] as Map<String, dynamic>?;
+    final reference = imageField?['reference'] as Map<String, dynamic>?;
+    final image = reference?['image'] as Map<String, dynamic>?;
+    final imageUrl = image?['url'] as String?;
+    final altText = image?['altText'] as String?;
+    
+    banners.add({
+      'handle': handle,
+      'title': title,
+      'imageUrl': imageUrl,
+      'altText': altText,
+    });
+  }
+  return banners;
+}
+
 

@@ -36,6 +36,7 @@ class ProductState {
   ApiResponse<List<CollectionEntity>>
   allCategories; // Separate state for all categories page (with imageUrls)
   ApiResponse<List<CollectionEntity>> banners;
+  ApiResponse<List<BannerEntity>> homeBanners; // Home banners from metaobjects
   ApiResponse<CollectionWithProducts> collectionWithProducts;
   ApiResponse<List<BrandEntity>> brands;
   ApiResponse<List<ProductEntity>>
@@ -63,6 +64,7 @@ class ProductState {
     ApiResponse<List<CollectionEntity>>? homeCategories,
     ApiResponse<List<CollectionEntity>>? allCategories,
     ApiResponse<List<CollectionEntity>>? banners,
+    ApiResponse<List<BannerEntity>>? homeBanners,
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
@@ -84,6 +86,7 @@ class ProductState {
        homeCategories = homeCategories ?? ApiResponse.initial(),
        allCategories = allCategories ?? ApiResponse.initial(),
        banners = banners ?? ApiResponse.initial(),
+       homeBanners = homeBanners ?? ApiResponse.initial(),
        collectionWithProducts = collectionWithProducts ?? ApiResponse.initial(),
        brands = brands ?? ApiResponse.initial(),
        brandProducts = brandProducts ?? ApiResponse.initial(),
@@ -99,6 +102,7 @@ class ProductState {
     ApiResponse<List<CollectionEntity>>? homeCategories,
     ApiResponse<List<CollectionEntity>>? allCategories,
     ApiResponse<List<CollectionEntity>>? banners,
+    ApiResponse<List<BannerEntity>>? homeBanners,
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
@@ -122,6 +126,7 @@ class ProductState {
       homeCategories: homeCategories ?? this.homeCategories,
       allCategories: allCategories ?? this.allCategories,
       banners: banners ?? this.banners,
+      homeBanners: homeBanners ?? this.homeBanners,
       collectionWithProducts:
           collectionWithProducts ?? this.collectionWithProducts,
       brands: brands ?? this.brands,

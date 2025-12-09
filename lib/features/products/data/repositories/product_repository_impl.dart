@@ -3,6 +3,7 @@ import 'package:iconnect/core/error/failures.dart';
 import 'package:iconnect/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:iconnect/features/products/data/models/collection_model.dart';
 import 'package:iconnect/features/products/data/models/product_model.dart';
+import 'package:iconnect/features/products/domain/entities/banner_entity.dart';
 import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
@@ -237,6 +238,32 @@ class ProductRepositoryImpl implements ProductRepository {
       final result = await remoteDataSource.getProductRecommendations(
         productId,
       );
+      return Right(result);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on GraphQLException catch (e) {
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
+    } on ApiException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BannerEntity>>> getHomeBanners({
+    int first = 10,
+  }) async {
+    try {
+      final result = await remoteDataSource.getHomeBanners(first: first);
       return Right(result);
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message));

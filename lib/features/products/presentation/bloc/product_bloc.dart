@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:iconnect/core/utils/api_response.dart';
+import 'package:iconnect/features/products/domain/entities/banner_entity.dart';
 import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
@@ -9,6 +10,7 @@ import 'package:iconnect/features/products/domain/usecases/get_product_by_handle
 import 'package:iconnect/features/products/domain/usecases/get_products_usecase.dart';
 import 'package:iconnect/features/products/domain/usecases/get_collection_by_handle_usecase.dart';
 import 'package:iconnect/features/products/domain/usecases/get_product_recommendations_usecase.dart';
+import 'package:iconnect/features/products/domain/usecases/get_home_banners_usecase.dart';
 import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/models/series_model.dart';
@@ -23,6 +25,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final GetCollectionByHandleUsecase getCollectionByHandleUsecase;
   final GetBrandsUsecase getBrandsUsecase;
   final GetProductRecommendationsUsecase getProductRecommendationsUsecase;
+  final GetHomeBannersUsecase getHomeBannersUsecase;
 
   // Keep track of current products for pagination
   List<ProductEntity> _currentProducts = [];
@@ -39,6 +42,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     required this.getCollectionByHandleUsecase,
     required this.getBrandsUsecase,
     required this.getProductRecommendationsUsecase,
+    required this.getHomeBannersUsecase,
   }) : super(ProductState()) {
     on<LoadProductsRequested>(_onLoadProductsRequested);
     on<LoadAllProductsRequested>(_onLoadAllProductsRequested);
@@ -55,6 +59,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       _onLoadProductRecommendationsRequested,
     );
     on<LoadSeriesProduct>(_onLoadSeriesProduct);
+    on<LoadHomeBannersRequested>(_onLoadHomeBannersRequested);
   }
 
   /// Handle load products event
@@ -587,6 +592,26 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           ),
         };
         emit(state.copyWith(seriesProducts: updatedSeriesModel));
+      },
+    );
+  }
+
+  /// Handle load home banners event
+  Future<void> _onLoadHomeBannersRequested(
+    LoadHomeBannersRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(state.copyWith(homeBanners: ApiResponse.loading()));
+
+    final params = GetHomeBannersParams(first: event.first);
+    final result = await getHomeBannersUsecase(params);
+
+    result.fold(
+      (failure) => {
+        emit(state.copyWith(homeBanners: ApiResponse.error(failure.message))),
+      },
+      (banners) => {
+        emit(state.copyWith(homeBanners: ApiResponse.completed(banners))),
       },
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:iconnect/core/graphql/graphql_queries.dart';
+import 'package:iconnect/features/products/data/models/banner_model.dart';
 import 'package:iconnect/features/products/data/models/brand_model.dart';
 import 'package:iconnect/features/products/data/models/collection_model.dart';
 import 'package:iconnect/features/products/data/models/product_model.dart';
@@ -38,6 +39,9 @@ abstract class ProductRemoteDataSource {
 
   /// Get product recommendations
   Future<List<ProductModel>> getProductRecommendations(String productId);
+
+  /// Get home banners from metaobjects
+  Future<List<BannerModel>> getHomeBanners({int first = 10});
 }
 
 /// Product Remote Data Source Implementation
@@ -165,5 +169,16 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
 
     final flattened = await compute(parseFlattenedRecommendations, result);
     return flattened.map((m) => ProductModel.fromFlattenedJson(m)).toList();
+  }
+
+  @override
+  Future<List<BannerModel>> getHomeBanners({int first = 10}) async {
+    final result = await graphQLService.executeQuery(
+      GraphQLQueries.getHomeBanners,
+      variables: {'first': first},
+    );
+
+    final flattened = await compute(parseFlattenedBanners, result);
+    return flattened.map((m) => BannerModel.fromFlattenedJson(m)).toList();
   }
 }

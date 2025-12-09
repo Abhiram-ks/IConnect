@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:iconnect/core/error/failures.dart';
+import 'package:iconnect/features/products/domain/entities/banner_entity.dart';
 import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
@@ -39,6 +40,9 @@ abstract class ProductRepository {
   /// Get product recommendations
   Future<Either<Failure, List<ProductEntity>>> getProductRecommendations(
       String productId);
+
+  /// Get home banners from metaobjects
+  Future<Either<Failure, List<BannerEntity>>> getHomeBanners({int first = 10});
 }
 
 /// Collection with products result

@@ -178,3 +178,13 @@ class LoadSeriesProduct extends ProductEvent {
   @override
   List<Object?> get props => [model, first, after];
 }
+
+/// Load home banners event
+class LoadHomeBannersRequested extends ProductEvent {
+  final int first;
+
+  LoadHomeBannersRequested({this.first = 10});
+
+  @override
+  List<Object?> get props => [first];
+}
