@@ -22,6 +22,17 @@ class BrandModel extends BrandEntity {
     return BrandModel(id: id, name: vendor, vendor: vendor, imageUrl: logoUrl);
   }
 
+  /// Factory constructor from a flattened map produced in an isolate.
+  /// Used for parsing brands from metaobjects GraphQL response
+  factory BrandModel.fromFlattenedJson(Map<String, dynamic> json) {
+    return BrandModel(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      vendor: json['vendor'] as String? ?? json['name'] as String? ?? '',
+      imageUrl: json['imageUrl'] as String?,
+    );
+  }
+
   /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {'id': id, 'name': name, 'vendor': vendor, 'imageUrl': imageUrl};

@@ -22,7 +22,9 @@ List<Map<String, dynamic>> parseFlattenedProducts(Map<String, dynamic> data) {
 }
 
 /// Flattens Shopify `productRecommendations` list to simple product maps.
-List<Map<String, dynamic>> parseFlattenedRecommendations(Map<String, dynamic> data) {
+List<Map<String, dynamic>> parseFlattenedRecommendations(
+  Map<String, dynamic> data,
+) {
   final list = <Map<String, dynamic>>[];
   final recs = data['productRecommendations'] as List<dynamic>? ?? const [];
   for (final item in recs) {
@@ -51,19 +53,24 @@ Map<String, dynamic> _flattenProduct(Map<String, dynamic> node) {
 
   // Price range
   final priceRange = node['priceRange'] as Map<String, dynamic>?;
-  final minVariantPrice = priceRange?['minVariantPrice'] as Map<String, dynamic>?;
-  final maxVariantPrice = priceRange?['maxVariantPrice'] as Map<String, dynamic>?;
+  final minVariantPrice =
+      priceRange?['minVariantPrice'] as Map<String, dynamic>?;
+  final maxVariantPrice =
+      priceRange?['maxVariantPrice'] as Map<String, dynamic>?;
 
-  final minPrice = double.tryParse(minVariantPrice?['amount']?.toString() ?? '0') ?? 0.0;
+  final minPrice =
+      double.tryParse(minVariantPrice?['amount']?.toString() ?? '0') ?? 0.0;
   final maxPrice =
-      double.tryParse(maxVariantPrice?['amount']?.toString() ?? '0') ?? minPrice;
+      double.tryParse(maxVariantPrice?['amount']?.toString() ?? '0') ??
+      minPrice;
   final currencyCode = minVariantPrice?['currencyCode'] as String? ?? 'USD';
 
   // Compare at price
   double? compareAtPrice;
   final compareAtRange = node['compareAtPriceRange'] as Map<String, dynamic>?;
   if (compareAtRange != null) {
-    final minCompare = compareAtRange['minVariantPrice'] as Map<String, dynamic>?;
+    final minCompare =
+        compareAtRange['minVariantPrice'] as Map<String, dynamic>?;
     if (minCompare != null && minCompare['amount'] != null) {
       compareAtPrice = double.tryParse(minCompare['amount'].toString());
     }
@@ -76,7 +83,8 @@ Map<String, dynamic> _flattenProduct(Map<String, dynamic> node) {
   for (final e in variantEdges) {
     final v = (e as Map)['node'] as Map<String, dynamic>? ?? const {};
     final priceData = v['price'] as Map<String, dynamic>?;
-    final price = double.tryParse(priceData?['amount']?.toString() ?? '0') ?? 0.0;
+    final price =
+        double.tryParse(priceData?['amount']?.toString() ?? '0') ?? 0.0;
     final vCurrencyCode = priceData?['currencyCode'] as String? ?? 'USD';
 
     double? vCompareAtPrice;
@@ -117,7 +125,9 @@ Map<String, dynamic> _flattenProduct(Map<String, dynamic> node) {
 // ===================== COLLECTIONS =====================
 
 /// Flattens Shopify `collections` to simple collection maps.
-List<Map<String, dynamic>> parseFlattenedCollections(Map<String, dynamic> data) {
+List<Map<String, dynamic>> parseFlattenedCollections(
+  Map<String, dynamic> data,
+) {
   final collections = <Map<String, dynamic>>[];
   final root = data['collections'];
   if (root == null) return collections;
@@ -148,7 +158,8 @@ Map<String, dynamic> parseFlattenedCollectionWithProducts(
     'title': collection['title'] ?? '',
     'handle': collection['handle'] ?? '',
     'description': collection['description'] ?? '',
-    'imageUrl': (collection['image'] as Map<String, dynamic>?)?['url'] as String?,
+    'imageUrl':
+        (collection['image'] as Map<String, dynamic>?)?['url'] as String?,
     'link': collection['link'],
   };
 
@@ -162,7 +173,8 @@ Map<String, dynamic> parseFlattenedCollectionWithProducts(
   }
 
   // PageInfo
-  final pageInfo = productsRoot?['pageInfo'] as Map<String, dynamic>? ?? const {};
+  final pageInfo =
+      productsRoot?['pageInfo'] as Map<String, dynamic>? ?? const {};
   return {
     'collection': flattenedCollection,
     'products': products,
@@ -189,6 +201,43 @@ List<String> parseUniqueVendors(Map<String, dynamic> data) {
   return set.toList();
 }
 
+/// Flattens Shopify `metaobjects` (brand type) to simple brand maps.
+/// Flattens nested structures: name.field.value -> name, image.reference.image.url -> imageUrl
+List<Map<String, dynamic>> parseFlattenedBrands(Map<String, dynamic> data) {
+  final brands = <Map<String, dynamic>>[];
+  final metaobjects = data['metaobjects'] as Map<String, dynamic>?;
+  if (metaobjects == null) return brands;
+
+  final nodes = metaobjects['nodes'] as List<dynamic>? ?? const [];
+  for (final node in nodes) {
+    final nodeMap = node as Map<String, dynamic>? ?? const {};
+    final id = nodeMap['id'] as String? ?? '';
+    final handle = nodeMap['handle'] as String? ?? '';
+
+    // Extract name from nested structure: name.field.value
+    final nameField = nodeMap['name'] as Map<String, dynamic>?;
+    final name = nameField?['value'] as String? ?? '';
+
+    // Extract image from nested structure: image.reference.image.url and image.reference.image.altText
+    final imageField = nodeMap['image'] as Map<String, dynamic>?;
+    final reference = imageField?['reference'] as Map<String, dynamic>?;
+    final image = reference?['image'] as Map<String, dynamic>?;
+    final imageUrl = image?['url'] as String?;
+
+    // Use name as vendor (or handle if name is empty)
+    final vendor = name.isNotEmpty ? name : handle;
+
+    brands.add({
+      'id': id,
+      'handle': handle,
+      'name': name,
+      'vendor': vendor,
+      'imageUrl': imageUrl,
+    });
+  }
+  return brands;
+}
+
 // ===================== BANNERS =====================
 
 /// Flattens Shopify `metaobjects` (home_banner type) to simple banner maps.
@@ -197,23 +246,23 @@ List<Map<String, dynamic>> parseFlattenedBanners(Map<String, dynamic> data) {
   final banners = <Map<String, dynamic>>[];
   final metaobjects = data['metaobjects'] as Map<String, dynamic>?;
   if (metaobjects == null) return banners;
-  
+
   final nodes = metaobjects['nodes'] as List<dynamic>? ?? const [];
   for (final node in nodes) {
     final nodeMap = node as Map<String, dynamic>? ?? const {};
     final handle = nodeMap['handle'] as String? ?? '';
-    
+
     // Extract title from nested structure: title.field.value
     final titleField = nodeMap['title'] as Map<String, dynamic>?;
     final title = titleField?['value'] as String?;
-    
+
     // Extract image from nested structure: image.reference.image.url and image.reference.image.altText
     final imageField = nodeMap['image'] as Map<String, dynamic>?;
     final reference = imageField?['reference'] as Map<String, dynamic>?;
     final image = reference?['image'] as Map<String, dynamic>?;
     final imageUrl = image?['url'] as String?;
     final altText = image?['altText'] as String?;
-    
+
     banners.add({
       'handle': handle,
       'title': title,
@@ -223,5 +272,3 @@ List<Map<String, dynamic>> parseFlattenedBanners(Map<String, dynamic> data) {
   }
   return banners;
 }
-
-

@@ -536,6 +536,31 @@ class GraphQLQueries {
     }
   ''';
 
+  /// Get brands from metaobjects
+  static const String getBrandsFromMetaobjects = r'''
+    query GetBrandsFromMetaobjects($first: Int!) {
+      metaobjects(type: "brand", first: $first) {
+        nodes {
+          id
+          handle
+          name: field(key: "name") {
+            value
+          }
+          image: field(key: "image") {
+            reference {
+              ... on MediaImage {
+                image {
+                  url
+                  altText
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ''';
+
   /// Get products by vendor (brand)
   static const String getProductsByVendor = r'''
     query GetProductsByVendor($first: Int!, $after: String, $vendor: String!) {

@@ -146,18 +146,14 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
 
   @override
   Future<List<BrandModel>> getBrands({int first = 250}) async {
-    // Fetch products to extract unique vendors
+    // Fetch brands from metaobjects
     final result = await graphQLService.executeQuery(
-      GraphQLQueries.getBrands,
+      GraphQLQueries.getBrandsFromMetaobjects,
       variables: {'first': first},
     );
 
-    final vendors = await compute(parseUniqueVendors, result);
-
-    // Convert unique vendors to BrandModel list
-    return vendors.map((vendor) {
-      return BrandModel.fromVendor(vendor: vendor);
-    }).toList();
+    final flattened = await compute(parseFlattenedBrands, result);
+    return flattened.map((m) => BrandModel.fromFlattenedJson(m)).toList();
   }
 
   @override
