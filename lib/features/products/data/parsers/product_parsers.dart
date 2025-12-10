@@ -224,6 +224,12 @@ List<Map<String, dynamic>> parseFlattenedBrands(Map<String, dynamic> data) {
     final image = reference?['image'] as Map<String, dynamic>?;
     final imageUrl = image?['url'] as String?;
 
+    // Extract category handle from nested structure: category.reference.handle
+    final categoryField = nodeMap['category'] as Map<String, dynamic>?;
+    final categoryReference =
+        categoryField?['reference'] as Map<String, dynamic>?;
+    final categoryHandle = categoryReference?['handle'] as String?;
+
     // Use name as vendor (or handle if name is empty)
     final vendor = name.isNotEmpty ? name : handle;
 
@@ -233,6 +239,7 @@ List<Map<String, dynamic>> parseFlattenedBrands(Map<String, dynamic> data) {
       'name': name,
       'vendor': vendor,
       'imageUrl': imageUrl,
+      'categoryHandle': categoryHandle,
     });
   }
   return brands;

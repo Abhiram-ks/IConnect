@@ -6,15 +6,17 @@ class BrandEntity extends Equatable {
   final String name;
   final String vendor;
   final String? imageUrl;
+  final String? categoryHandle;
 
   const BrandEntity({
     required this.id,
     required this.name,
     required this.vendor,
     this.imageUrl,
+    this.categoryHandle,
   });
 
   @override
-  List<Object?> get props => [id, name, vendor, imageUrl];
+  List<Object?> get props => [id, name, vendor, imageUrl, categoryHandle];
 }
 

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
@@ -77,28 +76,50 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
     super.dispose();
   }
 
+  Widget _buildPlaceholderCard() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 4.w),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 30.r,
+            backgroundColor: Colors.grey[200], // Very light grey
+          ),
+          SizedBox(height: 8.h),
+          SizedBox(
+            width: 60.w,
+            height: 20.h,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200], // Very light grey
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProductBloc, ProductState>(
       builder: (context, state) {
-        if (state.homeCategories.status == Status.loading) {
+        if (state.homeCategories.status == Status.loading ||
+            state.homeCategories.status == Status.initial) {
+          // Show placeholder circular avatars while loading
           return SizedBox(
-            height: 110.h,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: AppPalette.blueColor,
-                    strokeWidth: 2,
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Loading categories...',
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey),
-                  ),
-                ],
-              ),
+            height: 95.h,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 6, // Show 6 placeholder items
+              itemExtent: 80.w,
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              itemBuilder: (context, index) {
+                return _buildPlaceholderCard();
+              },
             ),
           );
         }
@@ -191,14 +212,17 @@ class _CategoriesCarouselState extends State<CategoriesCarousel> {
           );
         }
 
-        // Initial state - show loading
+        // Initial state - show placeholder avatars
         return SizedBox(
-          height: 110.h,
-          child: Center(
-            child: CircularProgressIndicator(
-              color: AppPalette.blueColor,
-              strokeWidth: 2,
-            ),
+          height: 95.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 6, // Show 6 placeholder items
+            itemExtent: 80.w,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            itemBuilder: (context, index) {
+              return _buildPlaceholderCard();
+            },
           ),
         );
       },

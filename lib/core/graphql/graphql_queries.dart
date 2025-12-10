@@ -522,20 +522,6 @@ class GraphQLQueries {
 
   // ========== BRAND/VENDOR QUERIES ==========
 
-  /// Get all unique vendors (brands) from products
-  /// This query fetches products and extracts unique vendors with their product count
-  static const String getBrands = r'''
-    query GetBrands($first: Int!) {
-      products(first: $first) {
-        edges {
-          node {
-            vendor
-          }
-        }
-      }
-    }
-  ''';
-
   /// Get brands from metaobjects
   static const String getBrandsFromMetaobjects = r'''
     query GetBrandsFromMetaobjects($first: Int!) {
@@ -553,6 +539,13 @@ class GraphQLQueries {
                   url
                   altText
                 }
+              }
+            }
+          }
+          category: field(key: "category") {
+            reference {
+              ... on Collection {
+                handle
               }
             }
           }

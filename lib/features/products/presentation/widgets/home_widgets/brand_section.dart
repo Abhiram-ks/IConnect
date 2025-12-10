@@ -6,6 +6,7 @@ import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/brand_card.dart';
+import 'package:iconnect/screens/collection_products_screen.dart';
 
 class BrandSection extends StatefulWidget {
   const BrandSection({super.key});
@@ -163,16 +164,34 @@ class _BrandSectionState extends State<BrandSection> {
                     name: brand.name,
                     onTap: () {
                       _stopAutoScroll();
-                      Navigator.pushNamed(
-                        context,
-                        '/brand_details',
-                        arguments: {
-                          'brandId': brand.id.hashCode,
-                          'brandName': brand.name,
-                          'brandVendor': brand.vendor,
-                          'brandImageUrl': brand.imageUrl,
-                        },
-                      );
+                      // Use categoryHandle if available, otherwise fallback to brand_details
+                      final categoryHandle = brand.categoryHandle;
+
+                      if (categoryHandle != null && categoryHandle.isNotEmpty) {
+                        // Navigate to collection screen using category handle
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => CollectionProductsScreen(
+                                  collectionHandle: categoryHandle,
+                                  collectionTitle: brand.name,
+                                ),
+                          ),
+                        );
+                      } else {
+                        // Fallback to brand_details if no categoryHandle
+                        Navigator.pushNamed(
+                          context,
+                          '/brand_details',
+                          arguments: {
+                            'brandId': brand.id.hashCode,
+                            'brandName': brand.name,
+                            'brandVendor': brand.vendor,
+                            'brandImageUrl': brand.imageUrl,
+                          },
+                        );
+                      }
                     },
                   ),
                 );
