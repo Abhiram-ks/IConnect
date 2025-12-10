@@ -7,6 +7,7 @@ class BannerModel extends BannerEntity {
     super.title,
     super.imageUrl,
     super.altText,
+    super.categoryHandle,
   });
 
   /// Factory constructor from JSON (Shopify GraphQL response)
@@ -14,17 +15,24 @@ class BannerModel extends BannerEntity {
     // Extract title from nested structure: title.field.value
     final titleField = json['title'] as Map<String, dynamic>?;
     final title = titleField?['value'] as String?;
-    
+
     // Extract image from nested structure: image.reference.image.url and image.reference.image.altText
     final imageField = json['image'] as Map<String, dynamic>?;
     final reference = imageField?['reference'] as Map<String, dynamic>?;
     final image = reference?['image'] as Map<String, dynamic>?;
-    
+
+    // Extract category handle from nested structure: category.reference.handle
+    final categoryField = json['category'] as Map<String, dynamic>?;
+    final categoryReference =
+        categoryField?['reference'] as Map<String, dynamic>?;
+    final categoryHandle = categoryReference?['handle'] as String?;
+
     return BannerModel(
       handle: json['handle'] as String? ?? '',
       title: title,
       imageUrl: image?['url'] as String?,
       altText: image?['altText'] as String?,
+      categoryHandle: categoryHandle,
     );
   }
 
@@ -35,6 +43,7 @@ class BannerModel extends BannerEntity {
       title: json['title'] as String?,
       imageUrl: json['imageUrl'] as String?,
       altText: json['altText'] as String?,
+      categoryHandle: json['categoryHandle'] as String?,
     );
   }
 
@@ -45,6 +54,7 @@ class BannerModel extends BannerEntity {
       'title': title,
       'imageUrl': imageUrl,
       'altText': altText,
+      'categoryHandle': categoryHandle,
     };
   }
 
@@ -54,13 +64,14 @@ class BannerModel extends BannerEntity {
     String? title,
     String? imageUrl,
     String? altText,
+    String? categoryHandle,
   }) {
     return BannerModel(
       handle: handle ?? this.handle,
       title: title ?? this.title,
       imageUrl: imageUrl ?? this.imageUrl,
       altText: altText ?? this.altText,
+      categoryHandle: categoryHandle ?? this.categoryHandle,
     );
   }
 }
-

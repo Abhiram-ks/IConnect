@@ -3,6 +3,7 @@ import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/domain/entities/banner_entity.dart';
 import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
+import 'package:iconnect/features/products/domain/entities/offer_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/domain/usecases/get_brands_usecase.dart';
 import 'package:iconnect/features/products/domain/usecases/get_collections_usecase.dart';
@@ -11,6 +12,7 @@ import 'package:iconnect/features/products/domain/usecases/get_products_usecase.
 import 'package:iconnect/features/products/domain/usecases/get_collection_by_handle_usecase.dart';
 import 'package:iconnect/features/products/domain/usecases/get_product_recommendations_usecase.dart';
 import 'package:iconnect/features/products/domain/usecases/get_home_banners_usecase.dart';
+import 'package:iconnect/features/products/domain/usecases/get_offer_blocks_usecase.dart';
 import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/models/series_model.dart';
@@ -26,6 +28,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final GetBrandsUsecase getBrandsUsecase;
   final GetProductRecommendationsUsecase getProductRecommendationsUsecase;
   final GetHomeBannersUsecase getHomeBannersUsecase;
+  final GetOfferBlocksUsecase getOfferBlocksUsecase;
 
   // Keep track of current products for pagination
   List<ProductEntity> _currentProducts = [];
@@ -43,6 +46,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     required this.getBrandsUsecase,
     required this.getProductRecommendationsUsecase,
     required this.getHomeBannersUsecase,
+    required this.getOfferBlocksUsecase,
   }) : super(ProductState()) {
     on<LoadProductsRequested>(_onLoadProductsRequested);
     on<LoadAllProductsRequested>(_onLoadAllProductsRequested);
@@ -60,6 +64,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     );
     on<LoadSeriesProduct>(_onLoadSeriesProduct);
     on<LoadHomeBannersRequested>(_onLoadHomeBannersRequested);
+    on<LoadOfferBlocksRequested>(_onLoadOfferBlocksRequested);
   }
 
   /// Handle load products event
@@ -612,6 +617,26 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       },
       (banners) => {
         emit(state.copyWith(homeBanners: ApiResponse.completed(banners))),
+      },
+    );
+  }
+
+  /// Handle load offer blocks event
+  Future<void> _onLoadOfferBlocksRequested(
+    LoadOfferBlocksRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    emit(state.copyWith(offerBlocks: ApiResponse.loading()));
+
+    final params = GetOfferBlocksParams();
+    final result = await getOfferBlocksUsecase(params);
+
+    result.fold(
+      (failure) => {
+        emit(state.copyWith(offerBlocks: ApiResponse.error(failure.message))),
+      },
+      (offerBlocks) => {
+        emit(state.copyWith(offerBlocks: ApiResponse.completed(offerBlocks))),
       },
     );
   }

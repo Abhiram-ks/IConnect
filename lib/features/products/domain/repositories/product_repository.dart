@@ -3,6 +3,7 @@ import 'package:iconnect/core/error/failures.dart';
 import 'package:iconnect/features/products/domain/entities/banner_entity.dart';
 import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
+import 'package:iconnect/features/products/domain/entities/offer_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 
 /// Abstract Product Repository Interface
@@ -43,6 +44,9 @@ abstract class ProductRepository {
 
   /// Get home banners from metaobjects
   Future<Either<Failure, List<BannerEntity>>> getHomeBanners({int first = 10});
+
+  /// Get offer blocks from metaobjects
+  Future<Either<Failure, List<OfferBlockEntity>>> getOfferBlocks();
 }
 
 /// Collection with products result

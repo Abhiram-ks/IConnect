@@ -3,6 +3,7 @@ import 'package:iconnect/core/graphql/graphql_queries.dart';
 import 'package:iconnect/features/products/data/models/banner_model.dart';
 import 'package:iconnect/features/products/data/models/brand_model.dart';
 import 'package:iconnect/features/products/data/models/collection_model.dart';
+import 'package:iconnect/features/products/data/models/offer_model.dart';
 import 'package:iconnect/features/products/data/models/product_model.dart';
 import 'package:iconnect/features/products/data/parsers/product_parsers.dart';
 import 'package:iconnect/services/graphql_base_service.dart';
@@ -42,6 +43,9 @@ abstract class ProductRemoteDataSource {
 
   /// Get home banners from metaobjects
   Future<List<BannerModel>> getHomeBanners({int first = 10});
+
+  /// Get offer blocks from metaobjects
+  Future<List<OfferBlockModel>> getOfferBlocks();
 }
 
 /// Product Remote Data Source Implementation
@@ -176,5 +180,16 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
 
     final flattened = await compute(parseFlattenedBanners, result);
     return flattened.map((m) => BannerModel.fromFlattenedJson(m)).toList();
+  }
+
+  @override
+  Future<List<OfferBlockModel>> getOfferBlocks() async {
+    final result = await graphQLService.executeQuery(
+      GraphQLQueries.getOfferBlocks,
+      variables: {},
+    );
+
+    final flattened = await compute(parseFlattenedOfferBlocks, result);
+    return flattened.map((m) => OfferBlockModel.fromFlattenedJson(m)).toList();
   }
 }

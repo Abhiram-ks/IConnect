@@ -21,6 +21,7 @@ import '../../features/products/domain/usecases/get_brands_usecase.dart';
 import '../../features/products/domain/usecases/get_collection_by_handle_usecase.dart';
 import '../../features/products/domain/usecases/get_collections_usecase.dart';
 import '../../features/products/domain/usecases/get_home_banners_usecase.dart';
+import '../../features/products/domain/usecases/get_offer_blocks_usecase.dart';
 import '../../features/products/domain/usecases/get_product_by_handle_usecase.dart';
 import '../../features/products/domain/usecases/get_product_recommendations_usecase.dart';
 import '../../features/products/domain/usecases/get_products_usecase.dart';
@@ -72,6 +73,7 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => GetBrandsUsecase(sl()));
   sl.registerLazySingleton(() => GetProductRecommendationsUsecase(sl()));
   sl.registerLazySingleton(() => GetHomeBannersUsecase(sl()));
+  sl.registerLazySingleton(() => GetOfferBlocksUsecase(sl()));
 
   // BLoC (Factory - new instance each time)
   sl.registerFactory(
@@ -83,6 +85,7 @@ Future<void> initializeDependencies() async {
       getBrandsUsecase: sl(),
       getProductRecommendationsUsecase: sl(),
       getHomeBannersUsecase: sl(),
+      getOfferBlocksUsecase: sl(),
     ),
   );
 

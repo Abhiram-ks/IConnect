@@ -22,9 +22,11 @@ class BottomNavWidget extends StatelessWidget {
       case NavItem.iphone17:
         return 2;
       case NavItem.product:
-        return 3;
+        return 0; // Product item is hidden, default to home
+      case NavItem.offers:
+        return 3; // Changed from 4 to 3 (Product removed)
       case NavItem.cart:
-        return 4;
+        return 4; // Changed from 5 to 4 (Product removed)
       case NavItem.search:
         // Search opens drawer, not in bottom nav
         return 0; // Default to home
@@ -41,9 +43,12 @@ class BottomNavWidget extends StatelessWidget {
       case 2:
         return NavItem.iphone17;
       case 3:
-        return NavItem.product;
+        return NavItem
+            .offers; // Changed from product to offers (Product removed)
       case 4:
-        return NavItem.cart;
+        return NavItem.cart; // Changed from offers to cart (Product removed)
+      case 5:
+        return NavItem.cart; // Fallback for old index
       default:
         return NavItem.home;
     }
@@ -147,11 +152,19 @@ class BottomNavWidget extends StatelessWidget {
                         color: AppPalette.blueColor,
                       ),
                     ),
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.grid_view, size: 16),
-                      label: 'Product',
+                    // const BottomNavigationBarItem(
+                    //   icon: Icon(Icons.grid_view, size: 16),
+                    //   label: 'Product',
+                    //   activeIcon: Icon(
+                    //     Icons.grid_view_rounded,
+                    //     color: AppPalette.blueColor,
+                    //   ),
+                    // ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.local_offer_outlined, size: 16.sp),
+                      label: 'Offers',
                       activeIcon: Icon(
-                        Icons.grid_view_rounded,
+                        Icons.local_offer,
                         color: AppPalette.blueColor,
                       ),
                     ),

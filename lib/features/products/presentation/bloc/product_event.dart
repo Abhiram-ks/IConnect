@@ -188,3 +188,11 @@ class LoadHomeBannersRequested extends ProductEvent {
   @override
   List<Object?> get props => [first];
 }
+
+/// Load offer blocks event
+class LoadOfferBlocksRequested extends ProductEvent {
+  LoadOfferBlocksRequested();
+
+  @override
+  List<Object?> get props => [];
+}

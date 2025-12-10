@@ -263,12 +263,115 @@ List<Map<String, dynamic>> parseFlattenedBanners(Map<String, dynamic> data) {
     final imageUrl = image?['url'] as String?;
     final altText = image?['altText'] as String?;
 
+    // Extract category handle from nested structure: category.reference.handle
+    final categoryField = nodeMap['category'] as Map<String, dynamic>?;
+    final categoryReference =
+        categoryField?['reference'] as Map<String, dynamic>?;
+    final categoryHandle = categoryReference?['handle'] as String?;
+
     banners.add({
       'handle': handle,
       'title': title,
       'imageUrl': imageUrl,
       'altText': altText,
+      'categoryHandle': categoryHandle,
     });
   }
   return banners;
+}
+
+// ===================== OFFER BLOCKS =====================
+
+/// Flattens Shopify `metaobjects` (offer_section type) to simple offer block maps.
+/// Flattens nested structures for hero image, view more button, clearance collection, and items
+List<Map<String, dynamic>> parseFlattenedOfferBlocks(
+  Map<String, dynamic> data,
+) {
+  final offerBlocks = <Map<String, dynamic>>[];
+  final metaobjects = data['metaobjects'] as Map<String, dynamic>?;
+  if (metaobjects == null) return offerBlocks;
+
+  final edges = metaobjects['edges'] as List<dynamic>? ?? const [];
+  for (final edge in edges) {
+    final nodeMap = (edge as Map)['node'] as Map<String, dynamic>? ?? const {};
+    final id = nodeMap['id'] as String? ?? '';
+
+    // Extract title from nested structure: title.field.value
+    final titleField = nodeMap['title'] as Map<String, dynamic>?;
+    final title = titleField?['value'] as String?;
+
+    // Extract hero image from nested structure: heroImage.reference.image.url
+    final heroImageField = nodeMap['heroImage'] as Map<String, dynamic>?;
+    final heroReference = heroImageField?['reference'] as Map<String, dynamic>?;
+    final heroImage = heroReference?['image'] as Map<String, dynamic>?;
+    final heroImageUrl = heroImage?['url'] as String?;
+    final heroImageAltText = heroImage?['altText'] as String?;
+
+    // Extract view more button collection
+    final viewMoreField = nodeMap['viewMoreButton'] as Map<String, dynamic>?;
+    final viewMoreReference =
+        viewMoreField?['reference'] as Map<String, dynamic>?;
+    final viewMoreCollectionHandle = viewMoreReference?['handle'] as String?;
+    final viewMoreCollectionTitle = viewMoreReference?['title'] as String?;
+    final viewMoreCollectionId = viewMoreReference?['id'] as String?;
+
+    // Extract clearance collection
+    final clearanceField =
+        nodeMap['clearanceCollection'] as Map<String, dynamic>?;
+    final clearanceReference =
+        clearanceField?['reference'] as Map<String, dynamic>?;
+    final clearanceCollectionHandle = clearanceReference?['handle'] as String?;
+    final clearanceCollectionTitle = clearanceReference?['title'] as String?;
+    final clearanceCollectionId = clearanceReference?['id'] as String?;
+
+    // Extract items
+    final itemsList = <Map<String, dynamic>>[];
+    final itemsField = nodeMap['items'] as Map<String, dynamic>?;
+    final itemsReferences = itemsField?['references'] as Map<String, dynamic>?;
+    final itemsNodes = itemsReferences?['nodes'] as List<dynamic>? ?? const [];
+    for (final itemNode in itemsNodes) {
+      final itemMap = itemNode as Map<String, dynamic>? ?? const {};
+
+      // Extract item image
+      final itemImageField = itemMap['itemImage'] as Map<String, dynamic>?;
+      final itemImageReference =
+          itemImageField?['reference'] as Map<String, dynamic>?;
+      final itemImage = itemImageReference?['image'] as Map<String, dynamic>?;
+      final itemImageUrl = itemImage?['url'] as String?;
+      final itemAltText = itemImage?['altText'] as String?;
+
+      // Extract item collection
+      final itemCollectionField =
+          itemMap['itemCollection'] as Map<String, dynamic>?;
+      final itemCollectionReference =
+          itemCollectionField?['reference'] as Map<String, dynamic>?;
+      final itemCollectionHandle =
+          itemCollectionReference?['handle'] as String?;
+      final itemCollectionTitle = itemCollectionReference?['title'] as String?;
+      final itemCollectionId = itemCollectionReference?['id'] as String?;
+
+      itemsList.add({
+        'imageUrl': itemImageUrl,
+        'altText': itemAltText,
+        'collectionHandle': itemCollectionHandle,
+        'collectionTitle': itemCollectionTitle,
+        'collectionId': itemCollectionId,
+      });
+    }
+
+    offerBlocks.add({
+      'id': id,
+      'title': title,
+      'heroImageUrl': heroImageUrl,
+      'heroImageAltText': heroImageAltText,
+      'viewMoreCollectionHandle': viewMoreCollectionHandle,
+      'viewMoreCollectionTitle': viewMoreCollectionTitle,
+      'viewMoreCollectionId': viewMoreCollectionId,
+      'clearanceCollectionHandle': clearanceCollectionHandle,
+      'clearanceCollectionTitle': clearanceCollectionTitle,
+      'clearanceCollectionId': clearanceCollectionId,
+      'items': itemsList,
+    });
+  }
+  return offerBlocks;
 }

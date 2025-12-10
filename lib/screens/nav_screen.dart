@@ -12,6 +12,7 @@ import 'package:iconnect/screens/categories_screen.dart';
 import 'package:iconnect/screens/detailed_cart_screen.dart';
 import 'package:iconnect/screens/home_screen.dart';
 import 'package:iconnect/screens/iphone17_screen.dart';
+import 'package:iconnect/screens/offer_view_screen.dart';
 import 'package:iconnect/screens/product_screen.dart';
 import 'package:iconnect/screens/search_screen.dart';
 import 'package:iconnect/widgets/navbar_widgets.dart';
@@ -36,6 +37,7 @@ class _BottomNavigationControllersState
     CategoriesScreen(),
     IPhone17Screen(),
     ProductScreen(),
+    OfferViewScreen(),
     DetailedCartScreen(),
     SearchScreen(),
   ];
@@ -87,10 +89,12 @@ int _navIndex(NavItem item) {
       return 2;
     case NavItem.product:
       return 3;
-    case NavItem.cart:
+    case NavItem.offers:
       return 4;
-    case NavItem.search:
+    case NavItem.cart:
       return 5;
+    case NavItem.search:
+      return 6;
   }
 }
 

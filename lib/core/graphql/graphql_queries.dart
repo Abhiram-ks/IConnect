@@ -671,6 +671,86 @@ class GraphQLQueries {
               }
             }
           }
+          category: field(key: "category") {
+            reference {
+              ... on Collection {
+                handle
+              }
+            }
+          }
+        }
+      }
+    }
+  ''';
+
+  // ========== OFFER BLOCKS QUERIES ==========
+
+  /// Get offer blocks from metaobjects
+  static const String getOfferBlocks = r'''
+    query GetOfferBlocks {
+      metaobjects(type: "offer_section", first: 20) {
+        edges {
+          node {
+            id
+            title: field(key: "title") {
+              value
+            }
+            heroImage: field(key: "hero_image") {
+              reference {
+                ... on MediaImage {
+                  image {
+                    url
+                    altText
+                  }
+                }
+              }
+            }
+            viewMoreButton: field(key: "view_more_offers") {
+              reference {
+                ... on Collection {
+                  id
+                  handle
+                  title
+                }
+              }
+            }
+            clearanceCollection: field(key: "clearance_collection") {
+              reference {
+                ... on Collection {
+                  id
+                  handle
+                  title
+                }
+              }
+            }
+            items: field(key: "items") {
+              references(first: 20) {
+                nodes {
+                  ... on Metaobject {
+                    itemImage: field(key: "image") {
+                      reference {
+                        ... on MediaImage {
+                          image {
+                            url
+                            altText
+                          }
+                        }
+                      }
+                    }
+                    itemCollection: field(key: "collection") {
+                      reference {
+                        ... on Collection {
+                          id
+                          handle
+                          title
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

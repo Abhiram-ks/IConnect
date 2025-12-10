@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 
 
-enum NavItem {home, product, cart, categories, search, iphone17}
+enum NavItem {home, product, cart, categories, search, iphone17, offers}
 
 class ButtomNavCubit extends Cubit<NavItem> {
   ButtomNavCubit() : super(NavItem.home);

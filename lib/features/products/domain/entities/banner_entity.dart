@@ -6,15 +6,17 @@ class BannerEntity extends Equatable {
   final String? title;
   final String? imageUrl;
   final String? altText;
+  final String? categoryHandle;
 
   const BannerEntity({
     required this.handle,
     this.title,
     this.imageUrl,
     this.altText,
+    this.categoryHandle,
   });
 
   @override
-  List<Object?> get props => [handle, title, imageUrl, altText];
+  List<Object?> get props => [handle, title, imageUrl, altText, categoryHandle];
 }
 
