@@ -48,7 +48,10 @@ abstract class GraphQLBaseService {
       link: httpLink,
       cache: GraphQLCache(store: InMemoryStore()),
       defaultPolicies: DefaultPolicies(
-        query: Policies(fetch: FetchPolicy.noCache, error: ErrorPolicy.all),
+        // Use cacheFirst for queries - similar to axios caching behavior
+        // This will return cached data if available, otherwise fetch from network
+        query: Policies(fetch: FetchPolicy.cacheFirst, error: ErrorPolicy.all),
+        // Mutations should always bypass cache since they modify data
         mutate: Policies(fetch: FetchPolicy.noCache, error: ErrorPolicy.all),
       ),
       queryRequestTimeout: const Duration(seconds: 20),
@@ -62,6 +65,12 @@ abstract class GraphQLBaseService {
   ///
   /// Returns the data portion of the response
   /// Throws appropriate exceptions for errors
+  ///
+  /// [fetchPolicy] - Controls how the query interacts with the cache:
+  ///   - `FetchPolicy.cacheFirst` (default): Returns cached data if available, otherwise fetches from network (similar to axios)
+  ///   - `FetchPolicy.networkOnly`: Always fetches from network, ignoring cache
+  ///   - `FetchPolicy.cacheOnly`: Only returns cached data, never fetches from network
+  ///   - `FetchPolicy.noCache`: Bypasses cache completely
   Future<Map<String, dynamic>> executeQuery(
     String query, {
     Map<String, dynamic>? variables,
@@ -71,7 +80,9 @@ abstract class GraphQLBaseService {
       final options = QueryOptions(
         document: gql(query),
         variables: variables ?? {},
-        fetchPolicy: fetchPolicy ?? FetchPolicy.noCache,
+        // Default to cacheFirst for automatic caching (like axios)
+        // Pass FetchPolicy.networkOnly to force refresh
+        fetchPolicy: fetchPolicy ?? FetchPolicy.cacheFirst,
       );
 
       final result = await _client.query(options);
@@ -247,6 +258,28 @@ abstract class GraphQLBaseService {
         }
       }
     }
+  }
+
+  /// Execute GraphQL query with forced network refresh (bypasses cache)
+  ///
+  /// Use this when you need to force a fresh fetch from the network,
+  /// ignoring any cached data. Similar to axios with cache disabled.
+  Future<Map<String, dynamic>> executeQueryWithRefresh(
+    String query, {
+    Map<String, dynamic>? variables,
+  }) async {
+    return executeQuery(
+      query,
+      variables: variables,
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+  }
+
+  /// Clear the GraphQL cache
+  ///
+  /// Use this to clear all cached query results when needed
+  void clearCache() {
+    _client.cache.store.reset();
   }
 
   /// Dispose client resources
