@@ -32,6 +32,11 @@ class OfferBlockEntity extends Equatable {
   final String? title;
   final String? heroImageUrl;
   final String? heroImageAltText;
+  final String? buttonText;
+  final String? buttonUrl;
+  final String? featuredCollectionTitle;
+  final String? featuredCollectionHandle;
+  final String? featuredCollectionId;
   final String? viewMoreCollectionHandle;
   final String? viewMoreCollectionTitle;
   final String? viewMoreCollectionId;
@@ -45,6 +50,11 @@ class OfferBlockEntity extends Equatable {
     this.title,
     this.heroImageUrl,
     this.heroImageAltText,
+    this.buttonText,
+    this.buttonUrl,
+    this.featuredCollectionTitle,
+    this.featuredCollectionHandle,
+    this.featuredCollectionId,
     this.viewMoreCollectionHandle,
     this.viewMoreCollectionTitle,
     this.viewMoreCollectionId,
@@ -60,6 +70,11 @@ class OfferBlockEntity extends Equatable {
         title,
         heroImageUrl,
         heroImageAltText,
+        buttonText,
+        buttonUrl,
+        featuredCollectionTitle,
+        featuredCollectionHandle,
+        featuredCollectionId,
         viewMoreCollectionHandle,
         viewMoreCollectionTitle,
         viewMoreCollectionId,

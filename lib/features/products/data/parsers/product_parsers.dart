@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// NOTE: All functions here must be top-level and return/send only
 /// values transferable across isolates (Map/List/num/bool/String/null).
 /// They are designed to be used with `compute` or `Isolate.run`.
@@ -290,7 +292,7 @@ List<Map<String, dynamic>> parseFlattenedBanners(Map<String, dynamic> data) {
 // ===================== OFFER BLOCKS =====================
 
 /// Flattens Shopify `metaobjects` (offer_section type) to simple offer block maps.
-/// Flattens nested structures for hero image, view more button, clearance collection, and items
+/// Flattens nested structures for hero image, button, featured collection, and items
 List<Map<String, dynamic>> parseFlattenedOfferBlocks(
   Map<String, dynamic> data,
 ) {
@@ -314,22 +316,36 @@ List<Map<String, dynamic>> parseFlattenedOfferBlocks(
     final heroImageUrl = heroImage?['url'] as String?;
     final heroImageAltText = heroImage?['altText'] as String?;
 
-    // Extract view more button collection
-    final viewMoreField = nodeMap['viewMoreButton'] as Map<String, dynamic>?;
-    final viewMoreReference =
-        viewMoreField?['reference'] as Map<String, dynamic>?;
-    final viewMoreCollectionHandle = viewMoreReference?['handle'] as String?;
-    final viewMoreCollectionTitle = viewMoreReference?['title'] as String?;
-    final viewMoreCollectionId = viewMoreReference?['id'] as String?;
+    // Extract button from button.field.value (JSON string)
+    String? buttonText;
+    String? buttonUrl;
+    final buttonField = nodeMap['button'] as Map<String, dynamic>?;
+    final buttonValue = buttonField?['value'] as String?;
+    if (buttonValue != null && buttonValue.isNotEmpty) {
+      try {
+        // Parse JSON string: {"text":"View more offers","url":"https://..."}
+        final buttonJson = jsonDecode(buttonValue) as Map<String, dynamic>?;
+        buttonText = buttonJson?['text'] as String?;
+        buttonUrl = buttonJson?['url'] as String?;
+      } catch (e) {
+        // If parsing fails, ignore button
+        buttonText = null;
+        buttonUrl = null;
+      }
+    }
 
-    // Extract clearance collection
-    final clearanceField =
-        nodeMap['clearanceCollection'] as Map<String, dynamic>?;
-    final clearanceReference =
-        clearanceField?['reference'] as Map<String, dynamic>?;
-    final clearanceCollectionHandle = clearanceReference?['handle'] as String?;
-    final clearanceCollectionTitle = clearanceReference?['title'] as String?;
-    final clearanceCollectionId = clearanceReference?['id'] as String?;
+    // Extract featured collection title
+    final featuredCollectionTitleField = nodeMap['featured_collection_title'] as Map<String, dynamic>?;
+    final featuredCollectionTitle = featuredCollectionTitleField?['value'] as String?;
+
+    // Extract featured collection
+    final featuredCollectionField = nodeMap['featured_collection'] as Map<String, dynamic>?;
+    final featuredCollectionReference = featuredCollectionField?['reference'] as Map<String, dynamic>?;
+    final featuredCollectionHandle = featuredCollectionReference?['handle'] as String?;
+    final featuredCollectionTitleFromRef = featuredCollectionReference?['title'] as String?;
+    final featuredCollectionId = featuredCollectionReference?['id'] as String?;
+    // Use featured_collection_title field value if available, otherwise use collection title
+    final finalFeaturedCollectionTitle = featuredCollectionTitle ?? featuredCollectionTitleFromRef;
 
     // Extract items
     final itemsList = <Map<String, dynamic>>[];
@@ -371,12 +387,11 @@ List<Map<String, dynamic>> parseFlattenedOfferBlocks(
       'title': title,
       'heroImageUrl': heroImageUrl,
       'heroImageAltText': heroImageAltText,
-      'viewMoreCollectionHandle': viewMoreCollectionHandle,
-      'viewMoreCollectionTitle': viewMoreCollectionTitle,
-      'viewMoreCollectionId': viewMoreCollectionId,
-      'clearanceCollectionHandle': clearanceCollectionHandle,
-      'clearanceCollectionTitle': clearanceCollectionTitle,
-      'clearanceCollectionId': clearanceCollectionId,
+      'buttonText': buttonText,
+      'buttonUrl': buttonUrl,
+      'featuredCollectionTitle': finalFeaturedCollectionTitle,
+      'featuredCollectionHandle': featuredCollectionHandle,
+      'featuredCollectionId': featuredCollectionId,
       'items': itemsList,
     });
   }

@@ -698,16 +698,13 @@ class GraphQLQueries {
                 }
               }
             }
-            viewMoreButton: field(key: "view_more_offers") {
-              reference {
-                ... on Collection {
-                  id
-                  handle
-                  title
-                }
-              }
+            button: field(key: "button_link") {
+              value
             }
-            clearanceCollection: field(key: "clearance_collection") {
+            featured_collection_title: field(key: "featured_collection_title") {
+              value
+            }
+            featured_collection: field(key: "featured_collection") {
               reference {
                 ... on Collection {
                   id

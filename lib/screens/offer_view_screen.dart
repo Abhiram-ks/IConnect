@@ -10,6 +10,8 @@ import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/routes.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
+import 'package:iconnect/widgets/shopify_product_grid_section.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OfferViewScreen extends StatefulWidget {
   const OfferViewScreen({super.key});
@@ -146,6 +148,27 @@ class _OfferViewScreenState extends State<OfferViewScreen> {
   }
 
   Widget _buildOfferBlock(OfferBlockEntity offerBlock) {
+    // Load featured collection products if available
+    if (offerBlock.featuredCollectionHandle != null &&
+        offerBlock.featuredCollectionHandle!.isNotEmpty) {
+      final categoryKey = 'offer_featured_${offerBlock.id}';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final state = context.read<products.ProductBloc>().state;
+        final categoryData = state.categoryProducts[categoryKey];
+        // Only load if not already loaded or loading
+        if (categoryData == null ||
+            categoryData.products.status == Status.initial) {
+          context.read<products.ProductBloc>().add(
+            LoadCategoryProductsRequested(
+              categoryName: categoryKey,
+              collectionHandle: offerBlock.featuredCollectionHandle!,
+              first: 10,
+            ),
+          );
+        }
+      });
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -211,9 +234,149 @@ class _OfferViewScreenState extends State<OfferViewScreen> {
             ),
           ),
 
-        // View More Button
-        if (offerBlock.viewMoreCollectionHandle != null &&
-            offerBlock.viewMoreCollectionHandle!.isNotEmpty)
+        // Button (from button_link field) - shown above featured collection
+        if (offerBlock.buttonText != null &&
+            offerBlock.buttonText!.isNotEmpty &&
+            offerBlock.buttonUrl != null &&
+            offerBlock.buttonUrl!.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  final url = Uri.parse(offerBlock.buttonUrl!);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppPalette.blueColor,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24.w,
+                    vertical: 14.h,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                child: Text(
+                  offerBlock.buttonText!,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // Featured Collection Products Section
+        if (offerBlock.featuredCollectionHandle != null &&
+            offerBlock.featuredCollectionHandle!.isNotEmpty)
+          _buildFeaturedCollectionSection(offerBlock),
+
+        SizedBox(height: 16.h),
+      ],
+    );
+  }
+
+  Widget _buildFeaturedCollectionSection(OfferBlockEntity offerBlock) {
+    final categoryKey = 'offer_featured_${offerBlock.id}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Featured Collection Title
+        if (offerBlock.featuredCollectionTitle != null &&
+            offerBlock.featuredCollectionTitle!.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            child: Text(
+              offerBlock.featuredCollectionTitle!,
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
+        // Featured Collection Products Horizontal Scroll
+        SizedBox(
+          height: 250.h,
+          child: BlocBuilder<products.ProductBloc, products.ProductState>(
+            builder: (context, state) {
+              final categoryData = state.categoryProducts[categoryKey];
+
+              if (categoryData == null ||
+                  categoryData.products.status == Status.initial) {
+                return Center(
+                  child: CircularProgressIndicator(color: AppPalette.blueColor),
+                );
+              }
+
+              if (categoryData.products.status == Status.loading) {
+                return Center(
+                  child: CircularProgressIndicator(color: AppPalette.blueColor),
+                );
+              }
+
+              if (categoryData.products.status == Status.error) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red, size: 40.sp),
+                      SizedBox(height: 8.h),
+                      Text(
+                        'Failed to load products',
+                        style: TextStyle(fontSize: 14.sp, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (categoryData.products.status == Status.completed) {
+                final products = categoryData.products.data ?? [];
+
+                if (products.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No products available',
+                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return Padding(
+                      padding: EdgeInsets.only(right: 12.w),
+                      child: SizedBox(
+                        width: 160.w,
+                        child: ShopifyGridProductCard(product: product),
+                      ),
+                    );
+                  },
+                );
+              }
+
+              return SizedBox.shrink();
+            },
+          ),
+        ),
+
+        // Shop More Button
+        if (offerBlock.featuredCollectionHandle != null &&
+            offerBlock.featuredCollectionHandle!.isNotEmpty)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: Center(
@@ -223,9 +386,9 @@ class _OfferViewScreenState extends State<OfferViewScreen> {
                     context,
                     AppRoutes.collectionProducts,
                     arguments: {
-                      'collectionHandle': offerBlock.viewMoreCollectionHandle!,
+                      'collectionHandle': offerBlock.featuredCollectionHandle!,
                       'collectionTitle':
-                          offerBlock.viewMoreCollectionTitle ?? 'View More',
+                          offerBlock.featuredCollectionTitle ?? 'Shop More',
                     },
                   );
                 },
@@ -240,7 +403,7 @@ class _OfferViewScreenState extends State<OfferViewScreen> {
                   ),
                 ),
                 child: Text(
-                  'View More Offers',
+                  'Shop More',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16.sp,
@@ -249,36 +412,7 @@ class _OfferViewScreenState extends State<OfferViewScreen> {
                 ),
               ),
             ),
-          )
-        else
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            child: Center(
-              child: ElevatedButton(
-                onPressed: null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[300],
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 24.w,
-                    vertical: 14.h,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                ),
-                child: Text(
-                  'View More Offers',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
           ),
-
-        SizedBox(height: 16.h),
       ],
     );
   }
