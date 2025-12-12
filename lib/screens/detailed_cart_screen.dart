@@ -2,11 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_palette.dart';
+import 'package:iconnect/common/custom_button.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:iconnect/features/checkout/presentation/pages/user_details_screen.dart';
+import 'package:iconnect/features/checkout/presentation/cubit/checkout_cubit.dart';
+import 'package:iconnect/common/custom_snackbar.dart';
 
 class DetailedCartScreen extends StatelessWidget {
   const DetailedCartScreen({super.key});
@@ -203,59 +206,33 @@ class DetailedCartScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 12),
                 ),
                 ConstantWidgets.hight30(context),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed:
-                        isLoading
-                            ? null
-                            : () async {
-                              final checkoutUrl = cart.webUrl;
-                              if (checkoutUrl != null) {
-                                final uri = Uri.parse(checkoutUrl);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(
-                                    uri,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                } else {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Could not open checkout',
-                                        ),
-                                        backgroundColor: AppPalette.redColor,
-                                      ),
-                                    );
-                                  }
-                                }
-                              }
-                            },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppPalette.blackColor,
-                      foregroundColor: AppPalette.whiteColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'CHECK OUT',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                CustomButton(
+                  text: 'Check out',
+                  onPressed: () {
+                    final currentCartState = sl<CartCubit>().state;
+                    if (currentCartState is CartLoaded) {
+                      sl<CheckoutCubit>().initCartCheckout(
+                        items: currentCartState.cart.items,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UserDetailsScreen(),
+                        ),
+                      );
+                    } else {
+                      CustomSnackBar.show(
+                        context,
+                        message: 'Please wait for cart to load',
+                        textAlign: TextAlign.center,
+                        backgroundColor: AppPalette.redColor,
+                      );
+                    }
+                  },
+
+                  borderRadius: 12,
                 ),
                 const SizedBox(height: 24),
-
-                // Recently Viewed Products
-                // NewArrivalsSection(
-                //   title: 'Recently Viewed Products',
-                //   products: NewArrivalsData.getNewArrivalsProducts(),
-                // ),
               ],
             ),
           ),

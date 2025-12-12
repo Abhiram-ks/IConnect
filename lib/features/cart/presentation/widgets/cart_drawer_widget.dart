@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_palette.dart';
+import 'package:iconnect/common/custom_button.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
@@ -183,10 +184,7 @@ class CartDrawerWidget extends StatelessWidget {
             ],
           ),
           ConstantWidgets.hight20(context),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
+          CustomButton(text: 'CHECK OUT', onPressed: () async {
                 final checkoutUrl = state.cart.webUrl;
                 if (checkoutUrl != null) {
                   final uri = Uri.parse(checkoutUrl);
@@ -204,23 +202,7 @@ class CartDrawerWidget extends StatelessWidget {
                   }
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppPalette.blackColor,
-                foregroundColor: AppPalette.whiteColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Check out',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
-          ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();

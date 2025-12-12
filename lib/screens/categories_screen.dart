@@ -42,7 +42,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   color: AppPalette.whiteColor,
                   border: Border(
                     bottom: BorderSide(
-                      color: Colors.grey.withOpacity(0.3),
+                      color: Colors.grey.withValues(alpha: .3),
                       width: 1,
                     ),
                   ),

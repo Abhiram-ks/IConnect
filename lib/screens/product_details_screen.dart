@@ -65,6 +65,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               return const Center(child: Text('Product not found'));
             }
 
+            // Fix: Check if selected variant belongs to current product
+            // If the screen/state is reused for a different product, this prevents using a stale variant from previous product
+            if (_selectedVariant != null &&
+                !product.variants.contains(_selectedVariant)) {
+              _selectedVariant = null;
+            }
+
             if (_selectedVariant == null && product.variants.isNotEmpty) {
               _selectedVariant = product.variants.first;
             }

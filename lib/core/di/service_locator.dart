@@ -42,6 +42,7 @@ import '../../features/orders/data/repositories/orders_repository_impl.dart';
 import '../../features/orders/domain/repositories/orders_repository.dart';
 import '../../features/orders/domain/usecases/get_orders_usecase.dart';
 import '../../features/orders/presentation/cubit/orders_cubit.dart';
+import '../../features/checkout/presentation/cubit/checkout_cubit.dart';
 
 /// Service Locator Instance
 final sl = GetIt.instance;
@@ -189,4 +190,12 @@ Future<void> initializeDependencies() async {
 
   // Cubit (Factory - new instance each time)
   sl.registerFactory(() => OrdersCubit(getOrdersUsecase: sl()));
+
+  // ========== Checkout Feature ==========
+  // Cubit (Factory - or Singleton depending on need, let's use Factory for fresh state on entry or Singleton for shared if needed across screens, but data passing is sequential so Singleton is safer for retaining data across push navigation if not passing bloc)
+  // Actually, standard practice for sharing across screens is Singleton or providing strictly up the tree.
+  // Given the user wants "global OrderCubit", making it a Singleton is the easiest way to ensure data persistence across the nav without complex provider passing if not using GoRouter/passing args.
+  // Wait, sl.registerFactory makes a new one each time. If I use GetIt to access it in UserDetailsScreen, I need it to be the SAME instance.
+  // So I MUST use registerLazySingleton for CheckoutCubit if I want `sl<CheckoutCubit>()` to return the same instance with the data.
+  sl.registerLazySingleton(() => CheckoutCubit());
 }
