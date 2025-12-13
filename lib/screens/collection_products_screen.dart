@@ -8,9 +8,15 @@ import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
     as products;
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
+import 'package:iconnect/core/di/service_locator.dart';
+import 'package:iconnect/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 import 'package:iconnect/widgets/sort_dropdown.dart';
+import 'package:iconnect/widgets/collection_filter_drawer.dart';
+import 'package:iconnect/widgets/active_filter_chips.dart';
+import 'package:iconnect/models/collection_filter.dart';
+import 'package:iconnect/services/collection_filter_service.dart';
 
 import '../widgets/shopify_product_grid_section.dart';
 
@@ -39,23 +45,12 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   List<dynamic> _cachedProducts = [];
 
   // Filter States
-  bool _filterInStock = false;
-  bool _filterOutOfStock = false;
-  RangeValues _currentPriceRange = const RangeValues(0, 14999);
-  final double _minPrice = 0;
-  final double _maxPrice = 14999;
-  late TextEditingController _minPriceController;
-  late TextEditingController _maxPriceController;
+  List<CollectionFilter> _availableFilters = [];
+  List<ActiveFilter> _activeFilters = [];
 
   @override
   void initState() {
     super.initState();
-    _minPriceController = TextEditingController(
-      text: _minPrice.toStringAsFixed(0),
-    );
-    _maxPriceController = TextEditingController(
-      text: _maxPrice.toStringAsFixed(0),
-    );
 
     final initialSortParams = getSortParamsForFilter(_currentSortFilter);
     context.read<products.ProductBloc>().add(
@@ -67,15 +62,36 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
       ),
     );
     _scrollController.addListener(_onScroll);
+    _loadFilters();
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    _minPriceController.dispose();
-    _maxPriceController.dispose();
     super.dispose();
+  }
+
+  /// Load available filters from API
+  Future<void> _loadFilters() async {
+    try {
+      // Get the remote data source from service locator
+      final remoteDataSource = sl<ProductRemoteDataSource>();
+      final filterService = CollectionFilterService(remoteDataSource);
+
+      final filters = await filterService.getCollectionFilters(
+        handle: widget.collectionHandle,
+      );
+
+      if (mounted) {
+        setState(() {
+          _availableFilters = filters;
+        });
+      }
+    } catch (e) {
+      print('Error loading filters: $e');
+      // If error, filters will remain empty
+    }
   }
 
   void _onScroll() {
@@ -108,11 +124,107 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
     }
   }
 
+  void _onFiltersApplied(List<ActiveFilter> filters) {
+    setState(() {
+      _activeFilters = filters;
+    });
+
+    // Apply filters to products
+    _applyFilters();
+  }
+
+  void _onRemoveFilter(ActiveFilter filter) {
+    setState(() {
+      _activeFilters.remove(filter);
+    });
+
+    _applyFilters();
+  }
+
+  void _onClearAllFilters() {
+    setState(() {
+      _activeFilters.clear();
+    });
+
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    // Reload products with filters
+    final sortParams = getSortParamsForFilter(_currentSortFilter);
+    context.read<products.ProductBloc>().add(
+      LoadCollectionByHandleRequested(
+        handle: widget.collectionHandle,
+        first: 20,
+        sortKey: sortParams['sortKey'],
+        reverse: sortParams['reverse'],
+      ),
+    );
+  }
+
+  /// Extract filters from API response
+  void _extractFiltersFromResponse(products.ProductState state) {
+    // Reload filters whenever products are loaded
+    // This ensures filters are always up to date
+    if (_availableFilters.isEmpty) {
+      _loadFilters();
+    }
+  }
+
+  List<dynamic> _getFilteredProducts(List<dynamic> products) {
+    if (_activeFilters.isEmpty) {
+      return products;
+    }
+
+    return products.where((product) {
+      // Check each active filter
+      for (final filter in _activeFilters) {
+        if (filter.filterId == 'filter.v.availability') {
+          // Availability filter
+          final isInStockFilter = filter.input.contains('"available":true');
+          final productAvailable = product.availableForSale ?? false;
+
+          if (isInStockFilter && !productAvailable) return false;
+          if (!isInStockFilter && productAvailable) return false;
+        } else if (filter.filterId == 'filter.v.price') {
+          // Price filter
+          try {
+            // Parse the price range from the filter input
+            final priceMatch = RegExp(r'"min":([\d.]+).*"max":([\d.]+)').firstMatch(filter.input);
+            if (priceMatch != null) {
+              final minPrice = double.tryParse(priceMatch.group(1) ?? '0') ?? 0;
+              final maxPrice = double.tryParse(priceMatch.group(2) ?? '999999') ?? 999999;
+              
+              // Get product price
+              final productPrice = product.minPrice ?? 0.0;
+              
+              // Filter out products outside the price range
+              if (productPrice < minPrice || productPrice > maxPrice) {
+                return false;
+              }
+            }
+          } catch (e) {
+            print('Error parsing price filter: $e');
+          }
+        }
+        // Note: vendor and productType are not available in ProductEntity
+        // These filters should be applied server-side via the API
+        // For now, we only filter by availability and price client-side
+      }
+      return true;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      endDrawer: _buildFilterDrawer(),
+      endDrawer: CollectionFilterDrawer(
+        availableFilters: _availableFilters,
+        activeFilters: _activeFilters,
+        onFiltersApplied: _onFiltersApplied,
+        onClearAll: _onClearAllFilters,
+      ),
       appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
       body: Stack(
         children: [
@@ -201,6 +313,9 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                 if (state.collectionWithProducts.status == Status.completed) {
                   _cachedProducts = productsList;
 
+                  // Extract filters from API response
+                  _extractFiltersFromResponse(state);
+
                   // Mark initial load as complete
                   if (_isInitialLoad) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -239,6 +354,9 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                 final displayProducts =
                     _isSorting ? _cachedProducts : productsList;
 
+                // Apply filters to displayed products
+                final filteredProducts = _getFilteredProducts(displayProducts);
+
                 return SingleChildScrollView(
                   controller: _scrollController,
                   child: Column(
@@ -248,7 +366,14 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                         collection?.title ?? '',
                         collection?.description ?? '',
                         collection?.imageUrl ?? '',
-                        displayProducts.length,
+                        filteredProducts.length,
+                      ),
+
+                      // Active Filter Chips
+                      ActiveFilterChips(
+                        activeFilters: _activeFilters,
+                        onRemoveFilter: _onRemoveFilter,
+                        onClearAll: _onClearAllFilters,
                       ),
 
                       Padding(
@@ -277,6 +402,28 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
+                                      ),
+                                    ),
+                                    SizedBox(width: 4.w),
+                                    if (_activeFilters.isNotEmpty)
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.w,
+                                          vertical: 2.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black,
+                                          borderRadius: BorderRadius.circular(
+                                            10.r,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${_activeFilters.length}',
+                                          style: TextStyle(
+                                            fontSize: 12.sp,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                       ),
                                     ),
                                     SizedBox(width: 4.w),
@@ -318,9 +465,10 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
 
                       // Products Grid Section
                       _buildProductsSection(
-                        displayProducts,
+                        filteredProducts,
                         state.collectionProductsHasNextPage,
                         _isSorting,
+                        state.collectionWithProducts.status,
                       ),
                     ],
                   ),
@@ -434,6 +582,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
     List<dynamic> products,
     bool hasNextPage,
     bool isLoading,
+    Status status,
   ) {
     return Padding(
       padding: EdgeInsets.all(16.w),
@@ -457,7 +606,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
           SizedBox(height: 16.h),
 
           // Show loading indicator when sorting/filtering (but not during pagination)
-          if (isLoading && !_isLoadingMore)
+          if (isLoading || status == Status.loading)
             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 40.h),
@@ -522,255 +671,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterDrawer() {
-    return Drawer(
-      elevation: 0,
-
-      backgroundColor: Colors.white,
-      width: MediaQuery.of(context).size.width * 0.85,
-      child: SafeArea(
-        child: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setDrawerState) {
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Filters',
-                        style: TextStyle(
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Icon(Icons.close, size: 24.sp),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20.h),
-
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          ExpansionTile(
-                            title: Text(
-                              'Availability',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16.sp,
-                                color: Colors.black,
-                              ),
-                            ),
-                            tilePadding: EdgeInsets.zero,
-                            initiallyExpanded: true,
-                            shape: Border.all(color: Colors.transparent),
-                            children: [
-                              CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  'In stock',
-                                  style: TextStyle(fontSize: 14.sp),
-                                ),
-                                value: _filterInStock,
-                                activeColor: Colors.black,
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                onChanged: (bool? value) {
-                                  setDrawerState(() {
-                                    _filterInStock = value ?? false;
-                                  });
-                                  setState(() {});
-                                },
-                              ),
-                              CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  'Out of stock',
-                                  style: TextStyle(fontSize: 14.sp),
-                                ),
-                                value: _filterOutOfStock,
-                                activeColor: Colors.black,
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                onChanged: (bool? value) {
-                                  setDrawerState(() {
-                                    _filterOutOfStock = value ?? false;
-                                  });
-                                  setState(() {});
-                                },
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: 10.h),
-                          ExpansionTile(
-                            title: Text(
-                              'Price',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16.sp,
-                                color: Colors.black,
-                              ),
-                            ),
-                            tilePadding: EdgeInsets.zero,
-                            initiallyExpanded: true,
-                            shape: Border.all(color: Colors.transparent),
-                            children: [
-                              RangeSlider(
-                                values: _currentPriceRange,
-                                min: _minPrice,
-                                max: _maxPrice,
-                                activeColor: Colors.black,
-                                inactiveColor: Colors.grey.shade300,
-                                onChanged: (RangeValues values) {
-                                  setDrawerState(() {
-                                    _currentPriceRange = values;
-                                    _minPriceController.text = values.start
-                                        .toStringAsFixed(0);
-                                    _maxPriceController.text = values.end
-                                        .toStringAsFixed(0);
-                                  });
-                                  setState(() {});
-                                },
-                              ),
-                              SizedBox(height: 10.h),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12.w,
-                                        vertical: 8.h,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.black),
-                                        borderRadius: BorderRadius.circular(
-                                          30.r,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'QAR ',
-                                            style: TextStyle(fontSize: 14.sp),
-                                          ),
-                                          Expanded(
-                                            child: TextField(
-                                              controller: _minPriceController,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              decoration: InputDecoration(
-                                                border: InputBorder.none,
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.zero,
-                                              ),
-                                              textAlign: TextAlign.right,
-                                              onChanged: (value) {
-                                                if (value.isNotEmpty) {
-                                                  double val =
-                                                      double.tryParse(value) ??
-                                                      _minPrice;
-                                                  setDrawerState(() {
-                                                    _currentPriceRange =
-                                                        RangeValues(
-                                                          val,
-                                                          _currentPriceRange
-                                                              .end,
-                                                        );
-                                                  });
-                                                  setState(() {});
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 10.w,
-                                    ),
-                                    child: Text(
-                                      'To',
-                                      style: TextStyle(fontSize: 14.sp),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12.w,
-                                        vertical: 8.h,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.black),
-                                        borderRadius: BorderRadius.circular(
-                                          30.r,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'QAR ',
-                                            style: TextStyle(fontSize: 14.sp),
-                                          ),
-                                          Expanded(
-                                            child: TextField(
-                                              controller: _maxPriceController,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              decoration: InputDecoration(
-                                                border: InputBorder.none,
-                                                isDense: true,
-                                                contentPadding: EdgeInsets.zero,
-                                              ),
-                                              textAlign: TextAlign.right,
-                                              onChanged: (value) {
-                                                if (value.isNotEmpty) {
-                                                  double val =
-                                                      double.tryParse(value) ??
-                                                      _maxPrice;
-                                                  setDrawerState(() {
-                                                    _currentPriceRange =
-                                                        RangeValues(
-                                                          _currentPriceRange
-                                                              .start,
-                                                          val,
-                                                        );
-                                                  });
-                                                  setState(() {});
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20.h),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
       ),
     );
   }

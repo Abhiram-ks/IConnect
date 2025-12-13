@@ -52,6 +52,11 @@ abstract class ProductRemoteDataSource {
 
   /// Get home screen sections
   Future<List<HomeScreenSectionModel>> getHomeScreenSections();
+
+  /// Get collection filters
+  Future<Map<String, dynamic>> getCollectionWithFilters({
+    required String handle,
+  });
 }
 
 /// Product Remote Data Source Implementation
@@ -214,7 +219,22 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     final nodes = metaobjects?['nodes'] as List<dynamic>? ?? [];
 
     return nodes
-        .map((node) => HomeScreenSectionModel.fromJson(node as Map<String, dynamic>))
+        .map(
+          (node) =>
+              HomeScreenSectionModel.fromJson(node as Map<String, dynamic>),
+        )
         .toList();
+  }
+
+  @override
+  Future<Map<String, dynamic>> getCollectionWithFilters({
+    required String handle,
+  }) async {
+    final result = await graphQLService.executeQuery(
+      GraphQLQueries.getCollectionWithFilters,
+      variables: {'handle': handle},
+    );
+
+    return result;
   }
 }

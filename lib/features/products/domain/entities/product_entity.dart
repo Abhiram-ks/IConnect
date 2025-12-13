@@ -45,19 +45,19 @@ class ProductEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        description,
-        handle,
-        featuredImage,
-        images,
-        minPrice,
-        maxPrice,
-        compareAtPrice,
-        currencyCode,
-        availableForSale,
-        variants,
-      ];
+    id,
+    title,
+    description,
+    handle,
+    featuredImage,
+    images,
+    minPrice,
+    maxPrice,
+    compareAtPrice,
+    currencyCode,
+    availableForSale,
+    variants,
+  ];
 }
 
 /// Product Variant Entity
@@ -82,14 +82,14 @@ class ProductVariantEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        price,
-        compareAtPrice,
-        currencyCode,
-        availableForSale,
-        image,
-      ];
+    id,
+    title,
+    price,
+    compareAtPrice,
+    currencyCode,
+    availableForSale,
+    image,
+  ];
 }
 
 /// Pagination info for products
@@ -97,10 +97,7 @@ class ProductsPageInfo extends Equatable {
   final bool hasNextPage;
   final String? endCursor;
 
-  const ProductsPageInfo({
-    required this.hasNextPage,
-    this.endCursor,
-  });
+  const ProductsPageInfo({required this.hasNextPage, this.endCursor});
 
   @override
   List<Object?> get props => [hasNextPage, endCursor];
@@ -111,12 +108,8 @@ class ProductsResult extends Equatable {
   final List<ProductEntity> products;
   final ProductsPageInfo pageInfo;
 
-  const ProductsResult({
-    required this.products,
-    required this.pageInfo,
-  });
+  const ProductsResult({required this.products, required this.pageInfo});
 
   @override
   List<Object?> get props => [products, pageInfo];
 }
-

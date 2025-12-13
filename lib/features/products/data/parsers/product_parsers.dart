@@ -335,17 +335,24 @@ List<Map<String, dynamic>> parseFlattenedOfferBlocks(
     }
 
     // Extract featured collection title
-    final featuredCollectionTitleField = nodeMap['featured_collection_title'] as Map<String, dynamic>?;
-    final featuredCollectionTitle = featuredCollectionTitleField?['value'] as String?;
+    final featuredCollectionTitleField =
+        nodeMap['featured_collection_title'] as Map<String, dynamic>?;
+    final featuredCollectionTitle =
+        featuredCollectionTitleField?['value'] as String?;
 
     // Extract featured collection
-    final featuredCollectionField = nodeMap['featured_collection'] as Map<String, dynamic>?;
-    final featuredCollectionReference = featuredCollectionField?['reference'] as Map<String, dynamic>?;
-    final featuredCollectionHandle = featuredCollectionReference?['handle'] as String?;
-    final featuredCollectionTitleFromRef = featuredCollectionReference?['title'] as String?;
+    final featuredCollectionField =
+        nodeMap['featured_collection'] as Map<String, dynamic>?;
+    final featuredCollectionReference =
+        featuredCollectionField?['reference'] as Map<String, dynamic>?;
+    final featuredCollectionHandle =
+        featuredCollectionReference?['handle'] as String?;
+    final featuredCollectionTitleFromRef =
+        featuredCollectionReference?['title'] as String?;
     final featuredCollectionId = featuredCollectionReference?['id'] as String?;
     // Use featured_collection_title field value if available, otherwise use collection title
-    final finalFeaturedCollectionTitle = featuredCollectionTitle ?? featuredCollectionTitleFromRef;
+    final finalFeaturedCollectionTitle =
+        featuredCollectionTitle ?? featuredCollectionTitleFromRef;
 
     // Extract items
     final itemsList = <Map<String, dynamic>>[];

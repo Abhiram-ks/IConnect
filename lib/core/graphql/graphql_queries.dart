@@ -254,6 +254,40 @@ class GraphQLQueries {
     }
   ''';
 
+  /// Get collection with filters
+  static const String getCollectionWithFilters = r'''
+    query CollectionWithFilters($handle: String!) {
+  collection(handle: $handle) {
+    id
+    title
+
+    products(first: 20) {
+      filters {
+        id
+        label
+        type
+        values {
+          id
+          label
+          count
+          input
+        }
+      }
+
+      edges {
+        node {
+          id
+          title
+          vendor
+          productType
+        }
+      }
+    }
+  }
+}
+
+  ''';
+
   // ========== CART MUTATIONS (Modern Shopify Cart API) ==========
 
   /// Create cart

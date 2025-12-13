@@ -35,18 +35,25 @@ class ProductModel extends ProductEntity {
 
     // Extract price range
     final priceRange = json['priceRange'] as Map<String, dynamic>?;
-    final minVariantPrice = priceRange?['minVariantPrice'] as Map<String, dynamic>?;
-    final maxVariantPrice = priceRange?['maxVariantPrice'] as Map<String, dynamic>?;
+    final minVariantPrice =
+        priceRange?['minVariantPrice'] as Map<String, dynamic>?;
+    final maxVariantPrice =
+        priceRange?['maxVariantPrice'] as Map<String, dynamic>?;
 
-    final minPrice = double.tryParse(minVariantPrice?['amount']?.toString() ?? '0') ?? 0.0;
-    final maxPrice = double.tryParse(maxVariantPrice?['amount']?.toString() ?? '0') ?? minPrice;
+    final minPrice =
+        double.tryParse(minVariantPrice?['amount']?.toString() ?? '0') ?? 0.0;
+    final maxPrice =
+        double.tryParse(maxVariantPrice?['amount']?.toString() ?? '0') ??
+        minPrice;
     final currencyCode = minVariantPrice?['currencyCode'] as String? ?? 'USD';
 
     // Extract compare at price
     double? compareAtPrice;
-    final compareAtPriceRange = json['compareAtPriceRange'] as Map<String, dynamic>?;
+    final compareAtPriceRange =
+        json['compareAtPriceRange'] as Map<String, dynamic>?;
     if (compareAtPriceRange != null) {
-      final minComparePrice = compareAtPriceRange['minVariantPrice'] as Map<String, dynamic>?;
+      final minComparePrice =
+          compareAtPriceRange['minVariantPrice'] as Map<String, dynamic>?;
       if (minComparePrice != null && minComparePrice['amount'] != null) {
         compareAtPrice = double.tryParse(minComparePrice['amount'].toString());
       }
@@ -85,7 +92,9 @@ class ProductModel extends ProductEntity {
     final variantsList = <ProductVariantModel>[];
     final variantMaps = json['variants'] as List<dynamic>? ?? const [];
     for (final v in variantMaps) {
-      variantsList.add(ProductVariantModel.fromFlattenedJson(v as Map<String, dynamic>));
+      variantsList.add(
+        ProductVariantModel.fromFlattenedJson(v as Map<String, dynamic>),
+      );
     }
 
     return ProductModel(
@@ -97,7 +106,8 @@ class ProductModel extends ProductEntity {
       featuredImage: json['featuredImage'] as String?,
       images: (json['images'] as List<dynamic>? ?? const []).cast<String>(),
       minPrice: (json['minPrice'] as num?)?.toDouble() ?? 0.0,
-      maxPrice: (json['maxPrice'] as num?)?.toDouble() ??
+      maxPrice:
+          (json['maxPrice'] as num?)?.toDouble() ??
           ((json['minPrice'] as num?)?.toDouble() ?? 0.0),
       compareAtPrice: (json['compareAtPrice'] as num?)?.toDouble(),
       currencyCode: json['currencyCode'] as String? ?? 'USD',
@@ -121,7 +131,8 @@ class ProductModel extends ProductEntity {
       'compareAtPrice': compareAtPrice,
       'currencyCode': currencyCode,
       'availableForSale': availableForSale,
-      'variants': variants.map((v) => (v as ProductVariantModel).toJson()).toList(),
+      'variants':
+          variants.map((v) => (v as ProductVariantModel).toJson()).toList(),
     };
   }
 
@@ -173,7 +184,8 @@ class ProductVariantModel extends ProductVariantEntity {
 
   factory ProductVariantModel.fromJson(Map<String, dynamic> json) {
     final priceData = json['price'] as Map<String, dynamic>?;
-    final price = double.tryParse(priceData?['amount']?.toString() ?? '0') ?? 0.0;
+    final price =
+        double.tryParse(priceData?['amount']?.toString() ?? '0') ?? 0.0;
     final currencyCode = priceData?['currencyCode'] as String? ?? 'USD';
 
     double? compareAtPrice;
@@ -224,10 +236,7 @@ class ProductVariantModel extends ProductVariantEntity {
 
 /// Products Page Info Model
 class ProductsPageInfoModel extends ProductsPageInfo {
-  const ProductsPageInfoModel({
-    required super.hasNextPage,
-    super.endCursor,
-  });
+  const ProductsPageInfoModel({required super.hasNextPage, super.endCursor});
 
   factory ProductsPageInfoModel.fromJson(Map<String, dynamic> json) {
     return ProductsPageInfoModel(
@@ -237,23 +246,17 @@ class ProductsPageInfoModel extends ProductsPageInfo {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'hasNextPage': hasNextPage,
-      'endCursor': endCursor,
-    };
+    return {'hasNextPage': hasNextPage, 'endCursor': endCursor};
   }
 }
 
 /// Products Result Model
 class ProductsResultModel extends ProductsResult {
-  const ProductsResultModel({
-    required super.products,
-    required super.pageInfo,
-  });
+  const ProductsResultModel({required super.products, required super.pageInfo});
 
   factory ProductsResultModel.fromJson(Map<String, dynamic> json) {
     final productsList = <ProductModel>[];
-    
+
     if (json['products'] != null && json['products']['edges'] != null) {
       final edges = json['products']['edges'] as List;
       for (final edge in edges) {
@@ -262,7 +265,7 @@ class ProductsResultModel extends ProductsResult {
     }
 
     final pageInfo = json['products']?['pageInfo'] as Map<String, dynamic>?;
-    
+
     return ProductsResultModel(
       products: productsList,
       pageInfo: ProductsPageInfoModel.fromJson(pageInfo ?? {}),
@@ -276,4 +279,3 @@ class ProductsResultModel extends ProductsResult {
     };
   }
 }
-
