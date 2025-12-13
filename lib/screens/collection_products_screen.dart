@@ -79,7 +79,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   }
 
   void _onScroll() {
-    if (_isLoadingMore) return;
+    if (_isLoadingMore || _isSorting) return;
 
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
@@ -93,11 +93,14 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
           _isLoadingMore = true;
         });
 
+        final sortParams = getSortParamsForFilter(_currentSortFilter);
         context.read<products.ProductBloc>().add(
           LoadCollectionByHandleRequested(
             handle: widget.collectionHandle,
             first: 20,
             after: state.collectionProductsEndCursor,
+            sortKey: sortParams['sortKey'],
+            reverse: sortParams['reverse'],
             loadMore: true,
           ),
         );
@@ -241,13 +244,12 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (collection != null || _isSorting)
-                        buildCollectionHero(
-                          collection?.title ?? '',
-                          collection?.description ?? '',
-                          collection?.imageUrl ?? '',
-                          displayProducts.length,
-                        ),
+                      buildCollectionHero(
+                        collection?.title ?? '',
+                        collection?.description ?? '',
+                        collection?.imageUrl ?? '',
+                        displayProducts.length,
+                      ),
 
                       Padding(
                         padding: const EdgeInsets.symmetric(
@@ -319,7 +321,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                         displayProducts,
                         state.collectionProductsHasNextPage,
                         _isSorting,
-                        state.collectionWithProducts.status,
                       ),
                     ],
                   ),
@@ -421,15 +422,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                Text(
-                  '$productCount products available',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontWeight: FontWeight.w200,
-                  ),
-                ),
               ],
             ),
           ),
@@ -442,7 +434,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
     List<dynamic> products,
     bool hasNextPage,
     bool isLoading,
-    Status status,
   ) {
     return Padding(
       padding: EdgeInsets.all(16.w),
@@ -465,8 +456,8 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
           ),
           SizedBox(height: 16.h),
 
-          // Show loading indicator when sorting/filtering
-          if (isLoading || status == Status.loading)
+          // Show loading indicator when sorting/filtering (but not during pagination)
+          if (isLoading && !_isLoadingMore)
             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 40.h),
@@ -476,7 +467,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                 ),
               ),
             )
-          else if (products.isEmpty)
+          else if (products.isEmpty && !isLoading)
             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 40.h),
