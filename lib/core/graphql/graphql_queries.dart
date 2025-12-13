@@ -746,6 +746,101 @@ class GraphQLQueries {
     }
   ''';
 
+  // ========== HOME SCREEN QUERIES ==========
+
+  /// Get home screen sections
+  static const String getHomeScreen = r'''
+    query GetHomeScreen {
+      metaobjects(type: "home_screen", first: 10) {
+        nodes {
+          id
+          handle
+          collectionTitle: field(key: "collection_title") {
+            value
+          }
+          featuredCollection: field(key: "featured_collection") {
+            reference {
+              ... on Collection {
+                id
+                handle
+                title
+                image {
+                  url
+                  altText
+                }
+              }
+            }
+          }
+          horizontalBanners: field(key: "horizontal_banners") {
+            references(first: 10) {
+              nodes {
+                ...BannerFields
+              }
+            }
+          }
+          verticalBanners: field(key: "vertical_banners") {
+            references(first: 10) {
+              nodes {
+                ...BannerFields
+              }
+            }
+          }
+        }
+      }
+    }
+
+    fragment BannerFields on Metaobject {
+      id
+      handle
+      image: field(key: "image") {
+        reference {
+          ... on MediaImage {
+            image {
+              url
+              altText
+            }
+          }
+        }
+      }
+      actionType: field(key: "action") {
+        value
+      }
+      product: field(key: "product") {
+        reference {
+          ... on Product {
+            id
+            handle
+            title
+            featuredImage {
+              url
+            }
+          }
+        }
+      }
+      collection: field(key: "collection") {
+        reference {
+          ... on Collection {
+            id
+            handle
+            title
+            image {
+              url
+            }
+          }
+        }
+      }
+      page: field(key: "page") {
+        reference {
+          ... on Metaobject {
+            title: field(key: "page") {
+              value
+            }
+          }
+        }
+      }
+    }
+  ''';
+
   // ========== MENU QUERIES ==========
 
   /// Get menu by handle

@@ -3,6 +3,7 @@ import 'package:iconnect/core/graphql/graphql_queries.dart';
 import 'package:iconnect/features/products/data/models/banner_model.dart';
 import 'package:iconnect/features/products/data/models/brand_model.dart';
 import 'package:iconnect/features/products/data/models/collection_model.dart';
+import 'package:iconnect/features/products/data/models/home_screen_model.dart';
 import 'package:iconnect/features/products/data/models/offer_model.dart';
 import 'package:iconnect/features/products/data/models/product_model.dart';
 import 'package:iconnect/features/products/data/parsers/product_parsers.dart';
@@ -46,6 +47,9 @@ abstract class ProductRemoteDataSource {
 
   /// Get offer blocks from metaobjects
   Future<List<OfferBlockModel>> getOfferBlocks();
+
+  /// Get home screen sections
+  Future<List<HomeScreenSectionModel>> getHomeScreenSections();
 }
 
 /// Product Remote Data Source Implementation
@@ -191,5 +195,20 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
 
     final flattened = await compute(parseFlattenedOfferBlocks, result);
     return flattened.map((m) => OfferBlockModel.fromFlattenedJson(m)).toList();
+  }
+
+  @override
+  Future<List<HomeScreenSectionModel>> getHomeScreenSections() async {
+    final result = await graphQLService.executeQuery(
+      GraphQLQueries.getHomeScreen,
+      variables: {},
+    );
+
+    final metaobjects = result['metaobjects'] as Map<String, dynamic>?;
+    final nodes = metaobjects?['nodes'] as List<dynamic>? ?? [];
+
+    return nodes
+        .map((node) => HomeScreenSectionModel.fromJson(node as Map<String, dynamic>))
+        .toList();
   }
 }

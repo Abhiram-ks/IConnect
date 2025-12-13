@@ -39,6 +39,8 @@ class ProductState {
   ApiResponse<List<BannerEntity>> homeBanners; // Home banners from metaobjects
   ApiResponse<List<OfferBlockEntity>>
   offerBlocks; // Offer blocks from metaobjects
+  ApiResponse<List<HomeScreenSectionEntity>>
+  homeScreenSections; // Home screen sections from metaobjects
   ApiResponse<CollectionWithProducts> collectionWithProducts;
   ApiResponse<List<BrandEntity>> brands;
   ApiResponse<List<ProductEntity>>
@@ -68,6 +70,7 @@ class ProductState {
     ApiResponse<List<CollectionEntity>>? banners,
     ApiResponse<List<BannerEntity>>? homeBanners,
     ApiResponse<List<OfferBlockEntity>>? offerBlocks,
+    ApiResponse<List<HomeScreenSectionEntity>>? homeScreenSections,
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
@@ -91,6 +94,7 @@ class ProductState {
        banners = banners ?? ApiResponse.initial(),
        homeBanners = homeBanners ?? ApiResponse.initial(),
        offerBlocks = offerBlocks ?? ApiResponse.initial(),
+       homeScreenSections = homeScreenSections ?? ApiResponse.initial(),
        collectionWithProducts = collectionWithProducts ?? ApiResponse.initial(),
        brands = brands ?? ApiResponse.initial(),
        brandProducts = brandProducts ?? ApiResponse.initial(),
@@ -108,6 +112,7 @@ class ProductState {
     ApiResponse<List<CollectionEntity>>? banners,
     ApiResponse<List<BannerEntity>>? homeBanners,
     ApiResponse<List<OfferBlockEntity>>? offerBlocks,
+    ApiResponse<List<HomeScreenSectionEntity>>? homeScreenSections,
     ApiResponse<CollectionWithProducts>? collectionWithProducts,
     ApiResponse<List<BrandEntity>>? brands,
     ApiResponse<List<ProductEntity>>? brandProducts,
@@ -133,6 +138,7 @@ class ProductState {
       banners: banners ?? this.banners,
       homeBanners: homeBanners ?? this.homeBanners,
       offerBlocks: offerBlocks ?? this.offerBlocks,
+      homeScreenSections: homeScreenSections ?? this.homeScreenSections,
       collectionWithProducts:
           collectionWithProducts ?? this.collectionWithProducts,
       brands: brands ?? this.brands,

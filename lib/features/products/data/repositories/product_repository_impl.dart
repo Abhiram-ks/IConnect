@@ -6,6 +6,7 @@ import 'package:iconnect/features/products/data/models/product_model.dart';
 import 'package:iconnect/features/products/domain/entities/banner_entity.dart';
 import 'package:iconnect/features/products/domain/entities/brand_entity.dart';
 import 'package:iconnect/features/products/domain/entities/collection_entity.dart';
+import 'package:iconnect/features/products/domain/entities/home_screen_entity.dart';
 import 'package:iconnect/features/products/domain/entities/offer_entity.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/domain/repositories/product_repository.dart';
@@ -289,6 +290,30 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Either<Failure, List<OfferBlockEntity>>> getOfferBlocks() async {
     try {
       final result = await remoteDataSource.getOfferBlocks();
+      return Right(result);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on GraphQLException catch (e) {
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
+    } on ApiException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<HomeScreenSectionEntity>>> getHomeScreenSections() async {
+    try {
+      final result = await remoteDataSource.getHomeScreenSections();
       return Right(result);
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message));

@@ -11,6 +11,10 @@ import 'package:iconnect/features/products/presentation/widgets/home_widgets/bra
 import 'package:iconnect/features/products/presentation/widgets/categories_carousel.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/tabbed_products_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/category_products_section.dart';
+import 'package:iconnect/features/products/presentation/widgets/home_widgets/dynamic_banner_section.dart';
+import 'package:iconnect/features/products/domain/entities/home_screen_entity.dart';
+import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
+import 'package:iconnect/routes.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -56,6 +60,66 @@ class _HomeContentViewState extends State<_HomeContentView>
   @override
   bool get wantKeepAlive => true;
 
+  /// Handle banner tap based on action type
+  void _handleBannerTap(BuildContext context, BannerItemEntity banner) {
+    switch (banner.actionType) {
+      case BannerActionType.product:
+        // Navigate to product details page
+        if (banner.productHandle != null && banner.productHandle!.isNotEmpty) {
+          Navigator.pushNamed(
+            context,
+            '/product_details',
+            arguments: {'productHandle': banner.productHandle},
+          );
+        }
+        break;
+
+      case BannerActionType.collection:
+        // Navigate to collection products page
+        if (banner.collectionHandle != null &&
+            banner.collectionHandle!.isNotEmpty) {
+          Navigator.pushNamed(
+            context,
+            '/collection_products',
+            arguments: {
+              'collectionHandle': banner.collectionHandle,
+              'collectionTitle': banner.collectionTitle ?? '',
+            },
+          );
+        }
+        break;
+
+      case BannerActionType.page:
+        // Navigate to specific page based on page name
+        final pageName = banner.pageName?.toLowerCase().trim() ?? '';
+
+        if (pageName == 'offers') {
+          // Navigate to Offers tab
+          context.read<ButtomNavCubit>().selectItem(NavItem.offers);
+          context.read<HomeViewCubit>().showHome();
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.navigation,
+            (route) => false,
+          );
+        } else if (pageName == 'iphone17' || pageName == 'iphone 17') {
+          // Navigate to iPhone17 tab
+          context.read<ButtomNavCubit>().selectItem(NavItem.iphone17);
+          context.read<HomeViewCubit>().showHome();
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.navigation,
+            (route) => false,
+          );
+        }
+        break;
+
+      case BannerActionType.none:
+        // Do nothing
+        break;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -69,6 +133,8 @@ class _HomeContentViewState extends State<_HomeContentView>
     context.read<ProductBloc>().add(
       LoadCollectionsRequested(first: 50, forBanners: false),
     );
+    // Load home screen sections
+    context.read<ProductBloc>().add(LoadHomeScreenSectionsRequested());
   }
 
   @override
@@ -97,34 +163,50 @@ class _HomeContentViewState extends State<_HomeContentView>
                       ConstantWidgets.hight30(context),
                       const TabbedProductsSection(),
                       ConstantWidgets.hight30(context),
-                      CategoryProductsSection(
-                        categoryName: "New Arrivals",
-                        collectionHandle:
-                            "new-arrivals-in-qatar-iconnect-qatar",
-                        initialProductCount: 30,
-                      ),
-
-                      // Dynamic Category Sections from Collections
+                      // Dynamic Home Screen Sections
                       BlocBuilder<ProductBloc, ProductState>(
                         builder: (context, state) {
-                          if (state.collections.status == Status.completed) {
-                            final collections = state.collections.data ?? [];
+                          if (state.homeScreenSections.status ==
+                              Status.completed) {
+                            final sections =
+                                state.homeScreenSections.data ?? [];
 
                             return Column(
                               children: [
-                                for (
-                                  int i = 0;
-                                  i < collections.length;
-                                  i++
-                                ) ...[
-                                  ConstantWidgets.hight20(context),
-                                  CategoryProductsSection(
-                                    categoryName: collections[i].title,
-                                    collectionHandle: collections[i].handle,
-                                    initialProductCount: 20,
-                                  ),
+                                for (var section in sections) ...[
+                                  // Featured Collection Products
+                                  if (section.featuredCollection != null) ...[
+                                    ConstantWidgets.hight20(context),
+                                    CategoryProductsSection(
+                                      categoryName:
+                                          section.collectionTitle ??
+                                          section.featuredCollection!.title,
+                                      collectionHandle:
+                                          section.featuredCollection!.handle,
+                                      initialProductCount: 10,
+                                    ),
+                                  ],
+                                  // Horizontal Banners
+                                  if (section.horizontalBanners.isNotEmpty) ...[
+                                    ConstantWidgets.hight20(context),
+                                    HorizontalBannersSection(
+                                      banners: section.horizontalBanners,
+                                      onBannerTap:
+                                          (banner) =>
+                                              _handleBannerTap(context, banner),
+                                    ),
+                                  ],
 
-                                  // Add service banners after every 4 categories
+                                  // Vertical Banners
+                                  if (section.verticalBanners.isNotEmpty) ...[
+                                    ConstantWidgets.hight20(context),
+                                    VerticalBannersSection(
+                                      banners: section.verticalBanners,
+                                      onBannerTap:
+                                          (banner) =>
+                                              _handleBannerTap(context, banner),
+                                    ),
+                                  ],
                                 ],
                               ],
                             );

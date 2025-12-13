@@ -196,3 +196,11 @@ class LoadOfferBlocksRequested extends ProductEvent {
   @override
   List<Object?> get props => [];
 }
+
+/// Load home screen sections event
+class LoadHomeScreenSectionsRequested extends ProductEvent {
+  LoadHomeScreenSectionsRequested();
+
+  @override
+  List<Object?> get props => [];
+}
