@@ -943,4 +943,54 @@ class GraphQLQueries {
       }
     }
   ''';
+
+  // ========== CHECKOUT MUTATIONS ==========
+
+  /// Create cart for Shopify checkout flow (modern Cart API)
+  static const String createCart = r'''
+    mutation CreateCart($input: CartInput!) {
+      cartCreate(input: $input) {
+        cart {
+          id
+          checkoutUrl
+          totalQuantity
+          cost {
+            totalAmount {
+              amount
+              currencyCode
+            }
+            subtotalAmount {
+              amount
+              currencyCode
+            }
+          }
+          lines(first: 50) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    product {
+                      title
+                    }
+                    price {
+                      amount
+                      currencyCode
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  ''';
 }

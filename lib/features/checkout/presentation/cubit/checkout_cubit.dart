@@ -3,11 +3,16 @@ import 'dart:developer';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../cart/domain/entities/cart_item_entity.dart';
+import '../../../../services/graphql_base_service.dart';
 
 part 'checkout_state.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
-  CheckoutCubit() : super(CheckoutInitial());
+  final ShopifyGraphQLService _graphQLService;
+
+  CheckoutCubit({required ShopifyGraphQLService graphQLService})
+    : _graphQLService = graphQLService,
+      super(CheckoutInitial());
 
   void setSingleItemCheckout({required CartItemEntity item}) {
     log(
@@ -105,5 +110,71 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   void clearCheckoutData() {
     emit(CheckoutInitial());
+  }
+
+  /// Create Shopify cart and get checkoutUrl (modern Cart API)
+  Future<void> createShopifyCheckout({String? email}) async {
+    try {
+      if (state is! CheckoutLoaded) {
+        emit(const CheckoutError(message: 'No checkout data available'));
+        return;
+      }
+
+      final checkoutState = state as CheckoutLoaded;
+      final items = checkoutState.items;
+
+      if (items.isEmpty) {
+        emit(const CheckoutError(message: 'No items in checkout'));
+        return;
+      }
+
+      emit(const CheckoutCreating());
+
+      // Prepare cart lines for Shopify Cart API
+      final lines =
+          items.map((item) {
+            return {'merchandiseId': item.variantId, 'quantity': item.quantity};
+          }).toList();
+
+      log('Creating cart with ${lines.length} items');
+      log('Email: ${email ?? "not provided"}');
+
+      // Call GraphQL service to create cart
+      final response = await _graphQLService.createCart(
+        lines: lines,
+        buyerIdentity: email,
+      );
+
+      log('Cart response: $response');
+
+      // Extract cart data
+      final cartData = response['cartCreate']?['cart'];
+      if (cartData == null) {
+        emit(const CheckoutError(message: 'Failed to create cart'));
+        return;
+      }
+
+      final cartId = cartData['id'] as String?;
+      final checkoutUrl = cartData['checkoutUrl'] as String?;
+
+      if (cartId == null || checkoutUrl == null) {
+        emit(const CheckoutError(message: 'Invalid cart response'));
+        return;
+      }
+
+      log('Cart created successfully!');
+      log('Cart ID: $cartId');
+      log('Checkout URL: $checkoutUrl');
+
+      emit(CheckoutCreated(checkoutId: cartId, webUrl: checkoutUrl));
+    } catch (e) {
+      log('Error creating cart: $e');
+      emit(CheckoutError(message: 'Failed to create cart: ${e.toString()}'));
+    }
+  }
+
+  /// Mark checkout as completed
+  void markCheckoutCompleted() {
+    emit(const CheckoutCompleted());
   }
 }

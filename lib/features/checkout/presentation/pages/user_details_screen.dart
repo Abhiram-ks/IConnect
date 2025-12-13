@@ -8,8 +8,8 @@ import '../../../../../common/custom_button.dart';
 import '../../../../../constant/constant.dart';
 import '../../../../../core/di/service_locator.dart';
 import '../../../../screens/nav_screen.dart';
-import '../../../products/presentation/widgets/product_detail_widget/checkout_product_function.dart';
 import '../cubit/checkout_cubit.dart';
+import 'checkout_webview_screen.dart';
 
 class UserDetailsScreen extends StatefulWidget {
   const UserDetailsScreen({super.key});
@@ -83,6 +83,76 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      'Contact',
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    ConstantWidgets.hight10(context),
+                    TextFormFieldWidget(
+                      hintText: 'Email or mobile phone number',
+                      controller: _contact,
+                      validate: ValidateHelper.validateFunction,
+                      onChanged: (_) => _updateCubit(),
+                    ),
+                    Text(
+                      'Delivery',
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    ConstantWidgets.hight10(context),
+                    TextFormFieldWidget(
+                      hintText: 'First Name',
+                      controller: _firstName,
+                      validate: ValidateHelper.validateFunction,
+                      onChanged: (_) => _updateCubit(),
+                    ),
+                    TextFormFieldWidget(
+                      hintText: 'Last Name',
+                      controller: _lastName,
+                      validate: ValidateHelper.validateFunction,
+                      onChanged: (_) => _updateCubit(),
+                    ),
+                    TextFormFieldWidget(
+                      hintText: 'Address',
+                      maxLines: 3,
+                      minLines: 3,
+                      controller: _addresses,
+                      validate: ValidateHelper.validateFunction,
+                      onChanged: (_) => _updateCubit(),
+                    ),
+                    TextFormFieldWidget(
+                      hintText: 'City',
+                      controller: _city,
+                      validate: ValidateHelper.validateFunction,
+                      onChanged: (_) => _updateCubit(),
+                    ),
+                    TextFormFieldWidget(
+                      hintText: 'WhatsApp Number',
+                      suffixIconData: Icons.help_outline_outlined,
+                      suffixIconColor: AppPalette.hintColor,
+                      controller: _whatsAppNumber,
+                      validate: ValidateHelper.validateFunction,
+                      onChanged: (_) => _updateCubit(),
+                      suffixIconAction: () {
+                        CustomSnackBar.show(
+                          context,
+                          message:
+                              'In case we need to contact you about your order',
+                          textAlign: TextAlign.center,
+                        );
+                      },
+                    ),
+
+                    ConstantWidgets.hight30(context),
+                    const Divider(),
+                    ConstantWidgets.hight20(context),
+
+                    // Order Summary Section
+                    Text(
                       'Order summary (${items.length} items)',
                       style: TextStyle(
                         fontSize: 17.sp,
@@ -90,6 +160,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                       ),
                     ),
                     ConstantWidgets.hight10(context),
+
                     // Items List
                     ...items.map(
                       (item) => Padding(
@@ -165,100 +236,89 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                     ),
 
                     const Divider(),
-                    ConstantWidgets.hight30(context),
-                    Text(
-                      'Contact',
-                      style: TextStyle(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     ConstantWidgets.hight10(context),
-                    TextFormFieldWidget(
-                      hintText: 'Email or mobile phone number',
-                      controller: _contact,
-                      validate: ValidateHelper.validateFunction,
-                      onChanged: (_) => _updateCubit(),
+
+                    // Total Price
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total',
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "${items.isNotEmpty ? items.first.currencyCode : 'QAR'} ${items.fold<double>(0, (sum, item) => sum + item.totalPrice).toStringAsFixed(2)}",
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppPalette.blackColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Delivery',
-                      style: TextStyle(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    ConstantWidgets.hight10(context),
-                    TextFormFieldWidget(
-                      hintText: 'First Name',
-                      controller: _firstName,
-                      validate: ValidateHelper.validateFunction,
-                      onChanged: (_) => _updateCubit(),
-                    ),
-                    TextFormFieldWidget(
-                      hintText: 'Last Name',
-                      controller: _lastName,
-                      validate: ValidateHelper.validateFunction,
-                      onChanged: (_) => _updateCubit(),
-                    ),
-                    TextFormFieldWidget(
-                      hintText: 'Address',
-                      maxLines: 3,
-                      minLines: 3,
-                      controller: _addresses,
-                      validate: ValidateHelper.validateFunction,
-                      onChanged: (_) => _updateCubit(),
-                    ),
-                    TextFormFieldWidget(
-                      hintText: 'City',
-                      controller: _city,
-                      validate: ValidateHelper.validateFunction,
-                      onChanged: (_) => _updateCubit(),
-                    ),
-                    TextFormFieldWidget(
-                      hintText: 'WhatsApp Number',
-                      suffixIconData: Icons.help_outline_outlined,
-                      suffixIconColor: AppPalette.hintColor,
-                      controller: _whatsAppNumber,
-                      validate: ValidateHelper.validateFunction,
-                      onChanged: (_) => _updateCubit(),
-                      suffixIconAction: () {
-                        CustomSnackBar.show(
-                          context,
-                          message:
-                              'In case we need to contact you about your order',
-                          textAlign: TextAlign.center,
-                        );
-                      },
-                    ),
-                    CustomButton(
-                      onPressed: () {
-                        if (_formkey.currentState!.validate()) {
-                          _updateCubit(); // Ensure latest data is saved
-                          final String message = composeWhatsAppMessage(
+
+                    ConstantWidgets.hight20(context),
+                    BlocConsumer<CheckoutCubit, CheckoutState>(
+                      bloc: sl<CheckoutCubit>(),
+                      listener: (context, checkoutState) {
+                        if (checkoutState is CheckoutCreated) {
+                          // Navigate to WebView with checkout URL
+                          Navigator.push(
                             context,
-                            items: state.items,
-                            contact: _contact.text,
-                            firstName: _firstName.text,
-                            lastName: _lastName.text,
-                            address: _addresses.text,
-                            city: _city.text,
-                            userWhatsAppNumber: _whatsAppNumber.text,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => CheckoutWebViewScreen(
+                                    checkoutUrl: checkoutState.webUrl,
+                                  ),
+                            ),
                           );
-                          launchWhatsAppWithMessage(context, message);
-                        } else {
+                        } else if (checkoutState is CheckoutError) {
                           CustomSnackBar.show(
                             context,
-                            message:
-                                "Please complete the form before proceeding",
+                            message: checkoutState.message,
                             textAlign: TextAlign.center,
                             backgroundColor: AppPalette.redColor,
                           );
                         }
                       },
-                      text: 'Complete Order',
-                      bgColor: AppPalette.blackColor,
-                      textColor: AppPalette.whiteColor,
-                      borderColor: AppPalette.blackColor,
+                      builder: (context, checkoutState) {
+                        final isCreatingCheckout =
+                            checkoutState is CheckoutCreating;
+
+                        return CustomButton(
+                          onPressed:
+                              isCreatingCheckout
+                                  ? null
+                                  : () {
+                                    if (_formkey.currentState!.validate()) {
+                                      _updateCubit(); // Ensure latest data is saved
+
+                                      // Create Shopify checkout
+                                      sl<CheckoutCubit>().createShopifyCheckout(
+                                        email: _contact.text,
+                                      );
+                                    } else {
+                                      CustomSnackBar.show(
+                                        context,
+                                        message:
+                                            "Please complete the form before proceeding",
+                                        textAlign: TextAlign.center,
+                                        backgroundColor: AppPalette.redColor,
+                                      );
+                                    }
+                                  },
+                          text:
+                              isCreatingCheckout
+                                  ? 'Creating Checkout...'
+                                  : 'Proceed to Checkout',
+                          bgColor: AppPalette.blackColor,
+                          textColor: AppPalette.whiteColor,
+                          borderColor: AppPalette.blackColor,
+                        );
+                      },
                     ),
                     ConstantWidgets.hight20(context),
                   ],

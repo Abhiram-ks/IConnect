@@ -7,7 +7,7 @@ import 'package:iconnect/constant/constant.dart';
 import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
-import 'package:iconnect/features/checkout/presentation/pages/user_details_screen.dart';
+import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_screen.dart';
 import 'package:iconnect/features/checkout/presentation/cubit/checkout_cubit.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
 
@@ -206,31 +206,63 @@ class DetailedCartScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 12),
                 ),
                 ConstantWidgets.hight30(context),
-                CustomButton(
-                  text: 'Check out',
-                  onPressed: () {
-                    final currentCartState = sl<CartCubit>().state;
-                    if (currentCartState is CartLoaded) {
-                      sl<CheckoutCubit>().initCartCheckout(
-                        items: currentCartState.cart.items,
-                      );
+                BlocConsumer<CheckoutCubit, CheckoutState>(
+                  bloc: sl<CheckoutCubit>(),
+                  listener: (context, checkoutState) {
+                    if (checkoutState is CheckoutCreated) {
+                      // Navigate to WebView with checkout URL
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const UserDetailsScreen(),
+                          builder:
+                              (context) => CheckoutWebViewScreen(
+                                checkoutUrl: checkoutState.webUrl,
+                              ),
                         ),
                       );
-                    } else {
+                    } else if (checkoutState is CheckoutError) {
                       CustomSnackBar.show(
                         context,
-                        message: 'Please wait for cart to load',
+                        message: checkoutState.message,
                         textAlign: TextAlign.center,
                         backgroundColor: AppPalette.redColor,
                       );
                     }
                   },
+                  builder: (context, checkoutState) {
+                    final isCreatingCheckout =
+                        checkoutState is CheckoutCreating;
 
-                  borderRadius: 12,
+                    return CustomButton(
+                      text:
+                          isCreatingCheckout
+                              ? 'Creating Checkout...'
+                              : 'Check out',
+                      onPressed:
+                          isCreatingCheckout
+                              ? null
+                              : () {
+                                final currentCartState = sl<CartCubit>().state;
+                                if (currentCartState is CartLoaded) {
+                                  // Initialize checkout with cart items
+                                  sl<CheckoutCubit>().initCartCheckout(
+                                    items: currentCartState.cart.items,
+                                  );
+
+                                  // Create Shopify checkout directly (no email required)
+                                  sl<CheckoutCubit>().createShopifyCheckout();
+                                } else {
+                                  CustomSnackBar.show(
+                                    context,
+                                    message: 'Please wait for cart to load',
+                                    textAlign: TextAlign.center,
+                                    backgroundColor: AppPalette.redColor,
+                                  );
+                                }
+                              },
+                      borderRadius: 12,
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
               ],

@@ -423,39 +423,83 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     return executeQuery(queryString, variables: {'first': first});
   }
 
-  /// Create checkout
-  Future<Map<String, dynamic>> createCheckout({
-    required List<Map<String, dynamic>> lineItems,
+  /// Create cart for checkout (modern Cart API)
+  Future<Map<String, dynamic>> createCart({
+    required List<Map<String, dynamic>> lines,
+    String? buyerIdentity,
   }) async {
     const mutationString = r'''
-      mutation CheckoutCreate($input: CheckoutCreateInput!) {
-        checkoutCreate(input: $input) {
-          checkout {
+      mutation CreateCart($input: CartInput!) {
+        cartCreate(input: $input) {
+          cart {
             id
-            webUrl
-            lineItems(first: 10) {
+            checkoutUrl
+            totalQuantity
+            cost {
+              totalAmount {
+                amount
+                currencyCode
+              }
+              subtotalAmount {
+                amount
+                currencyCode
+              }
+            }
+            lines(first: 50) {
               edges {
                 node {
-                  title
+                  id
                   quantity
+                  merchandise {
+                    ... on ProductVariant {
+                      id
+                      title
+                      product {
+                        title
+                      }
+                      price {
+                        amount
+                        currencyCode
+                      }
+                    }
+                  }
                 }
               }
             }
           }
-          checkoutUserErrors {
-            message
+          userErrors {
             field
+            message
           }
         }
       }
     ''';
 
-    return executeMutation(
-      mutationString,
-      variables: {
-        'input': {'lineItems': lineItems},
-      },
-    );
+    final input = {
+      'lines': lines,
+      if (buyerIdentity != null && buyerIdentity.isNotEmpty)
+        'buyerIdentity': {'email': buyerIdentity},
+    };
+
+    return executeMutation(mutationString, variables: {'input': input});
+  }
+
+  /// Legacy method for backward compatibility
+  @Deprecated('Use createCart instead')
+  Future<Map<String, dynamic>> createCheckout({
+    required List<Map<String, dynamic>> lineItems,
+    String? email,
+  }) async {
+    // Convert lineItems format to lines format
+    final lines =
+        lineItems.map((item) {
+          return {
+            'merchandiseId': item['variantId'],
+            'quantity': item['quantity'],
+          };
+        }).toList();
+
+    return createCart(lines: lines, buyerIdentity: email);
   }
 
   /// Customer login

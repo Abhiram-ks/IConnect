@@ -11,6 +11,41 @@ abstract class CheckoutState extends Equatable {
 
 class CheckoutInitial extends CheckoutState {}
 
+class CheckoutCreating extends CheckoutState {
+  final String message;
+
+  const CheckoutCreating({this.message = 'Creating checkout...'});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class CheckoutCreated extends CheckoutState {
+  final String checkoutId;
+  final String webUrl;
+
+  const CheckoutCreated({
+    required this.checkoutId,
+    required this.webUrl,
+  });
+
+  @override
+  List<Object?> get props => [checkoutId, webUrl];
+}
+
+class CheckoutError extends CheckoutState {
+  final String message;
+
+  const CheckoutError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class CheckoutCompleted extends CheckoutState {
+  const CheckoutCompleted();
+}
+
 class CheckoutLoaded extends CheckoutState {
   final CheckoutType checkoutType;
   final CartItemEntity? buyNowItem;
