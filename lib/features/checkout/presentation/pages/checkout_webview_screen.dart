@@ -12,8 +12,13 @@ import '../cubit/checkout_cubit.dart';
 
 class CheckoutWebViewScreen extends StatefulWidget {
   final String checkoutUrl;
+  final bool showExitConfirmation;
 
-  const CheckoutWebViewScreen({super.key, required this.checkoutUrl});
+  const CheckoutWebViewScreen({
+    super.key,
+    required this.checkoutUrl,
+    this.showExitConfirmation = true,
+  });
 
   @override
   State<CheckoutWebViewScreen> createState() => _CheckoutWebViewScreenState();
@@ -27,6 +32,9 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
   @override
   void initState() {
     super.initState();
+    log(
+      'CheckoutWebViewScreen initialized with showExitConfirmation: ${widget.showExitConfirmation}',
+    );
     _initializeWebView();
   }
 
@@ -152,77 +160,94 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Checkout',
-          style: TextStyle(
-            color: AppPalette.blackColor,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppPalette.whiteColor,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: AppPalette.blackColor),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () {
-            // If order is completed, navigate to home directly without confirmation
-            if (_orderCompleted) {
-              _navigateToHome();
-            } else {
-              _showExitConfirmation();
-            }
-          },
-        ),
-        actions: [
-          if (_isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppPalette.blueColor,
-                  ),
-                ),
-              ),
+    return PopScope(
+      canPop: !widget.showExitConfirmation || _orderCompleted,
+      onPopInvoked: (didPop) {
+        if (!didPop && !_orderCompleted && widget.showExitConfirmation) {
+          _showExitConfirmation();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Checkout',
+            style: TextStyle(
+              color: AppPalette.blackColor,
+              fontWeight: FontWeight.bold,
             ),
-        ],
-      ),
-      body: BlocListener<CheckoutCubit, CheckoutState>(
-        bloc: sl<CheckoutCubit>(),
-        listener: (context, state) {
-          if (state is CheckoutCompleted) {
-            log('Checkout completed state received');
-          }
-        },
-        child: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
+          ),
+          backgroundColor: AppPalette.whiteColor,
+          elevation: 1,
+          iconTheme: const IconThemeData(color: AppPalette.blackColor),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              log(
+                'Close button pressed. showExitConfirmation: ${widget.showExitConfirmation}, orderCompleted: $_orderCompleted',
+              );
+              // If order is completed, navigate to home directly without confirmation
+              if (_orderCompleted) {
+                log('Navigating to home (order completed)');
+                _navigateToHome();
+              } else if (widget.showExitConfirmation) {
+                log('Showing exit confirmation dialog');
+                _showExitConfirmation();
+              } else {
+                log('Closing webview directly (no confirmation)');
+                // Close webview directly without confirmation
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          actions: [
             if (_isLoading)
-              Container(
-                color: AppPalette.whiteColor,
-                child: const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: AppPalette.blueColor),
-                      SizedBox(height: 16),
-                      Text(
-                        'Loading checkout...',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppPalette.hintColor,
-                        ),
-                      ),
-                    ],
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppPalette.blueColor,
+                    ),
                   ),
                 ),
               ),
           ],
+        ),
+        body: BlocListener<CheckoutCubit, CheckoutState>(
+          bloc: sl<CheckoutCubit>(),
+          listener: (context, state) {
+            if (state is CheckoutCompleted) {
+              log('Checkout completed state received');
+            }
+          },
+          child: Stack(
+            children: [
+              WebViewWidget(controller: _controller),
+              if (_isLoading)
+                Container(
+                  color: AppPalette.whiteColor,
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: AppPalette.blueColor),
+                        SizedBox(height: 16),
+                        Text(
+                          'Loading checkout...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppPalette.hintColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

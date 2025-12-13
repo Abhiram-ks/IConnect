@@ -17,6 +17,7 @@ import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
 import 'package:iconnect/core/storage/secure_storage_service.dart';
 import 'package:iconnect/routes.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -340,8 +341,15 @@ class AppDrawer extends StatelessWidget {
             if (hasSubItems) {
               menuCubit.toggleItem(menuItem.title);
             } else {
+              // Check if it's "All Categories" option
+              if (menuItem.title == 'All Categories') {
+                Navigator.of(context).pop(); // Close drawer
+                // Navigate to Categories screen using navigation cubit
+                context.read<ButtomNavCubit>().selectItem(NavItem.categories);
+              }
               // Navigate to collection products screen if it's a collection
-              if (menuItem.isCollection && menuItem.collectionHandle != null) {
+              else if (menuItem.isCollection &&
+                  menuItem.collectionHandle != null) {
                 Navigator.of(context).pop(); // Close drawer
                 Navigator.push(
                   context,
@@ -433,10 +441,7 @@ class _FooterWidgetState extends State<_FooterWidget> {
                 child: Shimmer.fromColors(
                   baseColor: Colors.grey[300]!,
                   highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    width: 100.w,
-                    height: 100.h,
-                  ),
+                  child: Container(width: 100.w, height: 100.h),
                 ),
               ),
             );

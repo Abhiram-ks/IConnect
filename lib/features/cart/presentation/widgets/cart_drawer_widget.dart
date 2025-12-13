@@ -8,7 +8,9 @@ import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_screen.dart';
+import 'package:iconnect/features/checkout/presentation/cubit/checkout_cubit.dart';
+import 'package:iconnect/common/custom_snackbar.dart';
 
 class CartDrawerWidget extends StatelessWidget {
   const CartDrawerWidget({super.key});
@@ -51,9 +53,7 @@ class CartDrawerWidget extends StatelessWidget {
                 ),
 
                 // Cart Items
-                Expanded(
-                  child: _buildCartContent(context, state),
-                ),
+                Expanded(child: _buildCartContent(context, state)),
 
                 // Footer with checkout button
                 if (state is CartLoaded && state.cart.isNotEmpty)
@@ -69,9 +69,7 @@ class CartDrawerWidget extends StatelessWidget {
   Widget _buildCartContent(BuildContext context, CartState state) {
     if (state is CartLoading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppPalette.blueColor,
-        ),
+        child: CircularProgressIndicator(color: AppPalette.blueColor),
       );
     }
 
@@ -88,10 +86,7 @@ class CartDrawerWidget extends StatelessWidget {
             SizedBox(height: 16),
             Text(
               'Your cart is empty',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppPalette.hintColor,
-              ),
+              style: TextStyle(fontSize: 16, color: AppPalette.hintColor),
             ),
           ],
         ),
@@ -112,10 +107,7 @@ class CartDrawerWidget extends StatelessWidget {
             Text(
               state.message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppPalette.hintColor,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppPalette.hintColor),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -130,9 +122,10 @@ class CartDrawerWidget extends StatelessWidget {
     }
 
     if (state is CartLoaded || state is CartOperationInProgress) {
-      final cart = state is CartLoaded 
-          ? state.cart 
-          : (state as CartOperationInProgress).currentCart;
+      final cart =
+          state is CartLoaded
+              ? state.cart
+              : (state as CartOperationInProgress).currentCart;
 
       return ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -156,9 +149,7 @@ class CartDrawerWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppPalette.whiteColor,
         border: Border(
-          top: BorderSide(
-            color: AppPalette.hintColor.withValues(alpha: 0.3),
-          ),
+          top: BorderSide(color: AppPalette.hintColor.withValues(alpha: 0.3)),
         ),
       ),
       child: Column(
@@ -184,31 +175,69 @@ class CartDrawerWidget extends StatelessWidget {
             ],
           ),
           ConstantWidgets.hight20(context),
-          CustomButton(text: 'CHECK OUT', onPressed: () async {
-                final checkoutUrl = state.cart.webUrl;
-                if (checkoutUrl != null) {
-                  final uri = Uri.parse(checkoutUrl);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Could not open checkout'),
-                          backgroundColor: AppPalette.redColor,
+          BlocConsumer<CheckoutCubit, CheckoutState>(
+            bloc: sl<CheckoutCubit>(),
+            listener: (context, checkoutState) {
+              if (checkoutState is CheckoutCreated) {
+                // Close the drawer first
+                Navigator.of(context).pop();
+
+                // Navigate to WebView with checkout URL
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => CheckoutWebViewScreen(
+                          checkoutUrl: checkoutState.webUrl,
                         ),
-                      );
-                    }
-                  }
-                }
-              },
-            ),
+                  ),
+                );
+              } else if (checkoutState is CheckoutError) {
+                CustomSnackBar.show(
+                  context,
+                  message: checkoutState.message,
+                  textAlign: TextAlign.center,
+                  backgroundColor: AppPalette.redColor,
+                );
+              }
+            },
+            builder: (context, checkoutState) {
+              final isCreatingCheckout = checkoutState is CheckoutCreating;
+
+              return CustomButton(
+                text: isCreatingCheckout ? 'Creating Checkout...' : 'CHECK OUT',
+                onPressed:
+                    isCreatingCheckout
+                        ? null
+                        : () {
+                          final currentCartState = sl<CartCubit>().state;
+                          if (currentCartState is CartLoaded) {
+                            // Clear any previous checkout state
+                            sl<CheckoutCubit>().clearCheckoutData();
+
+                            // Initialize checkout with cart items
+                            sl<CheckoutCubit>().initCartCheckout(
+                              items: currentCartState.cart.items,
+                            );
+
+                            // Create Shopify checkout directly (no email required)
+                            sl<CheckoutCubit>().createShopifyCheckout();
+                          } else {
+                            CustomSnackBar.show(
+                              context,
+                              message: 'Please wait for cart to load',
+                              textAlign: TextAlign.center,
+                              backgroundColor: AppPalette.redColor,
+                            );
+                          }
+                        },
+              );
+            },
+          ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              context.read<ButtomNavCubit>().selectItem(
-                    NavItem.cart,
-                  );
+              context.read<ButtomNavCubit>().selectItem(NavItem.cart);
             },
             child: const Text(
               'View Cart',
@@ -251,17 +280,20 @@ class CartDrawerItemWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppPalette.hintColor.withValues(alpha: 0.3),
               ),
-              child: cartItem.imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: cartItem.imageUrl!,
-                      fit: BoxFit.contain,
-                      placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.broken_image),
-                    )
-                  : const Icon(Icons.shopping_bag),
+              child:
+                  cartItem.imageUrl != null
+                      ? CachedNetworkImage(
+                        imageUrl: cartItem.imageUrl!,
+                        fit: BoxFit.contain,
+                        placeholder:
+                            (context, url) => const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                        errorWidget:
+                            (context, url, error) =>
+                                const Icon(Icons.broken_image),
+                      )
+                      : const Icon(Icons.shopping_bag),
             ),
             ConstantWidgets.width20(context),
             Expanded(
@@ -280,9 +312,7 @@ class CartDrawerItemWidget extends StatelessWidget {
                   if (cartItem.productTitle != null)
                     Text(
                       cartItem.title,
-                      style: const TextStyle(
-                        fontSize: 12,
-                      ),
+                      style: const TextStyle(fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -317,19 +347,22 @@ class CartDrawerItemWidget extends StatelessWidget {
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           border: Border.all(
-                              color: AppPalette.hintColor.withValues(alpha: 0.3)),
+                            color: AppPalette.hintColor.withValues(alpha: 0.3),
+                          ),
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () {
-                                      sl<CartCubit>()
-                                          .decrementQuantity(cartItem.id);
-                                    },
+                              onPressed:
+                                  isLoading
+                                      ? null
+                                      : () {
+                                        sl<CartCubit>().decrementQuantity(
+                                          cartItem.id,
+                                        );
+                                      },
                               icon: const Icon(
                                 Icons.remove,
                                 size: 14,
@@ -345,12 +378,14 @@ class CartDrawerItemWidget extends StatelessWidget {
                               ),
                             ),
                             IconButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () {
-                                      sl<CartCubit>()
-                                          .incrementQuantity(cartItem.id);
-                                    },
+                              onPressed:
+                                  isLoading
+                                      ? null
+                                      : () {
+                                        sl<CartCubit>().incrementQuantity(
+                                          cartItem.id,
+                                        );
+                                      },
                               icon: const Icon(
                                 Icons.add,
                                 size: 14,
@@ -362,11 +397,12 @@ class CartDrawerItemWidget extends StatelessWidget {
                       ),
                       ConstantWidgets.width20(context),
                       TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                sl<CartCubit>().removeFromCart(cartItem.id);
-                              },
+                        onPressed:
+                            isLoading
+                                ? null
+                                : () {
+                                  sl<CartCubit>().removeFromCart(cartItem.id);
+                                },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,
@@ -392,4 +428,3 @@ class CartDrawerItemWidget extends StatelessWidget {
     );
   }
 }
-

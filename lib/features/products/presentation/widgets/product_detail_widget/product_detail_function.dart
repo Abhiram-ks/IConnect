@@ -5,7 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconnect/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import '../../../../checkout/presentation/cubit/checkout_cubit.dart';
-import 'package:iconnect/features/checkout/presentation/pages/user_details_screen.dart';
+import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../app_palette.dart';
@@ -21,84 +21,128 @@ Widget buildActionButtons(
   BuildContext context,
   ProductVariantEntity? selectedVariant,
 ) {
-  return Builder(
-    builder: (builderContext) {
-      return Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          children: [
-            if (product.availableForSale)
-              CustomButton(
-                onPressed:
-                    () => _addToCart(builderContext, product, selectedVariant),
-                text: 'Add to cart',
-                bgColor: AppPalette.whiteColor,
-                textColor: AppPalette.blackColor,
-                borderColor: AppPalette.blackColor,
-              ),
-            ConstantWidgets.hight10(context),
-            if (product.availableForSale)
-              CustomButton(
-                onPressed:
-                    () => buyNow(
-                      builderContext,
-                      product,
-                      context,
-                      selectedVariant,
-                    ),
-                text: 'Buy it now',
-                bgColor: AppPalette.blackColor,
-                textColor: AppPalette.whiteColor,
-                borderColor: AppPalette.blackColor,
-              ),
-            ConstantWidgets.hight10(context),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _makePhoneCall(context),
-                    icon: const Icon(Icons.phone, size: 18),
-                    label: const Text('Order By Call'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      minimumSize: Size(double.infinity, 48.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed:
-                        () => buyNow(
-                          builderContext,
-                          product,
-                          context,
-                          selectedVariant,
-                        ),
-                    icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
-                    label: const Text('WhatsApp'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF25D366),
-                      foregroundColor: Colors.white,
-                      minimumSize: Size(double.infinity, 48.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            ConstantWidgets.hight10(context),
-          ],
-        ),
-      );
-    },
+  return _ActionButtonsWidget(
+    product: product,
+    selectedVariant: selectedVariant,
   );
+}
+
+class _ActionButtonsWidget extends StatefulWidget {
+  final ProductEntity product;
+  final ProductVariantEntity? selectedVariant;
+
+  const _ActionButtonsWidget({required this.product, this.selectedVariant});
+
+  @override
+  State<_ActionButtonsWidget> createState() => _ActionButtonsWidgetState();
+}
+
+class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
+  bool _isCreatingCheckout = false;
+
+  Future<void> _handleBuyNow(BuildContext localContext) async {
+    setState(() {
+      _isCreatingCheckout = true;
+    });
+
+    try {
+      await buyNow(
+        localContext,
+        widget.product,
+        context,
+        widget.selectedVariant,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingCheckout = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (builderContext) {
+        return Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            children: [
+              if (widget.product.availableForSale)
+                CustomButton(
+                  onPressed:
+                      () => _addToCart(
+                        builderContext,
+                        widget.product,
+                        widget.selectedVariant,
+                      ),
+                  text: 'Add to cart',
+                  bgColor: AppPalette.whiteColor,
+                  textColor: AppPalette.blackColor,
+                  borderColor: AppPalette.blackColor,
+                ),
+              ConstantWidgets.hight10(context),
+              if (widget.product.availableForSale)
+                CustomButton(
+                  onPressed:
+                      _isCreatingCheckout
+                          ? null
+                          : () => _handleBuyNow(builderContext),
+                  text:
+                      _isCreatingCheckout
+                          ? 'Creating checkout...'
+                          : 'Buy it now',
+                  bgColor: AppPalette.blackColor,
+                  textColor: AppPalette.whiteColor,
+                  borderColor: AppPalette.blackColor,
+                ),
+              ConstantWidgets.hight10(context),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _makePhoneCall(context),
+                      icon: const Icon(Icons.phone, size: 18),
+                      label: const Text('Order By Call'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        minimumSize: Size(double.infinity, 48.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed:
+                          _isCreatingCheckout
+                              ? null
+                              : () => _handleBuyNow(builderContext),
+                      icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
+                      label: const Text('WhatsApp'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        foregroundColor: Colors.white,
+                        minimumSize: Size(double.infinity, 48.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              ConstantWidgets.hight10(context),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 void _addToCart(
@@ -161,12 +205,27 @@ void _addToCart(
   }
 }
 
-void buyNow(
+Future<void> buyNow(
   BuildContext localContext,
   ProductEntity product,
   BuildContext context,
   ProductVariantEntity? selectedVariant,
-) {
+) async {
+  // Determine the variant
+  final variant =
+      selectedVariant ??
+      (product.variants.isNotEmpty ? product.variants.first : null);
+
+  if (variant == null) {
+    CustomSnackBar.show(
+      localContext,
+      message: 'No variant available for this product.',
+      textAlign: TextAlign.center,
+      backgroundColor: AppPalette.redColor,
+    );
+    return;
+  }
+
   // Determine the image to display
   String imageUrl = '';
 
@@ -185,21 +244,19 @@ void buyNow(
     imageUrl = product.images.first;
   }
 
-  // Create CartItemEntity
+  // Get quantity
   final int qty = localContext.read<QuantityCubit>().state.count;
-  final variant =
-      selectedVariant ??
-      (product.variants.isNotEmpty ? product.variants.first : null);
-  final double price = variant?.price ?? product.minPrice;
-  final String currency = variant?.currencyCode ?? product.currencyCode;
+  final double price = variant.price;
+  final String currency = variant.currencyCode;
 
+  // Create CartItemEntity for the single item
   final item = CartItemEntity(
     id:
         DateTime.now().millisecondsSinceEpoch
             .toString(), // Temporary ID for buy now
-    variantId: variant?.id ?? '',
+    variantId: variant.id,
     productId: product.id,
-    title: variant?.title ?? '',
+    title: variant.title,
     productTitle: product.title,
     quantity: qty,
     price: price,
@@ -207,14 +264,58 @@ void buyNow(
     imageUrl: imageUrl,
   );
 
-  // Save data to global global CheckoutCubit
-  sl<CheckoutCubit>().setSingleItemCheckout(item: item);
+  try {
+    // Clear any previous checkout state
+    sl<CheckoutCubit>().clearCheckoutData();
 
-  // Navigate to UserDetailsScreen
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const UserDetailsScreen()),
-  );
+    // Set single item checkout (Buy Now mode)
+    sl<CheckoutCubit>().setSingleItemCheckout(item: item);
+
+    // Create Shopify checkout directly
+    await sl<CheckoutCubit>().createShopifyCheckout();
+
+    // Get checkout state
+    final checkoutState = sl<CheckoutCubit>().state;
+
+    if (checkoutState is CheckoutCreated) {
+      // Navigate to WebView with checkout URL
+      if (context.mounted) {
+        debugPrint(
+          'BuyNow: Navigating to CheckoutWebViewScreen with showExitConfirmation: false',
+        );
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => CheckoutWebViewScreen(
+                  checkoutUrl: checkoutState.webUrl,
+                  showExitConfirmation: false, // No confirmation for Buy Now
+                ),
+          ),
+        );
+      }
+    } else if (checkoutState is CheckoutError) {
+      // Show error message
+      if (context.mounted) {
+        CustomSnackBar.show(
+          context,
+          message: checkoutState.message,
+          textAlign: TextAlign.center,
+          backgroundColor: AppPalette.redColor,
+        );
+      }
+    }
+  } catch (e) {
+    // Show error message
+    if (context.mounted) {
+      CustomSnackBar.show(
+        context,
+        message: 'Error creating checkout: $e',
+        textAlign: TextAlign.center,
+        backgroundColor: AppPalette.redColor,
+      );
+    }
+  }
 }
 
 Future<void> _makePhoneCall(BuildContext context) async {
