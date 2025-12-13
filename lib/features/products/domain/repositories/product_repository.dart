@@ -34,6 +34,8 @@ abstract class ProductRepository {
     required String handle,
     int first = 20,
     String? after,
+    String? sortKey,
+    bool? reverse,
   });
 
   /// Get all unique brands (vendors) from products

@@ -211,7 +211,7 @@ class GraphQLQueries {
 
   /// Get collection by handle with products
   static const String getCollectionByHandle = r'''
-    query GetCollectionByHandle($handle: String!, $first: Int!, $after: String) {
+    query GetCollectionByHandle($handle: String!, $first: Int!, $after: String, $sortKey: ProductCollectionSortKeys, $reverse: Boolean) {
       collection(handle: $handle) {
         id
         title
@@ -220,7 +220,7 @@ class GraphQLQueries {
         image {
           url
         }
-        products(first: $first, after: $after) {
+        products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
           edges {
             node {
               id

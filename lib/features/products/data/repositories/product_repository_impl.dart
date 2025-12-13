@@ -141,12 +141,16 @@ class ProductRepositoryImpl implements ProductRepository {
     required String handle,
     int first = 20,
     String? after,
+    String? sortKey,
+    bool? reverse,
   }) async {
     try {
       final result = await remoteDataSource.getCollectionByHandle(
         handle: handle,
         first: first,
         after: after,
+        sortKey: sortKey,
+        reverse: reverse,
       );
 
       // Heavy parsing offloaded to isolate

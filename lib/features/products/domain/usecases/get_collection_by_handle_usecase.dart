@@ -19,6 +19,8 @@ class GetCollectionByHandleUsecase
       handle: params.handle,
       first: params.first,
       after: params.after,
+      sortKey: params.sortKey,
+      reverse: params.reverse,
     );
   }
 }
@@ -28,13 +30,17 @@ class GetCollectionByHandleParams extends Equatable {
   final String handle;
   final int first;
   final String? after;
+  final String? sortKey;
+  final bool? reverse;
 
   const GetCollectionByHandleParams({
     required this.handle,
     this.first = 20,
     this.after,
+    this.sortKey,
+    this.reverse,
   });
 
   @override
-  List<Object?> get props => [handle, first, after];
+  List<Object?> get props => [handle, first, after, sortKey, reverse];
 }

@@ -10,6 +10,7 @@ import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
+import 'package:iconnect/widgets/sort_dropdown.dart';
 
 import '../widgets/shopify_product_grid_section.dart';
 
@@ -32,7 +33,10 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
   bool _isLoadingMore = false;
-  String _selectedSortOption = 'Alphabetically, A-Z';
+  bool _isInitialLoad = true;
+  bool _isSorting = false;
+  ProductSortFilter _currentSortFilter = ProductSortFilter.featured;
+  List<dynamic> _cachedProducts = [];
 
   // Filter States
   bool _filterInStock = false;
@@ -42,17 +46,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   final double _maxPrice = 14999;
   late TextEditingController _minPriceController;
   late TextEditingController _maxPriceController;
-
-  final List<String> _sortOptions = [
-    'Featured',
-    'Best selling',
-    'Alphabetically, A-Z',
-    'Alphabetically, Z-A',
-    'Price, low to high',
-    'Price, high to low',
-    'Date, old to new',
-    'Date, new to old',
-  ];
 
   @override
   void initState() {
@@ -64,10 +57,13 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
       text: _maxPrice.toStringAsFixed(0),
     );
 
+    final initialSortParams = getSortParamsForFilter(_currentSortFilter);
     context.read<products.ProductBloc>().add(
       LoadCollectionByHandleRequested(
         handle: widget.collectionHandle,
         first: 20,
+        sortKey: initialSortParams['sortKey'],
+        reverse: initialSortParams['reverse'],
       ),
     );
     _scrollController.addListener(_onScroll);
@@ -119,7 +115,9 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
         children: [
           BlocBuilder<products.ProductBloc, products.ProductState>(
             builder: (context, state) {
-              if (state.collectionWithProducts.status == Status.loading) {
+              // Show full page loading only on initial load
+              if (state.collectionWithProducts.status == Status.loading &&
+                  _isInitialLoad) {
                 return Center(
                   child: SizedBox(
                     height: 20,
@@ -188,11 +186,40 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                 );
               }
 
-              // Success state
-              if (state.collectionWithProducts.status == Status.completed) {
-                final collectionData = state.collectionWithProducts.data!;
-                final collection = collectionData.collection;
-                final products = collectionData.products.products;
+              // Success state or loading during sort/filter
+              if (state.collectionWithProducts.status == Status.completed ||
+                  (state.collectionWithProducts.status == Status.loading &&
+                      !_isInitialLoad)) {
+                final collectionData = state.collectionWithProducts.data;
+                final collection = collectionData?.collection;
+                final productsList = collectionData?.products.products ?? [];
+
+                // Update cached products when new data arrives
+                if (state.collectionWithProducts.status == Status.completed) {
+                  _cachedProducts = productsList;
+
+                  // Mark initial load as complete
+                  if (_isInitialLoad) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() {
+                          _isInitialLoad = false;
+                        });
+                      }
+                    });
+                  }
+
+                  // Reset sorting flag
+                  if (_isSorting) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() {
+                          _isSorting = false;
+                        });
+                      }
+                    });
+                  }
+                }
 
                 // Reset loading more flag when new data arrives
                 if (_isLoadingMore) {
@@ -205,67 +232,82 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                   });
                 }
 
+                // Use cached products while sorting to maintain UI
+                final displayProducts =
+                    _isSorting ? _cachedProducts : productsList;
+
                 return SingleChildScrollView(
                   controller: _scrollController,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      buildCollectionHero(
-                        collection.title,
-                        collection.description,
-                        collection.imageUrl,
-                        products.length,
-                      ),
+                      if (collection != null || _isSorting)
+                        buildCollectionHero(
+                          collection?.title ?? '',
+                          collection?.description ?? '',
+                          collection?.imageUrl ?? '',
+                          displayProducts.length,
+                        ),
 
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 10.0,
+                        ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Filtered',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                            Flexible(
+                              child: InkWell(
+                                onTap: () {
+                                  _scaffoldKey.currentState?.openEndDrawer();
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Filter',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      _scaffoldKey.currentState
-                                          ?.openEndDrawer();
-                                    },
-                                    icon: Icon(Icons.keyboard_arrow_down_sharp),
-                                  ),
-                                ],
+                                    SizedBox(width: 4.w),
+                                    Icon(
+                                      Icons.keyboard_arrow_down_sharp,
+                                      size: 24.sp,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
 
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      _selectedSortOption,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
+                            SizedBox(width: 16.w),
+
+                            Flexible(
+                              flex: 2,
+                              child: SortDropdown(
+                                initialFilter: _currentSortFilter,
+                                onFilterChanged: (filter, sortParams) {
+                                  setState(() {
+                                    _currentSortFilter = filter;
+                                    _isSorting = true;
+                                  });
+                                  // Trigger BLoC event to sort products
+                                  context.read<products.ProductBloc>().add(
+                                    LoadCollectionByHandleRequested(
+                                      handle: widget.collectionHandle,
+                                      first: 20,
+                                      sortKey: sortParams['sortKey'],
+                                      reverse: sortParams['reverse'],
                                     ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      _showSortBottomSheet(context);
-                                    },
-                                    icon: Icon(Icons.keyboard_arrow_down_sharp),
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -274,8 +316,10 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
 
                       // Products Grid Section
                       _buildProductsSection(
-                        products,
+                        displayProducts,
                         state.collectionProductsHasNextPage,
+                        _isSorting,
+                        state.collectionWithProducts.status,
                       ),
                     ],
                   ),
@@ -394,34 +438,12 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
     );
   }
 
-  Widget _buildProductsSection(List<dynamic> products, bool hasNextPage) {
-    if (products.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.inventory_2_outlined, size: 64.sp, color: Colors.grey),
-              SizedBox(height: 16.h),
-              Text(
-                'No products available',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                'Check back later for new products',
-                style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
+  Widget _buildProductsSection(
+    List<dynamic> products,
+    bool hasNextPage,
+    bool isLoading,
+    Status status,
+  ) {
     return Padding(
       padding: EdgeInsets.all(16.w),
       child: Column(
@@ -442,21 +464,64 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
             ],
           ),
           SizedBox(height: 16.h),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.7,
-              crossAxisSpacing: 12.w,
-              mainAxisSpacing: 12.h,
+
+          // Show loading indicator when sorting/filtering
+          if (isLoading || status == Status.loading)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 40.h),
+                child: CircularProgressIndicator(
+                  color: AppPalette.blueColor,
+                  strokeWidth: 2,
+                ),
+              ),
+            )
+          else if (products.isEmpty)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 40.h),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 64.sp,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      'No products available',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Check back later for new products',
+                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.7,
+                crossAxisSpacing: 12.w,
+                mainAxisSpacing: 12.h,
+              ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return ShopifyGridProductCard(product: product);
+              },
             ),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return ShopifyGridProductCard(product: product);
-            },
-          ),
+
           // Loading indicator at bottom when loading more
           if (_isLoadingMore && hasNextPage)
             Padding(
@@ -467,67 +532,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
             ),
         ],
       ),
-    );
-  }
-
-  void _showSortBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 16.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Sort by',
-                    style: TextStyle(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close, size: 24.sp),
-                  ),
-                ],
-              ),
-              ..._sortOptions.map((option) {
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      _selectedSortOption = option;
-                    });
-                    // FUTURE: Trigger BLoC event to sort products here
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                    child: Text(
-                      option,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                );
-              }),
-              SizedBox(height: 20.h),
-            ],
-          ),
-        );
-      },
     );
   }
 

@@ -75,17 +75,21 @@ class LoadCollectionByHandleRequested extends ProductEvent {
   final String handle;
   final int first;
   final String? after;
+  final String? sortKey;
+  final bool? reverse;
   final bool loadMore;
 
   LoadCollectionByHandleRequested({
     required this.handle,
     this.first = 20,
     this.after,
+    this.sortKey,
+    this.reverse,
     this.loadMore = false,
   });
 
   @override
-  List<Object?> get props => [handle, first, after, loadMore];
+  List<Object?> get props => [handle, first, after, sortKey, reverse, loadMore];
 }
 
 /// Load brands event

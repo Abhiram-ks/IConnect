@@ -21,7 +21,7 @@ class SortDropdown extends StatefulWidget {
 
   const SortDropdown({
     super.key,
-    this.initialFilter = ProductSortFilter.alphabeticallyAZ,
+    this.initialFilter = ProductSortFilter.featured,
     required this.onFilterChanged,
     this.label,
     this.padding,
@@ -90,76 +90,113 @@ class _SortDropdownState extends State<SortDropdown> {
     }
   }
 
+  void _showSortBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: 20.h,
+              left: 16.w,
+              right: 16.w,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Sort by',
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.close, size: 24.sp),
+                    ),
+                  ],
+                ),
+                ...ProductSortFilter.values.map((filter) {
+                  final isSelected = filter == _currentFilter;
+                  return InkWell(
+                    onTap: () {
+                      if (filter != _currentFilter) {
+                        setState(() {
+                          _currentFilter = filter;
+                        });
+                        final sortParams = _getSortParamsForFilter(filter);
+                        widget.onFilterChanged(filter, sortParams);
+                      }
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _getFilterDisplayName(filter),
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color:
+                                  isSelected
+                                      ? AppPalette.blueColor
+                                      : Colors.black87,
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                            ),
+                          ),
+                          if (isSelected)
+                            Icon(
+                              Icons.check,
+                              color: AppPalette.blueColor,
+                              size: 20.sp,
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding:
-          widget.padding ??
-          EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .05),
-            blurRadius: 4.r,
-            offset: Offset(0, 2.h),
-          ),
-        ],
-      ),
+    return InkWell(
+      onTap: _showSortBottomSheet,
       child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(
-            widget.label ?? 'Sort by:',
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: AppPalette.blackColor,
+          Flexible(
+            child: Text(
+              _getFilterDisplayName(_currentFilter),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: AppPalette.greyColor.withValues(alpha: .3),
-                ),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<ProductSortFilter>(
-                  value: _currentFilter,
-                  isExpanded: true,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: AppPalette.blackColor,
-                    size: 20.sp,
-                  ),
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: AppPalette.blackColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  items:
-                      ProductSortFilter.values.map((filter) {
-                        return DropdownMenuItem(
-                          value: filter,
-                          child: Text(_getFilterDisplayName(filter)),
-                        );
-                      }).toList(),
-                  onChanged: (newFilter) {
-                    if (newFilter != null && newFilter != _currentFilter) {
-                      setState(() {
-                        _currentFilter = newFilter;
-                      });
-                      final sortParams = _getSortParamsForFilter(newFilter);
-                      widget.onFilterChanged(newFilter, sortParams);
-                    }
-                  },
-                ),
-              ),
-            ),
-          ),
+          SizedBox(width: 4.w),
+          Icon(Icons.keyboard_arrow_down_sharp, size: 24.sp),
         ],
       ),
     );

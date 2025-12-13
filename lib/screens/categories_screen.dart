@@ -235,8 +235,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
-              crossAxisSpacing: 12.w,
-              mainAxisSpacing: 12.h,
+              crossAxisSpacing: 8.w,
               childAspectRatio:
                   0.65, // Reduced to allow more height for 2-line titles
             ),

@@ -34,6 +34,8 @@ abstract class ProductRemoteDataSource {
     required String handle,
     int first = 20,
     String? after,
+    String? sortKey,
+    bool? reverse,
   });
 
   /// Get all unique brands (vendors) from products
@@ -139,6 +141,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     required String handle,
     int first = 20,
     String? after,
+    String? sortKey,
+    bool? reverse,
   }) async {
     final result = await graphQLService.executeQuery(
       GraphQLQueries.getCollectionByHandle,
@@ -146,6 +150,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
         'handle': handle,
         'first': first,
         if (after != null) 'after': after,
+        if (sortKey != null) 'sortKey': sortKey,
+        if (reverse != null) 'reverse': reverse,
       },
     );
 
