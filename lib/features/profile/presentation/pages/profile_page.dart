@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconnect/app_palette.dart';
+import 'package:iconnect/common/custom_button.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
 import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
 import 'package:iconnect/features/profile/domain/entities/profile_entity.dart';
+import 'package:iconnect/routes.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -40,6 +43,14 @@ class ProfilePage extends StatelessWidget {
                 message: state.message,
                 textAlign: TextAlign.center,
                 backgroundColor: AppPalette.redColor,
+              );
+            }
+            // Navigate back to login after logout
+            if (state is AuthInitial) {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.login,
+                (route) => false,
               );
             }
           },
@@ -98,6 +109,8 @@ class ProfilePage extends StatelessWidget {
             }
 
             if (profile != null) {
+              final isLoading = state is AuthLoading;
+              
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -156,6 +169,30 @@ class ProfilePage extends StatelessWidget {
                         label: 'Default Address',
                         address: profile.defaultAddress!,
                       ),
+                    if (profile.defaultAddress != null)
+                      const SizedBox(height: 32),
+                    
+                    // Action Buttons Section
+                    const SizedBox(height: 16),
+                    CustomButton(
+                      text: 'My Orders',
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.orders);
+                      },
+                    ),
+                    SizedBox(height: 12.h),
+                    CustomButton(
+                      text: isLoading ? 'Logging out...' : 'Log out',
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              await context.read<AuthCubit>().logout();
+                            },
+                      bgColor: AppPalette.whiteColor,
+                      textColor: AppPalette.blackColor,
+                      borderColor: AppPalette.blackColor,
+                    ),
+                    SizedBox(height: 20.h),
                   ],
                 ),
               );

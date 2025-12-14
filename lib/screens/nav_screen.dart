@@ -92,9 +92,11 @@ int _navIndex(NavItem item) {
     case NavItem.offers:
       return 4;
     case NavItem.cart:
-      return 5;
+      return 0; // Cart navigates to separate page, default to home
     case NavItem.search:
       return 6;
+    case NavItem.profile:
+      return 0; // Profile navigates to separate page, default to home
   }
 }
 
@@ -103,6 +105,7 @@ class CustomAppBarDashbord extends StatelessWidget
   final String title;
   final VoidCallback? onBack;
   final VoidCallback? onNotificationTap;
+  final bool hideCartIcon;
 
   @override
   final Size preferredSize;
@@ -112,6 +115,7 @@ class CustomAppBarDashbord extends StatelessWidget
     this.title = 'IConnect',
     this.onBack,
     this.onNotificationTap,
+    this.hideCartIcon = false,
   }) : preferredSize = Size.fromHeight(60.h);
 
   @override
@@ -172,7 +176,7 @@ class CustomAppBarDashbord extends StatelessWidget
             shape: const CircleBorder(),
           ),
         ),
-        if (onBack == null)
+        if (!hideCartIcon)
           Builder(
             builder: (BuildContext scaffoldContext) {
               return Stack(
@@ -183,8 +187,13 @@ class CustomAppBarDashbord extends StatelessWidget
                       color: AppPalette.blackColor,
                     ),
                     onPressed: () {
-                      // Open cart drawer when header cart icon is tapped
-                      Scaffold.of(scaffoldContext).openEndDrawer();
+                      // Navigate to detailed cart screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DetailedCartScreen(),
+                        ),
+                      );
                     },
                     tooltip: 'Shopping Cart',
                     style: IconButton.styleFrom(

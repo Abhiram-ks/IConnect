@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
-import 'package:iconnect/core/di/service_locator.dart';
+import 'package:iconnect/core/storage/secure_storage_service.dart';
 import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
-import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:iconnect/routes.dart';
 
 class BottomNavWidget extends StatelessWidget {
   const BottomNavWidget({super.key});
 
   /// Maps NavItem to bottom navigation bar index
-  /// Note: search is not in the bottom nav bar (it opens drawer)
+  /// Note: search and cart are not in the bottom nav bar
   int _getBottomNavIndex(NavItem item) {
     switch (item) {
       case NavItem.home:
@@ -25,8 +24,10 @@ class BottomNavWidget extends StatelessWidget {
         return 0; // Product item is hidden, default to home
       case NavItem.offers:
         return 3; // Changed from 4 to 3 (Product removed)
+      case NavItem.profile:
+        return 4; // Profile button
       case NavItem.cart:
-        return 4; // Changed from 5 to 4 (Product removed)
+        return 0; // Cart navigates to separate page, default to home
       case NavItem.search:
         // Search opens drawer, not in bottom nav
         return 0; // Default to home
@@ -46,9 +47,7 @@ class BottomNavWidget extends StatelessWidget {
         return NavItem
             .offers; // Changed from product to offers (Product removed)
       case 4:
-        return NavItem.cart; // Changed from offers to cart (Product removed)
-      case 5:
-        return NavItem.cart; // Fallback for old index
+        return NavItem.profile; // Profile button
       default:
         return NavItem.home;
     }
@@ -86,13 +85,27 @@ class BottomNavWidget extends StatelessWidget {
                   showUnselectedLabels: true,
                   type: BottomNavigationBarType.fixed,
                   currentIndex: _getBottomNavIndex(state),
-                  onTap: (index) {
+                  onTap: (index) async {
                     // Check if we're on the main navigation screen
                     final currentRoute = ModalRoute.of(context)?.settings.name;
                     final isOnMainScreen = currentRoute == AppRoutes.navigation;
 
                     // Get the NavItem from the bottom nav index
                     final selectedNavItem = _getNavItemFromIndex(index);
+
+                    // Handle profile navigation based on login status
+                    if (selectedNavItem == NavItem.profile) {
+                      final isLoggedIn =
+                          await SecureStorageService.isLoggedIn();
+                      if (isLoggedIn) {
+                        // Navigate to profile page
+                        Navigator.pushNamed(context, AppRoutes.profile);
+                      } else {
+                        // Navigate to login page
+                        Navigator.pushNamed(context, AppRoutes.login);
+                      }
+                      return;
+                    }
 
                     // If tapping home icon, reset home view to show home content
                     if (selectedNavItem == NavItem.home) {
@@ -169,83 +182,11 @@ class BottomNavWidget extends StatelessWidget {
                       ),
                     ),
                     BottomNavigationBarItem(
-                      icon: BlocBuilder<CartCubit, CartState>(
-                        bloc: sl<CartCubit>(),
-                        builder: (context, state) {
-                          int itemCount = 0;
-                          if (state is CartLoaded) {
-                            itemCount = state.cart.itemCount;
-                          } else if (state is CartOperationInProgress) {
-                            itemCount = state.currentCart.itemCount;
-                          }
-
-                          return Stack(
-                            children: [
-                              Icon(Icons.shopping_bag_outlined, size: 16.sp),
-                              if (itemCount > 0)
-                                Positioned(
-                                  right: 0,
-                                  top: 0,
-                                  child: Container(
-                                    padding: EdgeInsets.all(4.r),
-                                    decoration: const BoxDecoration(
-                                      color: AppPalette.redColor,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Text(
-                                      '$itemCount',
-                                      style: TextStyle(
-                                        color: AppPalette.whiteColor,
-                                        fontSize: 8.sp,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
-                      ),
-                      label: 'Cart',
-                      activeIcon: BlocBuilder<CartCubit, CartState>(
-                        bloc: sl<CartCubit>(),
-                        builder: (context, state) {
-                          int itemCount = 0;
-                          if (state is CartLoaded) {
-                            itemCount = state.cart.itemCount;
-                          } else if (state is CartOperationInProgress) {
-                            itemCount = state.currentCart.itemCount;
-                          }
-
-                          return Stack(
-                            children: [
-                              const Icon(
-                                Icons.shopping_bag_rounded,
-                                color: AppPalette.blueColor,
-                              ),
-                              if (itemCount > 0)
-                                Positioned(
-                                  right: 0,
-                                  top: 0,
-                                  child: Container(
-                                    padding: EdgeInsets.all(4.r),
-                                    decoration: const BoxDecoration(
-                                      color: AppPalette.redColor,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Text(
-                                      '$itemCount',
-                                      style: TextStyle(
-                                        color: AppPalette.whiteColor,
-                                        fontSize: 8.sp,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
+                      icon: Icon(Icons.person_outline, size: 16.sp),
+                      label: 'Profile',
+                      activeIcon: Icon(
+                        Icons.person,
+                        color: AppPalette.blueColor,
                       ),
                     ),
                   ],

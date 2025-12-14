@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart' as dio;
 import 'package:graphql_flutter/graphql_flutter.dart'
     hide NetworkException, ServerException;
+import 'package:iconnect/core/graphql/graphql_queries.dart';
 import 'package:iconnect/services/api_exception.dart';
 import 'package:iconnect/services/key_store.dart';
 
@@ -68,9 +69,9 @@ abstract class GraphQLBaseService {
   ///
   /// [fetchPolicy] - Controls how the query interacts with the cache:
   ///   - `FetchPolicy.cacheFirst` (default): Returns cached data if available, otherwise fetches from network (similar to axios)
-  ///   - `FetchPolicy.networkOnly`: Always fetches from network, ignoring cache
+  ///   - `FetchPolicy.networkOnly`: Always fetches from network, but still writes to cache (may cause cache conflicts)
   ///   - `FetchPolicy.cacheOnly`: Only returns cached data, never fetches from network
-  ///   - `FetchPolicy.noCache`: Bypasses cache completely
+  ///   - `FetchPolicy.noCache`: Completely bypasses cache for both reading and writing (use this to avoid cache conflicts)
   Future<Map<String, dynamic>> executeQuery(
     String query, {
     Map<String, dynamic>? variables,
@@ -101,7 +102,7 @@ abstract class GraphQLBaseService {
       _checkUserErrors(result.data!);
 
       return result.data!;
-    } on ApiException {
+    } on ApiException catch (_) {
       rethrow;
     } catch (e) {
       throw ApiException(message: 'Query execution failed: ${e.toString()}');
@@ -268,11 +269,15 @@ abstract class GraphQLBaseService {
     String query, {
     Map<String, dynamic>? variables,
   }) async {
-    return executeQuery(
-      query,
-      variables: variables,
-      fetchPolicy: FetchPolicy.networkOnly,
-    );
+    try {
+      return executeQuery(
+        query,
+        variables: variables,
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
+    } catch (e) {
+      throw ApiException(message: 'Query execution failed: ${e.toString()}');
+    }
   }
 
   /// Clear the GraphQL cache
@@ -617,51 +622,7 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     int first = 10,
     String? after,
   }) async {
-    const queryString = r'''
-      query GetCustomerOrders($customerAccessToken: String!, $first: Int!, $after: String) {
-        customer(customerAccessToken: $customerAccessToken) {
-          orders(first: $first, after: $after) {
-            edges {
-              node {
-                id
-                name
-                orderNumber
-                processedAt
-                totalPrice {
-                  amount
-                  currencyCode
-                }
-                fulfillmentStatus
-                financialStatus
-                lineItems(first: 10) {
-                  edges {
-                    node {
-                      title
-                      quantity
-                      originalTotalPrice {
-                        amount
-                        currencyCode
-                      }
-                      variant {
-                        id
-                        title
-                        image {
-                          url
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-          }
-        }
-      }
-    ''';
+    const queryString = GraphQLQueries.getCustomerOrders;
 
     return executeQuery(
       queryString,
@@ -670,6 +631,8 @@ class ShopifyGraphQLService extends GraphQLBaseService {
         'first': first,
         if (after != null) 'after': after,
       },
+      // Use noCache to completely bypass cache and avoid conflicts with getCustomer query
+      fetchPolicy: FetchPolicy.noCache,
     );
   }
 }

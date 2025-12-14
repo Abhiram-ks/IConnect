@@ -55,7 +55,11 @@ class OrdersPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: AppPalette.redColor),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: AppPalette.redColor,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       state.message,
@@ -64,7 +68,10 @@ class OrdersPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => context.read<OrdersCubit>().loadOrders(refresh: true),
+                      onPressed:
+                          () => context.read<OrdersCubit>().loadOrders(
+                            refresh: true,
+                          ),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -74,7 +81,7 @@ class OrdersPage extends StatelessWidget {
 
             List<OrderEntity> orders = [];
             bool isLoading = false;
-            
+
             if (state is OrdersLoaded) {
               orders = state.orders;
             } else if (state is OrdersLoading) {
@@ -89,7 +96,11 @@ class OrdersPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.shopping_bag_outlined, size: 64, color: AppPalette.hintColor),
+                    Icon(
+                      Icons.shopping_bag_outlined,
+                      size: 64,
+                      color: AppPalette.hintColor,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'No orders yet',
@@ -124,7 +135,9 @@ class OrdersPage extends StatelessWidget {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(color: AppPalette.blueColor),
+                        child: CircularProgressIndicator(
+                          color: AppPalette.blueColor,
+                        ),
                       ),
                     );
                   }
@@ -201,68 +214,73 @@ class OrdersPage extends StatelessWidget {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
-            ...order.lineItems.take(3).map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      if (item.variant?.imageUrl != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: Image.network(
-                            item.variant!.imageUrl!,
+            ...order.lineItems
+                .take(3)
+                .map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        if (item.variant?.imageUrl != null)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.network(
+                              item.variant!.imageUrl!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      const SizedBox(width: 50, height: 50),
+                            ),
+                          )
+                        else
+                          Container(
                             width: 50,
                             height: 50,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const SizedBox(width: 50, height: 50),
-                          ),
-                        )
-                      else
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: AppPalette.hintColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.title,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppPalette.blackColor,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            decoration: BoxDecoration(
+                              color: AppPalette.hintColor.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Qty: ${item.quantity}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: AppPalette.hintColor,
+                          ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.title,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppPalette.blackColor,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Text(
+                                'Qty: ${item.quantity}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: AppPalette.hintColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(
-                        item.originalTotalPrice.formattedAmount,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppPalette.blackColor,
+                        Text(
+                          item.originalTotalPrice.formattedAmount,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppPalette.blackColor,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                )),
+                ),
             if (order.lineItems.length > 3)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -275,13 +293,17 @@ class OrdersPage extends StatelessWidget {
                 ),
               ),
           ],
-          if (order.fulfillmentStatus != null || order.financialStatus != null) ...[
+          if (order.fulfillmentStatus != null ||
+              order.financialStatus != null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
                 if (order.fulfillmentStatus != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppPalette.blueColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(4),
@@ -295,11 +317,15 @@ class OrdersPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (order.fulfillmentStatus != null && order.financialStatus != null)
+                if (order.fulfillmentStatus != null &&
+                    order.financialStatus != null)
                   const SizedBox(width: 8),
                 if (order.financialStatus != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppPalette.greenColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(4),
@@ -324,11 +350,23 @@ class OrdersPage extends StatelessWidget {
   String _formatDate(String dateString) {
     try {
       final date = DateTime.parse(dateString);
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
     } catch (e) {
       return dateString;
     }
   }
 }
-

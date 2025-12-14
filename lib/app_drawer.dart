@@ -431,7 +431,6 @@ class _FooterWidgetState extends State<_FooterWidget> {
       },
       child: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, authState) {
-          final isLoading = authState is AuthLoading;
           final isLoggedIn = _token != null && _token!.isNotEmpty;
 
           if (_isLoadingToken) {
@@ -451,61 +450,25 @@ class _FooterWidgetState extends State<_FooterWidget> {
             padding: EdgeInsets.all(16.w),
             child: Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.only(bottom: 16.h),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'My Account',
-                      style: TextStyle(
-                        fontSize: 19.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                if (!isLoggedIn)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 16.h),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'My Account',
+                        style: TextStyle(
+                          fontSize: 19.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.left,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      textAlign: TextAlign.left,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
-                if (isLoggedIn)
-                  Column(
-                    children: [
-                      CustomButton(
-                        text: 'Profile',
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, AppRoutes.profile);
-                        },
-                      ),
-                      SizedBox(height: 5.h),
-                      CustomButton(
-                        text: 'Orders',
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, AppRoutes.orders);
-                        },
-                        bgColor: AppPalette.whiteColor,
-                        textColor: AppPalette.blackColor,
-                        borderColor: AppPalette.blackColor,
-                      ),
-                      SizedBox(height: 5.h),
-                      CustomButton(
-                        text: isLoading ? 'Logging out...' : 'Log out',
-                        onPressed:
-                            isLoading
-                                ? null
-                                : () async {
-                                  await context.read<AuthCubit>().logout();
-                                  // Token will be updated via BlocListener
-                                },
-                        bgColor: AppPalette.whiteColor,
-                        textColor: AppPalette.blackColor,
-                        borderColor: AppPalette.blackColor,
-                      ),
-                    ],
-                  )
-                else
+                if (!isLoggedIn)
                   Column(
                     children: [
                       CustomButton(

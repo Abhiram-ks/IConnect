@@ -10,70 +10,82 @@ import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_screen.dart';
 import 'package:iconnect/features/checkout/presentation/cubit/checkout_cubit.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
+import 'package:iconnect/screens/nav_screen.dart';
 
 class DetailedCartScreen extends StatelessWidget {
   const DetailedCartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<CartCubit, CartState>(
-        bloc: sl<CartCubit>(),
-        builder: (context, state) {
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                // Title and Breadcrumb
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Shopping Cart',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppPalette.blackColor,
-                        ),
+    return ColoredBox(
+      color: AppPalette.blueColor,
+      child: SafeArea(
+        child: Scaffold(
+          appBar: CustomAppBarDashbord(
+            hideCartIcon: true,
+            onBack: () {
+              Navigator.pop(context);
+            },
+          ),
+          body: BlocBuilder<CartCubit, CartState>(
+            bloc: sl<CartCubit>(),
+            builder: (context, state) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Title and Breadcrumb
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      ConstantWidgets.hight30(context),
-                      if (state is CartLoaded ||
-                          state is CartOperationInProgress) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
-                            Text(
-                              'Product',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppPalette.blackColor,
-                              ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Shopping Cart',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppPalette.blackColor,
                             ),
-                            Text(
-                              'Price',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppPalette.blackColor,
-                              ),
+                          ),
+                          ConstantWidgets.hight30(context),
+                          if (state is CartLoaded ||
+                              state is CartOperationInProgress) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text(
+                                  'Product',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppPalette.blackColor,
+                                  ),
+                                ),
+                                Text(
+                                  'Price',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppPalette.blackColor,
+                                  ),
+                                ),
+                              ],
                             ),
+                            const Divider(color: AppPalette.hintColor),
                           ],
-                        ),
-                        const Divider(color: AppPalette.hintColor),
-                      ],
-                    ],
-                  ),
-                ),
+                        ],
+                      ),
+                    ),
 
-                // Cart Content
-                _buildCartContent(context, state),
-              ],
-            ),
-          );
-        },
+                    // Cart Content
+                    _buildCartContent(context, state),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
