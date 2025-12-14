@@ -8,16 +8,20 @@ import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/routes.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import '../cubit/checkout_cubit.dart';
 
 class CheckoutWebViewScreen extends StatefulWidget {
   final String checkoutUrl;
   final bool showExitConfirmation;
+  final String? customerAccessToken;
 
   const CheckoutWebViewScreen({
     super.key,
     required this.checkoutUrl,
     this.showExitConfirmation = true,
+    this.customerAccessToken,
   });
 
   @override
@@ -25,9 +29,11 @@ class CheckoutWebViewScreen extends StatefulWidget {
 }
 
 class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   bool _isLoading = true;
   bool _orderCompleted = false;
+  bool _isInitialized = false;
+  bool _isExiting = false;
 
   @override
   void initState() {
@@ -35,57 +41,165 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
     log(
       'CheckoutWebViewScreen initialized with showExitConfirmation: ${widget.showExitConfirmation}',
     );
+    log(
+      'Customer Access Token: ${widget.customerAccessToken != null ? "Present" : "Not present"}',
+    );
     _initializeWebView();
   }
 
-  void _initializeWebView() {
-    _controller =
-        WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setBackgroundColor(AppPalette.whiteColor)
-          ..setNavigationDelegate(
-            NavigationDelegate(
-              onPageStarted: (String url) {
-                setState(() {
-                  _isLoading = true;
-                });
-                log('Page started loading: $url');
-              },
-              onPageFinished: (String url) {
-                setState(() {
-                  _isLoading = false;
-                });
-                log('Page finished loading: $url');
+  Future<void> _initializeWebView() async {
+    try {
+      // Create platform-specific parameters for better performance
+      late final PlatformWebViewControllerCreationParams params;
+      if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+        params = WebKitWebViewControllerCreationParams(
+          allowsInlineMediaPlayback: true,
+          mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+        );
+      } else if (WebViewPlatform.instance is AndroidWebViewPlatform) {
+        params = AndroidWebViewControllerCreationParams();
+      } else {
+        params = const PlatformWebViewControllerCreationParams();
+      }
 
-                // Check if user reached the thank you page
-                _checkForOrderCompletion(url);
-              },
-              onWebResourceError: (WebResourceError error) {
-                log('WebView error: ${error.description}');
-                if (mounted) {
-                  CustomSnackBar.show(
-                    context,
-                    message: 'Error loading checkout page',
-                    textAlign: TextAlign.center,
-                    backgroundColor: AppPalette.redColor,
-                  );
-                }
-              },
-              onNavigationRequest: (NavigationRequest request) {
-                log('Navigation request: ${request.url}');
+      final controller = WebViewController.fromPlatformCreationParams(params);
 
-                // Detect if user is navigating back to store (Continue Shopping)
-                if (_orderCompleted && _isNavigatingToStore(request.url)) {
-                  log('Continue shopping detected, navigating to home...');
-                  _navigateToHome();
-                  return NavigationDecision.prevent;
-                }
+      // Configure controller
+      await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+      await controller.setBackgroundColor(AppPalette.whiteColor);
 
-                return NavigationDecision.navigate;
-              },
-            ),
-          )
-          ..loadRequest(Uri.parse(widget.checkoutUrl));
+      // Set navigation delegate
+      await controller.setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            if (mounted) {
+              setState(() {
+                _isLoading = true;
+              });
+            }
+            log('Page started loading: $url');
+          },
+          onPageFinished: (String url) {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+            log('Page finished loading: $url');
+            _checkForOrderCompletion(url);
+          },
+          onWebResourceError: (WebResourceError error) {
+            log('WebView error: ${error.description}');
+            if (mounted) {
+              CustomSnackBar.show(
+                context,
+                message: 'Error loading checkout page',
+                textAlign: TextAlign.center,
+                backgroundColor: AppPalette.redColor,
+              );
+            }
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            log('Navigation request: ${request.url}');
+
+            // Detect if user is navigating back to store (Continue Shopping)
+            if (_orderCompleted && _isNavigatingToStore(request.url)) {
+              log('Continue shopping detected, navigating to home...');
+              _navigateToHome();
+              return NavigationDecision.prevent;
+            }
+
+            // Add authentication to all navigation requests
+            if (widget.customerAccessToken != null &&
+                widget.customerAccessToken!.isNotEmpty &&
+                !request.url.contains('customer_access_token')) {
+              log('Adding authentication to navigation: ${request.url}');
+
+              // Parse URL and add token
+              final uri = Uri.parse(request.url);
+              final queryParams = Map<String, String>.from(uri.queryParameters);
+              queryParams['customer_access_token'] =
+                  widget.customerAccessToken!;
+              final authenticatedUrl =
+                  uri.replace(queryParameters: queryParams).toString();
+
+              // Load the authenticated URL instead
+              _controller?.loadRequest(
+                Uri.parse(authenticatedUrl),
+                headers: {
+                  'X-Shopify-Customer-Access-Token':
+                      widget.customerAccessToken!,
+                },
+              );
+
+              return NavigationDecision.prevent;
+            }
+
+            return NavigationDecision.navigate;
+          },
+        ),
+      );
+
+      // Enable platform-specific features
+      if (controller.platform is AndroidWebViewController) {
+        AndroidWebViewController.enableDebugging(false);
+        (controller.platform as AndroidWebViewController)
+            .setMediaPlaybackRequiresUserGesture(false);
+      }
+
+      // Build the final checkout URL with authentication
+      String finalCheckoutUrl = widget.checkoutUrl;
+
+      if (widget.customerAccessToken != null &&
+          widget.customerAccessToken!.isNotEmpty) {
+        log('Loading checkout with authentication');
+
+        // Add customer_access_token as URL parameter
+        // This is the most reliable method for Shopify checkout authentication
+        final uri = Uri.parse(widget.checkoutUrl);
+        final queryParams = Map<String, String>.from(uri.queryParameters);
+        queryParams['customer_access_token'] = widget.customerAccessToken!;
+
+        finalCheckoutUrl = uri.replace(queryParameters: queryParams).toString();
+        log('Final checkout URL prepared with authentication');
+
+        // Load with header for additional authentication
+        await controller.loadRequest(
+          Uri.parse(finalCheckoutUrl),
+          headers: {
+            'X-Shopify-Customer-Access-Token': widget.customerAccessToken!,
+          },
+        );
+      } else {
+        log('Loading checkout without authentication (guest checkout)');
+        await controller.loadRequest(Uri.parse(finalCheckoutUrl));
+      }
+
+      // Set controller and mark as initialized
+      if (mounted) {
+        setState(() {
+          _controller = controller;
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      log('Error initializing webview: $e');
+      if (mounted) {
+        CustomSnackBar.show(
+          context,
+          message: 'Failed to load checkout',
+          textAlign: TextAlign.center,
+          backgroundColor: AppPalette.redColor,
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up to prevent memory leaks
+    log('CheckoutWebViewScreen disposing');
+    super.dispose();
   }
 
   void _checkForOrderCompletion(String url) {
@@ -161,10 +275,28 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !widget.showExitConfirmation || _orderCompleted,
-      onPopInvoked: (didPop) {
-        if (!didPop && !_orderCompleted && widget.showExitConfirmation) {
+      canPop:
+          _isExiting ||
+          _orderCompleted ||
+          !widget
+              .showExitConfirmation, // Allow pop if exiting, order completed, or no confirmation needed
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // If order is completed, navigate to home
+        if (_orderCompleted) {
+          _navigateToHome();
+          return;
+        }
+
+        // Check if we should show confirmation
+        if (widget.showExitConfirmation) {
           _showExitConfirmation();
+        } else {
+          // Just close
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Scaffold(
@@ -181,20 +313,28 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
           iconTheme: const IconThemeData(color: AppPalette.blackColor),
           leading: IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () {
+            onPressed: () async {
               log(
                 'Close button pressed. showExitConfirmation: ${widget.showExitConfirmation}, orderCompleted: $_orderCompleted',
               );
+
               // If order is completed, navigate to home directly without confirmation
               if (_orderCompleted) {
                 log('Navigating to home (order completed)');
                 _navigateToHome();
-              } else if (widget.showExitConfirmation) {
+                return;
+              }
+
+              // If exit confirmation is enabled, show dialog
+              if (widget.showExitConfirmation) {
                 log('Showing exit confirmation dialog');
                 _showExitConfirmation();
-              } else {
-                log('Closing webview directly (no confirmation)');
-                // Close webview directly without confirmation
+                return;
+              }
+
+              // Otherwise just close directly
+              log('Closing webview directly (no confirmation)');
+              if (context.mounted) {
                 Navigator.of(context).pop();
               }
             },
@@ -223,31 +363,56 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
               log('Checkout completed state received');
             }
           },
-          child: Stack(
-            children: [
-              WebViewWidget(controller: _controller),
-              if (_isLoading)
-                Container(
-                  color: AppPalette.whiteColor,
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(color: AppPalette.blueColor),
-                        SizedBox(height: 16),
-                        Text(
-                          'Loading checkout...',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppPalette.hintColor,
+          child:
+              _isInitialized && _controller != null
+                  ? Stack(
+                    children: [
+                      WebViewWidget(controller: _controller!),
+                      if (_isLoading)
+                        Container(
+                          color: AppPalette.whiteColor,
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  color: AppPalette.blueColor,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Loading checkout...',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppPalette.hintColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ],
+                    ],
+                  )
+                  : Container(
+                    color: AppPalette.whiteColor,
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: AppPalette.blueColor,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Initializing checkout...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppPalette.hintColor,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
         ),
       ),
     );
@@ -274,6 +439,8 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
             ),
             TextButton(
               onPressed: () {
+                _isExiting =
+                    true; // Set flag before exiting (no setState needed)
                 Navigator.of(context).pop(); // Close dialog
                 Navigator.of(context).pop(); // Exit webview
               },

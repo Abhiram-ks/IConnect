@@ -261,29 +261,8 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                     ),
 
                     ConstantWidgets.hight20(context),
-                    BlocConsumer<CheckoutCubit, CheckoutState>(
+                    BlocBuilder<CheckoutCubit, CheckoutState>(
                       bloc: sl<CheckoutCubit>(),
-                      listener: (context, checkoutState) {
-                        if (checkoutState is CheckoutCreated) {
-                          // Navigate to WebView with checkout URL
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => CheckoutWebViewScreen(
-                                    checkoutUrl: checkoutState.webUrl,
-                                  ),
-                            ),
-                          );
-                        } else if (checkoutState is CheckoutError) {
-                          CustomSnackBar.show(
-                            context,
-                            message: checkoutState.message,
-                            textAlign: TextAlign.center,
-                            backgroundColor: AppPalette.redColor,
-                          );
-                        }
-                      },
                       builder: (context, checkoutState) {
                         final isCreatingCheckout =
                             checkoutState is CheckoutCreating;
@@ -292,14 +271,39 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                           onPressed:
                               isCreatingCheckout
                                   ? null
-                                  : () {
+                                  : () async {
                                     if (_formkey.currentState!.validate()) {
                                       _updateCubit(); // Ensure latest data is saved
 
                                       // Create Shopify checkout
-                                      sl<CheckoutCubit>().createShopifyCheckout(
+                                      await sl<CheckoutCubit>().createShopifyCheckout(
                                         email: _contact.text,
                                       );
+
+                                      // Check the result and navigate
+                                      if (context.mounted) {
+                                        final state = sl<CheckoutCubit>().state;
+                                        if (state is CheckoutCreated) {
+                                          // Navigate to WebView with checkout URL
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => CheckoutWebViewScreen(
+                                                    checkoutUrl: state.webUrl,
+                                                    customerAccessToken: state.customerAccessToken,
+                                                  ),
+                                            ),
+                                          );
+                                        } else if (state is CheckoutError) {
+                                          CustomSnackBar.show(
+                                            context,
+                                            message: state.message,
+                                            textAlign: TextAlign.center,
+                                            backgroundColor: AppPalette.redColor,
+                                          );
+                                        }
+                                      }
                                     } else {
                                       CustomSnackBar.show(
                                         context,

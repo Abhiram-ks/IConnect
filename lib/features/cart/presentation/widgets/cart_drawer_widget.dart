@@ -175,32 +175,8 @@ class CartDrawerWidget extends StatelessWidget {
             ],
           ),
           ConstantWidgets.hight20(context),
-          BlocConsumer<CheckoutCubit, CheckoutState>(
+          BlocBuilder<CheckoutCubit, CheckoutState>(
             bloc: sl<CheckoutCubit>(),
-            listener: (context, checkoutState) {
-              if (checkoutState is CheckoutCreated) {
-                // Close the drawer first
-                Navigator.of(context).pop();
-
-                // Navigate to WebView with checkout URL
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => CheckoutWebViewScreen(
-                          checkoutUrl: checkoutState.webUrl,
-                        ),
-                  ),
-                );
-              } else if (checkoutState is CheckoutError) {
-                CustomSnackBar.show(
-                  context,
-                  message: checkoutState.message,
-                  textAlign: TextAlign.center,
-                  backgroundColor: AppPalette.redColor,
-                );
-              }
-            },
             builder: (context, checkoutState) {
               final isCreatingCheckout = checkoutState is CheckoutCreating;
 
@@ -209,7 +185,7 @@ class CartDrawerWidget extends StatelessWidget {
                 onPressed:
                     isCreatingCheckout
                         ? null
-                        : () {
+                        : () async {
                           final currentCartState = sl<CartCubit>().state;
                           if (currentCartState is CartLoaded) {
                             // Clear any previous checkout state
@@ -221,7 +197,36 @@ class CartDrawerWidget extends StatelessWidget {
                             );
 
                             // Create Shopify checkout directly (no email required)
-                            sl<CheckoutCubit>().createShopifyCheckout();
+                            await sl<CheckoutCubit>().createShopifyCheckout();
+
+                            // Check the result and navigate
+                            if (context.mounted) {
+                              final state = sl<CheckoutCubit>().state;
+                              if (state is CheckoutCreated) {
+                                // Close the drawer first
+                                Navigator.of(context).pop();
+
+                                // Navigate to WebView with checkout URL
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => CheckoutWebViewScreen(
+                                          checkoutUrl: state.webUrl,
+                                          customerAccessToken:
+                                              state.customerAccessToken,
+                                        ),
+                                  ),
+                                );
+                              } else if (state is CheckoutError) {
+                                CustomSnackBar.show(
+                                  context,
+                                  message: state.message,
+                                  textAlign: TextAlign.center,
+                                  backgroundColor: AppPalette.redColor,
+                                );
+                              }
+                            }
                           } else {
                             CustomSnackBar.show(
                               context,

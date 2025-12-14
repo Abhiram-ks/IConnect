@@ -23,14 +23,16 @@ class CheckoutCreating extends CheckoutState {
 class CheckoutCreated extends CheckoutState {
   final String checkoutId;
   final String webUrl;
+  final String? customerAccessToken;
 
   const CheckoutCreated({
     required this.checkoutId,
     required this.webUrl,
+    this.customerAccessToken,
   });
 
   @override
-  List<Object?> get props => [checkoutId, webUrl];
+  List<Object?> get props => [checkoutId, webUrl, customerAccessToken];
 }
 
 class CheckoutError extends CheckoutState {

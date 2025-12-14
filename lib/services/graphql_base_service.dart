@@ -429,9 +429,20 @@ class ShopifyGraphQLService extends GraphQLBaseService {
   }
 
   /// Create cart for checkout (modern Cart API)
+  ///
+  /// Parameters:
+  /// - [lines]: List of cart items with merchandiseId and quantity
+  /// - [buyerIdentity]: Map containing buyer information:
+  ///   - email: Customer email
+  ///   - phone: Customer phone number
+  ///   - customerAccessToken: Token for authenticated users (maintains login state in checkout)
+  ///   - countryCode: Country code for the buyer
+  /// - [deliveryAddressPreferences]: Map for prefilling delivery address:
+  ///   - deliveryAddress: Map with address1, city, province, zip, country, etc.
   Future<Map<String, dynamic>> createCart({
     required List<Map<String, dynamic>> lines,
-    String? buyerIdentity,
+    Map<String, dynamic>? buyerIdentity,
+    Map<String, dynamic>? deliveryAddressPreferences,
   }) async {
     const mutationString = r'''
       mutation CreateCart($input: CartInput!) {
@@ -483,7 +494,15 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     final input = {
       'lines': lines,
       if (buyerIdentity != null && buyerIdentity.isNotEmpty)
-        'buyerIdentity': {'email': buyerIdentity},
+        'buyerIdentity': buyerIdentity,
+      if (deliveryAddressPreferences != null &&
+          deliveryAddressPreferences.isNotEmpty)
+        'attributes': [
+          {
+            'key': '_delivery_address_preferences',
+            'value': deliveryAddressPreferences.toString(),
+          },
+        ],
     };
 
     return executeMutation(mutationString, variables: {'input': input});
@@ -504,7 +523,11 @@ class ShopifyGraphQLService extends GraphQLBaseService {
           };
         }).toList();
 
-    return createCart(lines: lines, buyerIdentity: email);
+    return createCart(
+      lines: lines,
+      buyerIdentity:
+          email != null && email.isNotEmpty ? {'email': email} : null,
+    );
   }
 
   /// Customer login

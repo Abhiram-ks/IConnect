@@ -218,29 +218,8 @@ class DetailedCartScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 12),
                 ),
                 ConstantWidgets.hight30(context),
-                BlocConsumer<CheckoutCubit, CheckoutState>(
+                BlocBuilder<CheckoutCubit, CheckoutState>(
                   bloc: sl<CheckoutCubit>(),
-                  listener: (context, checkoutState) {
-                    if (checkoutState is CheckoutCreated) {
-                      // Navigate to WebView with checkout URL
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => CheckoutWebViewScreen(
-                                checkoutUrl: checkoutState.webUrl,
-                              ),
-                        ),
-                      );
-                    } else if (checkoutState is CheckoutError) {
-                      CustomSnackBar.show(
-                        context,
-                        message: checkoutState.message,
-                        textAlign: TextAlign.center,
-                        backgroundColor: AppPalette.redColor,
-                      );
-                    }
-                  },
                   builder: (context, checkoutState) {
                     final isCreatingCheckout =
                         checkoutState is CheckoutCreating;
@@ -253,7 +232,7 @@ class DetailedCartScreen extends StatelessWidget {
                       onPressed:
                           isCreatingCheckout
                               ? null
-                              : () {
+                              : () async {
                                 final currentCartState = sl<CartCubit>().state;
                                 if (currentCartState is CartLoaded) {
                                   // Initialize checkout with cart items
@@ -262,7 +241,36 @@ class DetailedCartScreen extends StatelessWidget {
                                   );
 
                                   // Create Shopify checkout directly (no email required)
-                                  sl<CheckoutCubit>().createShopifyCheckout();
+                                  await sl<CheckoutCubit>()
+                                      .createShopifyCheckout();
+
+                                  // Check the result and navigate
+                                  if (context.mounted) {
+                                    final state = sl<CheckoutCubit>().state;
+                                    if (state is CheckoutCreated) {
+                                      // Navigate to WebView with checkout URL
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (
+                                                context,
+                                              ) => CheckoutWebViewScreen(
+                                                checkoutUrl: state.webUrl,
+                                                customerAccessToken:
+                                                    state.customerAccessToken,
+                                              ),
+                                        ),
+                                      );
+                                    } else if (state is CheckoutError) {
+                                      CustomSnackBar.show(
+                                        context,
+                                        message: state.message,
+                                        textAlign: TextAlign.center,
+                                        backgroundColor: AppPalette.redColor,
+                                      );
+                                    }
+                                  }
                                 } else {
                                   CustomSnackBar.show(
                                     context,

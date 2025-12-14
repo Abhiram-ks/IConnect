@@ -290,6 +290,7 @@ Future<void> buyNow(
                 (context) => CheckoutWebViewScreen(
                   checkoutUrl: checkoutState.webUrl,
                   showExitConfirmation: false, // No confirmation for Buy Now
+                  customerAccessToken: checkoutState.customerAccessToken,
                 ),
           ),
         );
