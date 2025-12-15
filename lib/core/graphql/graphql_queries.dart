@@ -13,6 +13,7 @@ class GraphQLQueries {
             description
             handle
             vendor
+            productType
             featuredImage {
               url
             }
@@ -61,6 +62,7 @@ class GraphQLQueries {
         descriptionHtml
         handle
         vendor
+        productType
         featuredImage {
           url
         }
@@ -115,6 +117,8 @@ class GraphQLQueries {
         description
         descriptionHtml
         handle
+        vendor
+        productType
         featuredImage {
           url
         }
@@ -211,7 +215,7 @@ class GraphQLQueries {
 
   /// Get collection by handle with products
   static const String getCollectionByHandle = r'''
-    query GetCollectionByHandle($handle: String!, $first: Int!, $after: String, $sortKey: ProductCollectionSortKeys, $reverse: Boolean) {
+    query GetCollectionByHandle($handle: String!, $first: Int!, $after: String, $sortKey: ProductCollectionSortKeys, $reverse: Boolean, $filters: [ProductFilter!]) {
       collection(handle: $handle) {
         id
         title
@@ -220,13 +224,15 @@ class GraphQLQueries {
         image {
           url
         }
-        products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse) {
+        products(first: $first, after: $after, sortKey: $sortKey, reverse: $reverse, filters: $filters) {
           edges {
             node {
               id
               title
               description
               handle
+              vendor
+              productType
               featuredImage {
                 url
               }

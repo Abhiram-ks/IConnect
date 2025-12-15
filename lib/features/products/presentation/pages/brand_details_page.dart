@@ -9,7 +9,6 @@ import 'package:iconnect/features/products/presentation/bloc/product_event.dart'
 import 'package:iconnect/features/products/presentation/widgets/brands_widgets/brands_widget_hero.dart';
 import 'package:iconnect/features/products/presentation/widgets/brands_widgets/brands_widget_product.dart';
 import 'package:iconnect/screens/nav_screen.dart';
-import 'package:iconnect/widgets/navbar_widgets.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 import '../../../../constant/constant.dart';

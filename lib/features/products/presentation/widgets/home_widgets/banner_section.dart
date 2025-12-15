@@ -134,7 +134,7 @@ class _BannerSectionState extends State<BannerSection> {
       width: double.infinity,
       child: Image.network(
         imageUrl,
-        fit: BoxFit.cover,
+        fit: BoxFit.fill,
         alignment: Alignment.center,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
@@ -248,7 +248,7 @@ class _BannerSectionState extends State<BannerSection> {
         }
 
         // Calculate height based on banner aspect ratio
-        final bannerAspectRatio = 1920 / 367; // ~5.23
+        final bannerAspectRatio = 1920 / 420; // ~5.23
         final calculatedHeight = (widget.screenWidth / bannerAspectRatio) * 3;
 
         // Start auto-scroll when banners are available
@@ -272,8 +272,8 @@ class _BannerSectionState extends State<BannerSection> {
             }
           },
           child: SizedBox(
-            height: calculatedHeight,
             width: widget.screenWidth,
+            height: calculatedHeight,
             child: Stack(
               alignment: Alignment.center,
               children: [

@@ -21,6 +21,7 @@ class GetCollectionByHandleUsecase
       after: params.after,
       sortKey: params.sortKey,
       reverse: params.reverse,
+      filters: params.filters,
     );
   }
 }
@@ -32,6 +33,7 @@ class GetCollectionByHandleParams extends Equatable {
   final String? after;
   final String? sortKey;
   final bool? reverse;
+  final List<Map<String, dynamic>>? filters;
 
   const GetCollectionByHandleParams({
     required this.handle,
@@ -39,8 +41,9 @@ class GetCollectionByHandleParams extends Equatable {
     this.after,
     this.sortKey,
     this.reverse,
+    this.filters,
   });
 
   @override
-  List<Object?> get props => [handle, first, after, sortKey, reverse];
+  List<Object?> get props => [handle, first, after, sortKey, reverse, filters];
 }

@@ -36,6 +36,7 @@ abstract class ProductRemoteDataSource {
     String? after,
     String? sortKey,
     bool? reverse,
+    List<Map<String, dynamic>>? filters,
   });
 
   /// Get all unique brands (vendors) from products
@@ -148,6 +149,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     String? after,
     String? sortKey,
     bool? reverse,
+    List<Map<String, dynamic>>? filters,
   }) async {
     final result = await graphQLService.executeQuery(
       GraphQLQueries.getCollectionByHandle,
@@ -157,6 +159,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
         if (after != null) 'after': after,
         if (sortKey != null) 'sortKey': sortKey,
         if (reverse != null) 'reverse': reverse,
+        if (filters != null && filters.isNotEmpty) 'filters': filters,
       },
     );
 

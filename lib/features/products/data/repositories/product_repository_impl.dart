@@ -143,6 +143,7 @@ class ProductRepositoryImpl implements ProductRepository {
     String? after,
     String? sortKey,
     bool? reverse,
+    List<Map<String, dynamic>>? filters,
   }) async {
     try {
       final result = await remoteDataSource.getCollectionByHandle(
@@ -151,6 +152,7 @@ class ProductRepositoryImpl implements ProductRepository {
         after: after,
         sortKey: sortKey,
         reverse: reverse,
+        filters: filters,
       );
 
       // Heavy parsing offloaded to isolate

@@ -15,6 +15,8 @@ class ProductEntity extends Equatable {
   final String currencyCode;
   final bool availableForSale;
   final List<ProductVariantEntity> variants;
+  final String? vendor;
+  final String? productType;
 
   const ProductEntity({
     required this.id,
@@ -30,6 +32,8 @@ class ProductEntity extends Equatable {
     required this.currencyCode,
     required this.availableForSale,
     this.variants = const [],
+    this.vendor,
+    this.productType,
   });
 
   /// Calculate discount percentage
@@ -57,6 +61,8 @@ class ProductEntity extends Equatable {
     currencyCode,
     availableForSale,
     variants,
+    vendor,
+    productType,
   ];
 }
 

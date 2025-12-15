@@ -16,6 +16,8 @@ class ProductModel extends ProductEntity {
     required super.currencyCode,
     required super.availableForSale,
     super.variants,
+    super.vendor,
+    super.productType,
   });
 
   /// Factory constructor from JSON (Shopify GraphQL response)
@@ -82,6 +84,8 @@ class ProductModel extends ProductEntity {
       currencyCode: currencyCode,
       availableForSale: json['availableForSale'] as bool? ?? true,
       variants: variantsList,
+      vendor: json['vendor'] as String?,
+      productType: json['productType'] as String?,
     );
   }
 
@@ -113,6 +117,8 @@ class ProductModel extends ProductEntity {
       currencyCode: json['currencyCode'] as String? ?? 'USD',
       availableForSale: json['availableForSale'] as bool? ?? true,
       variants: variantsList,
+      vendor: json['vendor'] as String?,
+      productType: json['productType'] as String?,
     );
   }
 
@@ -133,6 +139,8 @@ class ProductModel extends ProductEntity {
       'availableForSale': availableForSale,
       'variants':
           variants.map((v) => (v as ProductVariantModel).toJson()).toList(),
+      'vendor': vendor,
+      'productType': productType,
     };
   }
 
@@ -151,6 +159,8 @@ class ProductModel extends ProductEntity {
     String? currencyCode,
     bool? availableForSale,
     List<ProductVariantEntity>? variants,
+    String? vendor,
+    String? productType,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -166,6 +176,8 @@ class ProductModel extends ProductEntity {
       currencyCode: currencyCode ?? this.currencyCode,
       availableForSale: availableForSale ?? this.availableForSale,
       variants: variants ?? this.variants,
+      vendor: vendor ?? this.vendor,
+      productType: productType ?? this.productType,
     );
   }
 }

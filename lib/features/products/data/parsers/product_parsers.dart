@@ -121,6 +121,8 @@ Map<String, dynamic> _flattenProduct(Map<String, dynamic> node) {
     'currencyCode': currencyCode,
     'availableForSale': node['availableForSale'] ?? true,
     'variants': variants,
+    'vendor': node['vendor'] as String?,
+    'productType': node['productType'] as String?,
   };
 }
 

@@ -78,6 +78,7 @@ class LoadCollectionByHandleRequested extends ProductEvent {
   final String? sortKey;
   final bool? reverse;
   final bool loadMore;
+  final List<Map<String, dynamic>>? filters;
 
   LoadCollectionByHandleRequested({
     required this.handle,
@@ -86,10 +87,11 @@ class LoadCollectionByHandleRequested extends ProductEvent {
     this.sortKey,
     this.reverse,
     this.loadMore = false,
+    this.filters,
   });
 
   @override
-  List<Object?> get props => [handle, first, after, sortKey, reverse, loadMore];
+  List<Object?> get props => [handle, first, after, sortKey, reverse, loadMore, filters];
 }
 
 /// Load brands event

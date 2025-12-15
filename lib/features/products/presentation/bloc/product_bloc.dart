@@ -324,6 +324,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       after: event.after,
       sortKey: event.sortKey,
       reverse: event.reverse,
+      filters: event.filters,
     );
 
     final result = await getCollectionByHandleUsecase(params);

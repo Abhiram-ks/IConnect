@@ -1,22 +1,23 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconnect/app_palette.dart';
-
+import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/core/utils/api_response.dart';
+import 'package:iconnect/features/products/data/datasources/product_remote_datasource.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
     as products;
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
-import 'package:iconnect/core/di/service_locator.dart';
-import 'package:iconnect/features/products/data/datasources/product_remote_datasource.dart';
-import 'package:iconnect/screens/nav_screen.dart';
-import 'package:iconnect/widgets/whatsapp_floating_button.dart';
-import 'package:iconnect/widgets/sort_dropdown.dart';
-import 'package:iconnect/widgets/collection_filter_drawer.dart';
-import 'package:iconnect/widgets/active_filter_chips.dart';
 import 'package:iconnect/models/collection_filter.dart';
+import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/services/collection_filter_service.dart';
+import 'package:iconnect/widgets/active_filter_chips.dart';
+import 'package:iconnect/widgets/collection_filter_drawer.dart';
+import 'package:iconnect/widgets/sort_dropdown.dart';
+import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 import '../widgets/shopify_product_grid_section.dart';
 
@@ -150,6 +151,9 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   }
 
   void _applyFilters() {
+    // Convert active filters to Shopify filter format
+    final shopifyFilters = _convertToShopifyFilters(_activeFilters);
+
     // Reload products with filters
     final sortParams = getSortParamsForFilter(_currentSortFilter);
     context.read<products.ProductBloc>().add(
@@ -158,8 +162,47 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
         first: 20,
         sortKey: sortParams['sortKey'],
         reverse: sortParams['reverse'],
+        filters: shopifyFilters,
       ),
     );
+  }
+
+  /// Convert ActiveFilter list to Shopify GraphQL filter format
+  List<Map<String, dynamic>> _convertToShopifyFilters(
+    List<ActiveFilter> activeFilters,
+  ) {
+    final shopifyFilters = <Map<String, dynamic>>[];
+
+    for (final filter in activeFilters) {
+      try {
+        // Parse the input JSON string to get the filter value
+        final input = filter.input;
+
+        // The input from Shopify API is already in JSON format
+        // We need to parse it and use it directly as the filter object
+        if (input.isNotEmpty) {
+          try {
+            // Remove any escaped backslashes and parse the JSON
+            final cleanInput = input.replaceAll(r'\', '');
+            final parsedInput = jsonDecode(cleanInput) as Map<String, dynamic>;
+
+            // Add the parsed input directly to the filters array
+            // Shopify expects each filter to be an object with specific fields like:
+            // {available: true}, {price: {min: 100, max: 500}}, {productVendor: "Brand"}, etc.
+            shopifyFilters.add(parsedInput);
+
+            print('Parsed filter: $parsedInput');
+          } catch (e) {
+            print('Error parsing filter input JSON: $e');
+            // If parsing fails, skip this filter
+          }
+        }
+      } catch (e) {
+        print('Error converting filter ${filter.filterId}: $e');
+      }
+    }
+
+    return shopifyFilters;
   }
 
   /// Extract filters from API response
@@ -172,47 +215,9 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
   }
 
   List<dynamic> _getFilteredProducts(List<dynamic> products) {
-    if (_activeFilters.isEmpty) {
-      return products;
-    }
-
-    return products.where((product) {
-      // Check each active filter
-      for (final filter in _activeFilters) {
-        if (filter.filterId == 'filter.v.availability') {
-          // Availability filter
-          final isInStockFilter = filter.input.contains('"available":true');
-          final productAvailable = product.availableForSale ?? false;
-
-          if (isInStockFilter && !productAvailable) return false;
-          if (!isInStockFilter && productAvailable) return false;
-        } else if (filter.filterId == 'filter.v.price') {
-          // Price filter
-          try {
-            // Parse the price range from the filter input
-            final priceMatch = RegExp(r'"min":([\d.]+).*"max":([\d.]+)').firstMatch(filter.input);
-            if (priceMatch != null) {
-              final minPrice = double.tryParse(priceMatch.group(1) ?? '0') ?? 0;
-              final maxPrice = double.tryParse(priceMatch.group(2) ?? '999999') ?? 999999;
-              
-              // Get product price
-              final productPrice = product.minPrice ?? 0.0;
-              
-              // Filter out products outside the price range
-              if (productPrice < minPrice || productPrice > maxPrice) {
-                return false;
-              }
-            }
-          } catch (e) {
-            print('Error parsing price filter: $e');
-          }
-        }
-        // Note: vendor and productType are not available in ProductEntity
-        // These filters should be applied server-side via the API
-        // For now, we only filter by availability and price client-side
-      }
-      return true;
-    }).toList();
+    // Filters are now applied server-side via the GraphQL API
+    // No need for client-side filtering
+    return products;
   }
 
   @override
@@ -424,8 +429,8 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                           ),
+                                        ),
                                       ),
-                                    ),
                                     SizedBox(width: 4.w),
                                     Icon(
                                       Icons.keyboard_arrow_down_sharp,

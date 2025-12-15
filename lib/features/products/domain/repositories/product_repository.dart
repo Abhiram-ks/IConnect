@@ -36,6 +36,7 @@ abstract class ProductRepository {
     String? after,
     String? sortKey,
     bool? reverse,
+    List<Map<String, dynamic>>? filters,
   });
 
   /// Get all unique brands (vendors) from products
