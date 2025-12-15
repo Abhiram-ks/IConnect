@@ -47,7 +47,12 @@ class AppRoutes {
         final handle = productHandle ?? 'product-$productId';
 
         return MaterialPageRoute(
-          builder: (context) => ProductDetailsScreen(productHandle: handle),
+          settings: RouteSettings(name: '$productDetails/$handle'),
+          builder:
+              (context) => ProductDetailsScreen(
+                key: ValueKey(handle),
+                productHandle: handle,
+              ),
         );
       case bannerDetails:
         final args = settings.arguments as Map<String, dynamic>?;
@@ -94,24 +99,19 @@ class AppRoutes {
           builder: (context) => const TestShopifyProductsScreen(),
         );
       case login:
-        return MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        );
+        return MaterialPageRoute(builder: (context) => const LoginScreen());
       case signup:
         return MaterialPageRoute(
-          builder: (context) => BlocProvider.value(
-            value: sl<AuthCubit>(),
-            child: const SignupScreen(),
-          ),
+          builder:
+              (context) => BlocProvider.value(
+                value: sl<AuthCubit>(),
+                child: const SignupScreen(),
+              ),
         );
       case profile:
-        return MaterialPageRoute(
-          builder: (context) => const ProfilePage(),
-        );
+        return MaterialPageRoute(builder: (context) => const ProfilePage());
       case orders:
-        return MaterialPageRoute(
-          builder: (context) => const OrdersPage(),
-        );
+        return MaterialPageRoute(builder: (context) => const OrdersPage());
       case dashbord:
       //    return MaterialPageRoute(builder: (context) => const DashboardScreen());
       case pdiform:
