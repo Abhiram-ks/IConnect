@@ -11,6 +11,7 @@ import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_s
 import 'package:iconnect/features/checkout/presentation/cubit/checkout_cubit.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
 import 'package:iconnect/screens/nav_screen.dart';
+import 'package:iconnect/widgets/navbar_widgets.dart';
 
 class DetailedCartScreen extends StatelessWidget {
   const DetailedCartScreen({super.key});
@@ -85,6 +86,7 @@ class DetailedCartScreen extends StatelessWidget {
               );
             },
           ),
+          bottomNavigationBar: const BottomNavWidget(),
         ),
       ),
     );
