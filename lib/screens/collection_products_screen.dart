@@ -111,6 +111,8 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
         });
 
         final sortParams = getSortParamsForFilter(_currentSortFilter);
+        final shopifyFilters = _convertToShopifyFilters(_activeFilters);
+
         context.read<products.ProductBloc>().add(
           LoadCollectionByHandleRequested(
             handle: widget.collectionHandle,
@@ -118,6 +120,7 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
             after: state.collectionProductsEndCursor,
             sortKey: sortParams['sortKey'],
             reverse: sortParams['reverse'],
+            filters: shopifyFilters.isNotEmpty ? shopifyFilters : null,
             loadMore: true,
           ),
         );
@@ -452,13 +455,22 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
                                     _currentSortFilter = filter;
                                     _isSorting = true;
                                   });
-                                  // Trigger BLoC event to sort products
+
+                                  // Convert active filters to Shopify format
+                                  final shopifyFilters =
+                                      _convertToShopifyFilters(_activeFilters);
+
+                                  // Trigger BLoC event to sort products with existing filters
                                   context.read<products.ProductBloc>().add(
                                     LoadCollectionByHandleRequested(
                                       handle: widget.collectionHandle,
                                       first: 20,
                                       sortKey: sortParams['sortKey'],
                                       reverse: sortParams['reverse'],
+                                      filters:
+                                          shopifyFilters.isNotEmpty
+                                              ? shopifyFilters
+                                              : null,
                                     ),
                                   );
                                 },

@@ -226,11 +226,14 @@ class _BannerSectionState extends State<BannerSection> {
         if (state.homeBanners.status == Status.initial) {
           context.read<ProductBloc>().add(LoadHomeBannersRequested(first: 10));
         }
+         // Calculate height based on banner aspect ratio
+        final bannerAspectRatio = 1920 / 420; // ~5.23
+        final calculatedHeight = (widget.screenWidth / bannerAspectRatio) * 3;
 
         // Show loading state
         if (state.homeBanners.status == Status.loading) {
           return SizedBox(
-            height: widget.screenHeight * 0.3,
+            height: calculatedHeight,
             child: const Center(child: CircularProgressIndicator()),
           );
         }
@@ -247,9 +250,7 @@ class _BannerSectionState extends State<BannerSection> {
           return const SizedBox.shrink();
         }
 
-        // Calculate height based on banner aspect ratio
-        final bannerAspectRatio = 1920 / 420; // ~5.23
-        final calculatedHeight = (widget.screenWidth / bannerAspectRatio) * 3;
+       
 
         // Start auto-scroll when banners are available
         if (banners.isNotEmpty && _autoScrollTimer == null) {
