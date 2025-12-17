@@ -20,6 +20,13 @@ abstract class ProductRemoteDataSource {
     bool? reverse,
   });
 
+  /// Search products using Shopify's search query (better for search)
+  Future<SearchResultModel> searchProducts({
+    required String query,
+    int first = 20,
+    String? after,
+  });
+
   /// Get product by handle
   Future<ProductModel> getProductByHandle(String handle);
 
@@ -96,6 +103,43 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     return ProductsResultModel(
       products: products,
       pageInfo: ProductsPageInfoModel.fromJson(pageInfo),
+    );
+  }
+
+  @override
+  Future<SearchResultModel> searchProducts({
+    required String query,
+    int first = 20,
+    String? after,
+  }) async {
+    final result = await graphQLService.executeQuery(
+      GraphQLQueries.searchProducts,
+      variables: {
+        'query': query,
+        'first': first,
+        if (after != null) 'after': after,
+      },
+    );
+
+    // Parse search results
+    final searchData = result['search'] as Map<String, dynamic>?;
+    final edges = searchData?['edges'] as List<dynamic>? ?? [];
+    final pageInfo = searchData?['pageInfo'] as Map<String, dynamic>? ?? {};
+    final totalCount = searchData?['totalCount'] as int? ?? 0;
+
+    final products = <ProductModel>[];
+    for (final edge in edges) {
+      final node = edge['node'] as Map<String, dynamic>?;
+      if (node != null) {
+        final flattened = await compute(parseFlattenedProduct, node);
+        products.add(ProductModel.fromFlattenedJson(flattened));
+      }
+    }
+
+    return SearchResultModel(
+      products: products,
+      pageInfo: ProductsPageInfoModel.fromJson(pageInfo),
+      totalCount: totalCount,
     );
   }
 

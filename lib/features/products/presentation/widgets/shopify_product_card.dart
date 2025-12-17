@@ -7,20 +7,14 @@ class ShopifyProductCard extends StatelessWidget {
   final ProductEntity product;
   final VoidCallback? onTap;
 
-  const ShopifyProductCard({
-    super.key,
-    required this.product,
-    this.onTap,
-  });
+  const ShopifyProductCard({super.key, required this.product, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
       color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -41,16 +35,18 @@ class ShopifyProductCard extends StatelessWidget {
                       imageUrl: product.featuredImage ?? product.images.first,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.error),
-                      ),
+                      placeholder:
+                          (context, url) => Container(
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                      errorWidget:
+                          (context, url, error) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.error),
+                          ),
                     ),
                     // Discount Badge
                     if (product.hasDiscount)
@@ -117,7 +113,8 @@ class ShopifyProductCard extends StatelessWidget {
                           ),
                         ),
                         // Original Price (if discount exists)
-                        if (product.hasDiscount && product.compareAtPrice != null)
+                        if (product.hasDiscount &&
+                            product.compareAtPrice != null)
                           Text(
                             '${product.currencyCode} ${product.compareAtPrice!.toStringAsFixed(2)}',
                             maxLines: 1,
@@ -140,4 +137,3 @@ class ShopifyProductCard extends StatelessWidget {
     );
   }
 }
-

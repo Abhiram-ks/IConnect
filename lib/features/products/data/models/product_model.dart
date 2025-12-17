@@ -291,3 +291,16 @@ class ProductsResultModel extends ProductsResult {
     };
   }
 }
+
+/// Search Result Model - includes totalCount from Shopify search API
+class SearchResultModel {
+  final List<ProductModel> products;
+  final ProductsPageInfoModel pageInfo;
+  final int totalCount;
+
+  const SearchResultModel({
+    required this.products,
+    required this.pageInfo,
+    required this.totalCount,
+  });
+}

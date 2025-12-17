@@ -59,6 +59,11 @@ class ProductState {
   String? collectionProductsEndCursor;
   // Category products - Map<CategoryName, CategoryProductData>
   Map<String, CategoryProductData> categoryProducts;
+  // Search state
+  ApiResponse<List<ProductEntity>> searchResults;
+  bool searchHasNextPage;
+  String? searchEndCursor;
+  int searchTotalCount;
 
   ProductState({
     ApiResponse<List<ProductEntity>>? products,
@@ -85,7 +90,12 @@ class ProductState {
     this.collectionProductsHasNextPage = false,
     this.collectionProductsEndCursor,
     Map<String, CategoryProductData>? categoryProducts,
+    ApiResponse<List<ProductEntity>>? searchResults,
+    this.searchHasNextPage = false,
+    this.searchEndCursor,
+    this.searchTotalCount = 0,
   }) : products = products ?? ApiResponse.initial(),
+       searchResults = searchResults ?? ApiResponse.initial(),
        allProducts = allProducts ?? ApiResponse.initial(),
        productDetail = productDetail ?? ApiResponse.initial(),
        collections = collections ?? ApiResponse.initial(),
@@ -127,6 +137,10 @@ class ProductState {
     bool? collectionProductsHasNextPage,
     String? collectionProductsEndCursor,
     Map<String, CategoryProductData>? categoryProducts,
+    ApiResponse<List<ProductEntity>>? searchResults,
+    bool? searchHasNextPage,
+    String? searchEndCursor,
+    int? searchTotalCount,
   }) {
     return ProductState(
       products: products ?? this.products,
@@ -159,6 +173,10 @@ class ProductState {
       collectionProductsEndCursor:
           collectionProductsEndCursor ?? this.collectionProductsEndCursor,
       categoryProducts: categoryProducts ?? this.categoryProducts,
+      searchResults: searchResults ?? this.searchResults,
+      searchHasNextPage: searchHasNextPage ?? this.searchHasNextPage,
+      searchEndCursor: searchEndCursor ?? this.searchEndCursor,
+      searchTotalCount: searchTotalCount ?? this.searchTotalCount,
     );
   }
 }

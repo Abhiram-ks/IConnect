@@ -6,7 +6,9 @@ import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/constant/constant.dart';
 import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
+import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
+import 'package:iconnect/routes.dart';
 import 'package:iconnect/features/cart/presentation/widgets/cart_drawer_widget.dart';
 import 'package:iconnect/screens/categories_screen.dart';
 import 'package:iconnect/screens/detailed_cart_screen.dart';
@@ -126,12 +128,41 @@ class CustomAppBarDashbord extends StatelessWidget
       shadowColor: Colors.black.withValues(alpha: 0.15),
       surfaceTintColor: Colors.white,
       centerTitle: true,
-      title: Center(
-        child: Image.asset(
-          'assets/iconnect_logo.png',
-          height: 25.h,
-          fit: BoxFit.contain,
-        ),
+      title: BlocBuilder<ButtomNavCubit, NavItem>(
+        builder: (context, currentNavItem) {
+          return GestureDetector(
+            onTap: () {
+              // Check if we're on the main navigation screen first
+              final currentRoute = ModalRoute.of(context)?.settings.name;
+              final isOnMainScreen = currentRoute == AppRoutes.navigation;
+
+              // If already on main screen and already on home tab, do nothing
+              if (isOnMainScreen && currentNavItem == NavItem.home) {
+                return;
+              }
+
+              // Set navigation state to home
+              context.read<ButtomNavCubit>().selectItem(NavItem.home);
+
+              // Reset home view to show home content
+              context.read<HomeViewCubit>().showHome();
+
+              // If not on main screen, navigate to main screen
+              if (!isOnMainScreen) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.navigation,
+                  (route) => false,
+                );
+              }
+            },
+            child: Image.asset(
+              'assets/iconnect_logo.png',
+              height: 25.h,
+              fit: BoxFit.contain,
+            ),
+          );
+        },
       ),
       leading:
           onBack != null

@@ -85,6 +85,42 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
+  Future<Either<Failure, SearchResult>> searchProducts({
+    required String query,
+    int first = 20,
+    String? after,
+  }) async {
+    try {
+      final result = await remoteDataSource.searchProducts(
+        query: query,
+        first: first,
+        after: after,
+      );
+      return Right(SearchResult(
+        products: result.products,
+        pageInfo: result.pageInfo,
+        totalCount: result.totalCount,
+      ));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } on GraphQLException catch (e) {
+      return Left(
+        GraphQLFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
+    } on ApiException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, ProductEntity>> getProductById(String id) async {
     try {
       final result = await remoteDataSource.getProductById(id);

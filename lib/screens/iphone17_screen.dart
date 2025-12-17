@@ -5,8 +5,8 @@ import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
-import 'package:iconnect/features/products/presentation/widgets/shopify_product_card.dart';
 import 'package:iconnect/models/series_model.dart';
+import 'package:iconnect/widgets/shopify_product_grid_section.dart';
 
 class IPhone17Screen extends StatefulWidget {
   const IPhone17Screen({super.key});
@@ -164,16 +164,7 @@ class _IPhone17ScreenState extends State<IPhone17Screen>
           child: Container(
             width: 180.w,
             color: Colors.white,
-            child: ShopifyProductCard(
-              product: product,
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  '/product_details',
-                  arguments: {'productHandle': product.handle},
-                );
-              },
-            ),
+            child: ShopifyGridProductCard(product: product),
           ),
         );
       },

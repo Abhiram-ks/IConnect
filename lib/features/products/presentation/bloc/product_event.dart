@@ -39,6 +39,24 @@ class LoadProductByHandleRequested extends ProductEvent {
   List<Object?> get props => [handle];
 }
 
+/// Search products event - uses Shopify's search API for better results
+class SearchProductsRequested extends ProductEvent {
+  final String query;
+  final int first;
+  final String? after;
+  final bool loadMore;
+
+  SearchProductsRequested({
+    required this.query,
+    this.first = 20,
+    this.after,
+    this.loadMore = false,
+  });
+
+  @override
+  List<Object?> get props => [query, first, after, loadMore];
+}
+
 /// Load collections event
 class LoadCollectionsRequested extends ProductEvent {
   final int first;

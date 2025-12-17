@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconnect/app_palette.dart';
@@ -6,8 +7,15 @@ import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
+/// Search Screen with Shopify product search
+///
+/// Search Implementation Notes:
+/// - Uses Shopify's query parameter for product search
+/// - Supports title:* prefix for more accurate title-based searches
+/// - Multi-word searches use title: prefix to reduce fuzzy matching
+/// - Single word searches use regular search across all product fields
+/// - Shopify searches across: title, description, tags, product type, vendor
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
@@ -17,33 +25,60 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   List<ProductEntity> _searchResults = [];
   bool _isSearching = false;
   bool _showPopularSearches = true;
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _errorMessage;
   String _lastSearchQuery = '';
 
+  // Pagination state
+  bool _hasNextPage = false;
+  String? _endCursor;
+  int _totalCount = 0;
+  static const int _pageSize = 20;
+
   // Popular search suggestions
+  // Note: These should match your actual product titles/types in Shopify
   final List<String> _popularSearches = [
-    'Smartphones',
-    'headphones',
+    'smartphone',
     'iphone',
     'samsung',
-  ];
-
-  // Search suggestions based on input
-  final List<String> _searchSuggestions = [
-    'i phone 17 pro max',
-    'i phone 17',
-    'i phone 16 pro',
-    'i phone 16 pro 256gb',
-    'i phone 17 pro',
+    'airpods',
+    'macbook',
   ];
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    // Load more when user reaches near the bottom
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreResults();
+    }
+  }
+
+  void _loadMoreResults() {
+    if (_isLoadingMore || !_hasNextPage || _endCursor == null) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    context.read<ProductBloc>().add(
+      SearchProductsRequested(
+        query: _lastSearchQuery,
+        first: _pageSize,
+        after: _endCursor,
+        loadMore: true,
+      ),
+    );
   }
 
   void _performSearch(String query) {
@@ -53,8 +88,12 @@ class _SearchScreenState extends State<SearchScreen> {
         _isSearching = false;
         _showPopularSearches = true;
         _isLoading = false;
+        _isLoadingMore = false;
         _errorMessage = null;
         _lastSearchQuery = '';
+        _hasNextPage = false;
+        _endCursor = null;
+        _totalCount = 0;
       });
       return;
     }
@@ -63,13 +102,18 @@ class _SearchScreenState extends State<SearchScreen> {
       _isSearching = true;
       _showPopularSearches = false;
       _isLoading = true;
+      _isLoadingMore = false;
       _errorMessage = null;
       _lastSearchQuery = query;
+      _searchResults = []; // Clear previous results
+      _hasNextPage = false;
+      _endCursor = null;
+      _totalCount = 0;
     });
 
-    // Trigger search using ProductBloc with query parameter
+    // Use Shopify's dedicated search API for better results
     context.read<ProductBloc>().add(
-      LoadProductsRequested(first: 50, query: query),
+      SearchProductsRequested(query: query, first: _pageSize),
     );
   }
 
@@ -80,19 +124,18 @@ class _SearchScreenState extends State<SearchScreen> {
       _isSearching = false;
       _showPopularSearches = true;
       _isLoading = false;
+      _isLoadingMore = false;
       _errorMessage = null;
       _lastSearchQuery = '';
+      _hasNextPage = false;
+      _endCursor = null;
+      _totalCount = 0;
     });
   }
 
   void _selectPopularSearch(String search) {
     _searchController.text = search;
     _performSearch(search);
-  }
-
-  void _selectSuggestion(String suggestion) {
-    _searchController.text = suggestion;
-    _performSearch(suggestion);
   }
 
   @override
@@ -194,9 +237,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   child:
                       _showPopularSearches && !_isSearching
                           ? _buildPopularSearchesView()
-                          : _searchController.text.isNotEmpty &&
-                              _searchController.text.length < 3
-                          ? _buildSearchSuggestions()
                           : _buildSearchResults(),
                 ),
               ],
@@ -210,7 +250,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildPopularSearchesView() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -256,59 +296,14 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildSearchSuggestions() {
-    // Show iPhone-related suggestions when user types "i ph"
-    if (_searchController.text.toLowerCase().contains('i ph')) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Suggestions',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ..._searchSuggestions.map((suggestion) {
-              return GestureDetector(
-                onTap: () => _selectSuggestion(suggestion),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
-                  child: Text(
-                    suggestion,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 14,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ],
-        ),
-      );
-    }
-
-    return const SizedBox.shrink();
-  }
-
   Widget _buildSearchResults() {
     return BlocListener<ProductBloc, ProductState>(
       listener: (context, state) {
         // Only update if we're actively searching
         if (!_isSearching || _lastSearchQuery.isEmpty) return;
 
-        // Handle loading state
-        if (state.products.status == Status.loading) {
+        // Handle loading state (only for initial load, not load more)
+        if (state.searchResults.status == Status.loading && !_isLoadingMore) {
           if (!_isLoading) {
             setState(() {
               _isLoading = true;
@@ -317,19 +312,24 @@ class _SearchScreenState extends State<SearchScreen> {
           }
         }
         // Handle completed state
-        else if (state.products.status == Status.completed) {
-          final products = state.products.data ?? [];
+        else if (state.searchResults.status == Status.completed) {
+          final products = state.searchResults.data ?? [];
           setState(() {
             _searchResults = products;
             _isLoading = false;
+            _isLoadingMore = false;
             _errorMessage = null;
+            _hasNextPage = state.searchHasNextPage;
+            _endCursor = state.searchEndCursor;
+            _totalCount = state.searchTotalCount;
           });
         }
         // Handle error state
-        else if (state.products.status == Status.error) {
+        else if (state.searchResults.status == Status.error) {
           setState(() {
             _isLoading = false;
-            _errorMessage = state.products.message ?? 'An error occurred';
+            _isLoadingMore = false;
+            _errorMessage = state.searchResults.message ?? 'An error occurred';
           });
         }
       },
@@ -414,7 +414,7 @@ class _SearchScreenState extends State<SearchScreen> {
     // Show search results
     return Column(
       children: [
-        // Products header
+        // Products header with count
         if (_searchResults.isNotEmpty)
           Container(
             width: double.infinity,
@@ -424,22 +424,41 @@ class _SearchScreenState extends State<SearchScreen> {
                 bottom: BorderSide(color: Colors.grey, width: 0.5),
               ),
             ),
-            child: Text(
-              'Products (${_searchResults.length})',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _totalCount > 0
+                      ? 'Products (${_searchResults.length} of $_totalCount)'
+                      : 'Products (${_searchResults.length}${_hasNextPage ? '+' : ''})',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+                if (_hasNextPage)
+                  Text(
+                    'Scroll for more',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+              ],
             ),
           ),
 
-        // Search results list
+        // Search results list with pagination
         Expanded(
           child: ListView.builder(
+            controller: _scrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: _searchResults.length,
+            itemCount:
+                _searchResults.length +
+                (_isLoadingMore || _hasNextPage ? 1 : 0),
             itemBuilder: (context, index) {
+              // Show loading indicator at the bottom
+              if (index == _searchResults.length) {
+                return _buildLoadMoreIndicator();
+              }
               final product = _searchResults[index];
               return _buildProductCard(product);
             },
@@ -449,14 +468,45 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  Widget _buildLoadMoreIndicator() {
+    if (_isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppPalette.blueColor,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_hasNextPage) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: TextButton.icon(
+            onPressed: _loadMoreResults,
+            icon: const Icon(Icons.expand_more, color: AppPalette.blueColor),
+            label: const Text(
+              'Load more',
+              style: TextStyle(color: AppPalette.blueColor),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
   Widget _buildProductCard(ProductEntity product) {
     return GestureDetector(
       onTap: () {
-        print(
-          '🔍 Navigating to product details with handle: ${product.handle}',
-        );
-        print('🔍 Product title: ${product.title}');
-        print('🔍 Product ID: ${product.id}');
         Navigator.pushNamed(
           context,
           '/product_details',
@@ -599,6 +649,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }

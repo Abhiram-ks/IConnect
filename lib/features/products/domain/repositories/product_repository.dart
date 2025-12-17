@@ -21,6 +21,13 @@ abstract class ProductRepository {
   /// Get product by handle
   Future<Either<Failure, ProductEntity>> getProductByHandle(String handle);
 
+  /// Search products using Shopify's search API
+  Future<Either<Failure, SearchResult>> searchProducts({
+    required String query,
+    int first = 20,
+    String? after,
+  });
+
   /// Get product by ID
   Future<Either<Failure, ProductEntity>> getProductById(String id);
 
@@ -64,5 +71,18 @@ class CollectionWithProducts {
   const CollectionWithProducts({
     required this.collection,
     required this.products,
+  });
+}
+
+/// Search result with total count
+class SearchResult {
+  final List<ProductEntity> products;
+  final ProductsPageInfo pageInfo;
+  final int totalCount;
+
+  const SearchResult({
+    required this.products,
+    required this.pageInfo,
+    required this.totalCount,
   });
 }

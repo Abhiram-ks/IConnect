@@ -2,6 +2,60 @@
 class GraphQLQueries {
   // ========== PRODUCT QUERIES ==========
 
+  /// Search products using Shopify's search query
+  /// This provides better search relevance than the products query
+  static const String searchProducts = r'''
+    query SearchProducts($query: String!, $first: Int!, $after: String) {
+      search(query: $query, first: $first, after: $after, types: [PRODUCT]) {
+        edges {
+          node {
+            ... on Product {
+              id
+              title
+              description
+              handle
+              vendor
+              productType
+              featuredImage {
+                url
+              }
+              images(first: 5) {
+                edges {
+                  node {
+                    url
+                  }
+                }
+              }
+              priceRange {
+                minVariantPrice {
+                  amount
+                  currencyCode
+                }
+                maxVariantPrice {
+                  amount
+                  currencyCode
+                }
+              }
+              compareAtPriceRange {
+                minVariantPrice {
+                  amount
+                  currencyCode
+                }
+              }
+              availableForSale
+            }
+          }
+          cursor
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        totalCount
+      }
+    }
+  ''';
+
   /// Get all products with pagination
   static const String getProducts = r'''
     query GetProducts($first: Int!, $after: String, $query: String, $sortKey: ProductSortKeys, $reverse: Boolean) {

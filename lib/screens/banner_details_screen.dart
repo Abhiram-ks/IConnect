@@ -6,7 +6,6 @@ import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/models/cart_item.dart';
 import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/widgets/cart_drawer.dart';
-import 'package:iconnect/widgets/navbar_widgets.dart';
 import 'package:iconnect/widgets/product_card.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
@@ -23,9 +22,9 @@ class BannerDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       drawer: AppDrawer(),
-            endDrawer: const CartDrawerWidget(),
-      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context),),
+      drawer: AppDrawer(),
+      endDrawer: const CartDrawerWidget(),
+      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -34,10 +33,10 @@ class BannerDetailsScreen extends StatelessWidget {
               children: [
                 // Banner Hero Section
                 _buildBannerHero(),
-                
+
                 // Products Grid Section
                 _buildProductsSection(),
-                
+
                 // Bottom padding for floating button
                 const SizedBox(height: 100),
               ],
@@ -46,7 +45,6 @@ class BannerDetailsScreen extends StatelessWidget {
           const WhatsAppFloatingButton(),
         ],
       ),
-      
     );
   }
 
@@ -91,7 +89,7 @@ class BannerDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Content
           Padding(
             padding: const EdgeInsets.all(24),
@@ -117,7 +115,10 @@ class BannerDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -158,7 +159,10 @@ class BannerDetailsScreen extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppPalette.blueColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
@@ -175,7 +179,7 @@ class BannerDetailsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Products Grid
           GridView.builder(
             shrinkWrap: true,
@@ -191,7 +195,9 @@ class BannerDetailsScreen extends StatelessWidget {
               final product = bannerProducts[index];
               return BlocBuilder<CartCubit, CartState>(
                 builder: (context, cartState) {
-                  final isInCart = cartState.items.any((item) => item.id == product['id']);
+                  final isInCart = cartState.items.any(
+                    (item) => item.id == product['id'],
+                  );
                   return ProductCard(
                     imageUrl: product['imageUrl'],
                     productName: product['productName'],
@@ -219,11 +225,13 @@ class BannerDetailsScreen extends StatelessWidget {
                         offerText: product['offerText'],
                       );
                       context.read<CartCubit>().addToCart(cartItem);
-                      
+
                       // Show success message
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${product['productName']} added to cart'),
+                          content: Text(
+                            '${product['productName']} added to cart',
+                          ),
                           duration: const Duration(seconds: 2),
                           backgroundColor: AppPalette.blueColor,
                         ),
@@ -233,7 +241,9 @@ class BannerDetailsScreen extends StatelessWidget {
                       // You can implement quick view functionality here
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Quick view for ${product['productName']}'),
+                          content: Text(
+                            'Quick view for ${product['productName']}',
+                          ),
                           backgroundColor: AppPalette.greenColor,
                         ),
                       );

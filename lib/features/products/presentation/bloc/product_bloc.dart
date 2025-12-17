@@ -40,6 +40,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   Map<String, List<ProductEntity>> _currentCategoryProducts = {};
   List<ProductEntity> _currentCollectionProducts = [];
   CollectionEntity? _currentCollection;
+  List<ProductEntity> _currentSearchResults = [];
 
   ProductBloc({
     required this.getProductsUsecase,
@@ -70,6 +71,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<LoadHomeBannersRequested>(_onLoadHomeBannersRequested);
     on<LoadOfferBlocksRequested>(_onLoadOfferBlocksRequested);
     on<LoadHomeScreenSectionsRequested>(_onLoadHomeScreenSectionsRequested);
+    on<SearchProductsRequested>(_onSearchProductsRequested);
   }
 
   /// Handle load products event
@@ -673,6 +675,57 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
             homeScreenSections: ApiResponse.completed(sections),
           ),
         ),
+      },
+    );
+  }
+
+  /// Handle search products event using Shopify's search API
+  Future<void> _onSearchProductsRequested(
+    SearchProductsRequested event,
+    Emitter<ProductState> emit,
+  ) async {
+    if (event.loadMore) {
+      // Keep current results during load more
+      emit(state.copyWith());
+    } else {
+      // Reset search results and show loading
+      _currentSearchResults = [];
+      emit(
+        state.copyWith(
+          searchResults: ApiResponse.loading(),
+          searchHasNextPage: false,
+          searchEndCursor: null,
+          searchTotalCount: 0,
+        ),
+      );
+    }
+
+    final result = await getProductsUsecase.repository.searchProducts(
+      query: event.query,
+      first: event.first,
+      after: event.after,
+    );
+
+    result.fold(
+      (failure) => {
+        emit(state.copyWith(searchResults: ApiResponse.error(failure.message))),
+      },
+      (searchResult) {
+        // Add new products to the list
+        if (event.loadMore) {
+          _currentSearchResults.addAll(searchResult.products);
+        } else {
+          _currentSearchResults = searchResult.products;
+        }
+
+        emit(
+          state.copyWith(
+            searchResults: ApiResponse.completed(_currentSearchResults),
+            searchHasNextPage: searchResult.pageInfo.hasNextPage,
+            searchEndCursor: searchResult.pageInfo.endCursor,
+            searchTotalCount: searchResult.totalCount,
+          ),
+        );
       },
     );
   }
