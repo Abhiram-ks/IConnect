@@ -8,7 +8,8 @@ import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/routes.dart';
 
 class BottomNavWidget extends StatelessWidget {
-  const BottomNavWidget({super.key});
+  final bool isCart;
+  const BottomNavWidget({super.key,  this.isCart = false});
 
   /// Maps NavItem to bottom navigation bar index
   /// Note: search and cart are not in the bottom nav bar
@@ -23,19 +24,18 @@ class BottomNavWidget extends StatelessWidget {
       case NavItem.product:
         return 0; // Product item is hidden, default to home
       case NavItem.offers:
-        return 3; // Changed from 4 to 3 (Product removed)
+        return 3;
       case NavItem.profile:
         return 4; // Profile button
-      case NavItem.cart:
-        return 0; // Cart navigates to separate page, default to home
       case NavItem.search:
-        // Search opens drawer, not in bottom nav
         return 0; // Default to home
+      case NavItem.cart:
+        return 0;
     }
   }
 
   /// Maps bottom navigation bar index to NavItem
-  NavItem _getNavItemFromIndex(int index) {
+  NavItem _getNavItemFromIndex(int index, NavItem state) {
     switch (index) {
       case 0:
         return NavItem.home;
@@ -44,10 +44,9 @@ class BottomNavWidget extends StatelessWidget {
       case 2:
         return NavItem.iphone17;
       case 3:
-        return NavItem
-            .offers; // Changed from product to offers (Product removed)
+        return NavItem.offers;
       case 4:
-        return NavItem.profile; // Profile button
+        return NavItem.profile;
       default:
         return NavItem.home;
     }
@@ -77,7 +76,7 @@ class BottomNavWidget extends StatelessWidget {
                   useLegacyColorScheme: true,
                   elevation: 0,
                   iconSize: 26.sp,
-                  selectedItemColor: AppPalette.blueColor,
+                  selectedItemColor: isCart ? AppPalette.hintColor : AppPalette.blueColor,
                   backgroundColor: Colors.transparent,
                   landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
                   unselectedLabelStyle: TextStyle(color: AppPalette.hintColor),
@@ -91,7 +90,7 @@ class BottomNavWidget extends StatelessWidget {
                     final isOnMainScreen = currentRoute == AppRoutes.navigation;
 
                     // Get the NavItem from the bottom nav index
-                    final selectedNavItem = _getNavItemFromIndex(index);
+                    final selectedNavItem = _getNavItemFromIndex(index, state);
 
                     // Handle profile navigation based on login status
                     if (selectedNavItem == NavItem.profile) {
@@ -146,7 +145,7 @@ class BottomNavWidget extends StatelessWidget {
                       label: 'Home',
                       activeIcon: Icon(
                         Icons.home_rounded,
-                        color: AppPalette.blueColor,
+                        color: isCart ? AppPalette.hintColor : AppPalette.blueColor,
                       ),
                     ),
                     BottomNavigationBarItem(
@@ -162,31 +161,35 @@ class BottomNavWidget extends StatelessWidget {
                       label: 'iPhone 17',
                       activeIcon: Icon(
                         Icons.phone_android,
-                        color: AppPalette.blueColor,
+                          color: isCart ? AppPalette.hintColor : AppPalette.blueColor,
                       ),
                     ),
-                    // const BottomNavigationBarItem(
-                    //   icon: Icon(Icons.grid_view, size: 16),
-                    //   label: 'Product',
-                    //   activeIcon: Icon(
-                    //     Icons.grid_view_rounded,
-                    //     color: AppPalette.blueColor,
-                    //   ),
-                    // ),
+                    // Dynamic item:
+                    // If currently on Cart -> Show "Offers" tab option
+                    // If NOT on Cart -> Show "Cart" tab option
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.local_offer_outlined, size: 16.sp),
-                      label: 'Offers',
-                      activeIcon: Icon(
-                        Icons.local_offer,
-                        color: AppPalette.blueColor,
-                      ),
+                      icon:
+                          state == NavItem.cart
+                              ? Icon(Icons.local_offer_outlined, size: 16.sp)
+                              : Icon(Icons.shopping_bag_outlined, size: 16.sp),
+                      label: state == NavItem.cart ? 'Offers' : 'Cart',
+                      activeIcon:
+                          state == NavItem.cart
+                              ? Icon(
+                                Icons.local_offer_rounded,
+                                color: AppPalette.blueColor,
+                              )
+                              : Icon(
+                                Icons.shopping_bag_rounded,
+                                color: AppPalette.blueColor,
+                              ),
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.person_outline, size: 16.sp),
                       label: 'Profile',
                       activeIcon: Icon(
                         Icons.person,
-                        color: AppPalette.blueColor,
+                        color: isCart ? AppPalette.hintColor : AppPalette.blueColor,
                       ),
                     ),
                   ],

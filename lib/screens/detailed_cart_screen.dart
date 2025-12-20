@@ -85,6 +85,7 @@ class DetailedCartScreen extends StatelessWidget {
                 ),
               );
             },
+            
           ),
           bottomNavigationBar: const BottomNavWidget(),
         ),
