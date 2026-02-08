@@ -74,7 +74,7 @@ class MoneyEntity extends Equatable {
 
   String get formattedAmount {
     final amountValue = double.tryParse(amount) ?? 0.0;
-    return '${currencyCode} ${amountValue.toStringAsFixed(2)}';
+    return '$currencyCode ${amountValue.toStringAsFixed(2)}';
   }
 
   @override

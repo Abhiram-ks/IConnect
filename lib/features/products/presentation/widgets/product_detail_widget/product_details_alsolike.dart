@@ -10,8 +10,7 @@ import '../../bloc/product_event.dart';
 class YouMayAlsoLikeSection extends StatefulWidget {
   final String productId;
 
-  const YouMayAlsoLikeSection({Key? key, required this.productId})
-    : super(key: key);
+  const YouMayAlsoLikeSection({super.key, required this.productId});
 
   @override
   State<YouMayAlsoLikeSection> createState() => _YouMayAlsoLikeSectionState();
@@ -22,9 +21,7 @@ class _YouMayAlsoLikeSectionState extends State<YouMayAlsoLikeSection> {
   void initState() {
     super.initState();
     // Trigger loading recommended products only once when widget is initialized
-    context.read<ProductBloc>().add(
-      LoadProductRecommendationsRequested(productId: widget.productId),
-    );
+    context.read<ProductBloc>().add(LoadProductRecommendationsRequested(productId: widget.productId));
   }
 
   @override
@@ -33,10 +30,7 @@ class _YouMayAlsoLikeSectionState extends State<YouMayAlsoLikeSection> {
       builder: (context, state) {
         // Show loading indicator
         if (state.recommendedProducts.status == Status.loading) {
-          return Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Center(child: CircularProgressIndicator()),
-          );
+          return Padding(padding: EdgeInsets.all(16.w), child: Center(child: CircularProgressIndicator()));
         }
 
         // Hide section if error or no products
@@ -53,11 +47,7 @@ class _YouMayAlsoLikeSectionState extends State<YouMayAlsoLikeSection> {
               padding: EdgeInsets.all(16.w),
               child: Text(
                 'You Might Also Like',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.black87),
               ),
             ),
             SizedBox(
@@ -73,10 +63,7 @@ class _YouMayAlsoLikeSectionState extends State<YouMayAlsoLikeSection> {
                   }
                   return Padding(
                     padding: EdgeInsets.only(right: 12.w),
-                    child: SizedBox(
-                      width: 160.w,
-                      child: ShopifyGridProductCard(product: product),
-                    ),
+                    child: SizedBox(width: 160.w, child: ShopifyGridProductCard(product: product)),
                   );
                 },
               ),

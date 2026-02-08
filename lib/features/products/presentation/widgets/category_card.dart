@@ -8,30 +8,19 @@ class CategoryCard extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const CategoryCard({
-    super.key,
-    required this.imageUrl,
-    required this.title,
-    required this.onTap,
-  });
+  const CategoryCard({super.key, required this.imageUrl, required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     // Check if image URL is valid (not null, not empty, and not a placeholder)
     final bool hasValidImage =
-        imageUrl.isNotEmpty &&
-        !imageUrl.contains('placeholder') &&
-        !imageUrl.contains('via.placeholder');
+        imageUrl.isNotEmpty && !imageUrl.contains('placeholder') && !imageUrl.contains('via.placeholder');
 
     // Consistent text style for all titles
-    final titleStyle = TextStyle(
-      color: Colors.black,
-      fontSize: 8.sp,
-      fontWeight: FontWeight.w600,
-    );
+    final titleStyle = TextStyle(color: Colors.black, fontSize: 8.sp, fontWeight: FontWeight.w600);
 
     // Helper widget for showing avatar with title
-    Widget _buildAvatarCard({bool showTitleBelow = true}) {
+    Widget buildAvatarCard({bool showTitleBelow = true}) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -44,11 +33,7 @@ class CategoryCard extends StatelessWidget {
                 !hasValidImage
                     ? Text(
                       title.isNotEmpty ? title[0].toUpperCase() : 'N/A',
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppPalette.blueColor,
-                      ),
+                      style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600, color: AppPalette.blueColor),
                     )
                     : null,
           ),
@@ -71,10 +56,7 @@ class CategoryCard extends StatelessWidget {
 
     // If no valid image, show circular avatar with title
     if (!hasValidImage) {
-      return GestureDetector(
-        onTap: onTap,
-        child: _buildAvatarCard(showTitleBelow: true),
-      );
+      return GestureDetector(onTap: onTap, child: buildAvatarCard(showTitleBelow: true));
     }
 
     // All categories now have the same layout: image in CircleAvatar with title below

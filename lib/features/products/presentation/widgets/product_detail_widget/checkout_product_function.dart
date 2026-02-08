@@ -22,35 +22,29 @@ String composeWhatsAppMessage(
   double totalAmount = 0;
 
   for (final item in items) {
-    sb.writeln(
-      '\n- Product: ${item.productTitle?.isNotEmpty == true ? item.productTitle : item.title}',
-    );
+    sb.writeln('\n- Product: ${item.productTitle?.isNotEmpty == true ? item.productTitle : item.title}');
     // Display variant title if it's different from product title and not "Default Title" (common in Shopify)
     if (item.title != item.productTitle && item.title != 'Default Title') {
       sb.writeln('  Variant: ${item.title}');
     }
-    sb.writeln(
-      '  Price: ${item.currencyCode} ${item.price.toStringAsFixed(2)}',
-    );
+    sb.writeln('  Price: ${item.currencyCode} ${item.price.toStringAsFixed(2)}');
     sb.writeln('  Quantity: ${item.quantity}');
-    sb.writeln(
-      '  Subtotal: ${item.currencyCode} ${item.totalPrice.toStringAsFixed(2)}',
-    );
+    sb.writeln('  Subtotal: ${item.currencyCode} ${item.totalPrice.toStringAsFixed(2)}');
     totalAmount += item.totalPrice;
   }
 
   sb.writeln('\n--------------------------------');
-  sb.writeln(
-    'Total Amount: ${items.isNotEmpty ? items.first.currencyCode : ""} ${totalAmount.toStringAsFixed(2)}',
-  );
+  sb.writeln('Total Amount: ${items.isNotEmpty ? items.first.currencyCode : ""} ${totalAmount.toStringAsFixed(2)}');
   sb.writeln('--------------------------------');
 
   sb.writeln('\nCustomer Details:');
   if (contact != null && contact.isNotEmpty) sb.writeln('- Contact: $contact');
-  if (firstName != null && firstName.isNotEmpty)
+  if (firstName != null && firstName.isNotEmpty) {
     sb.writeln('- First Name: $firstName');
-  if (lastName != null && lastName.isNotEmpty)
+  }
+  if (lastName != null && lastName.isNotEmpty) {
     sb.writeln('- Last Name: $lastName');
+  }
   if (address != null && address.isNotEmpty) sb.writeln('- Address: $address');
   if (city != null && city.isNotEmpty) sb.writeln('- City: $city');
   if (userWhatsAppNumber != null && userWhatsAppNumber.isNotEmpty) {
@@ -60,14 +54,9 @@ String composeWhatsAppMessage(
   return sb.toString();
 }
 
-Future<void> launchWhatsAppWithMessage(
-  BuildContext context,
-  String message,
-) async {
+Future<void> launchWhatsAppWithMessage(BuildContext context, String message) async {
   final phoneNumber = WhatsAppConfig.phoneNumber;
-  final Uri waUri = Uri.parse(
-    'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}',
-  );
+  final Uri waUri = Uri.parse('https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}');
   try {
     await launchUrl(waUri, mode: LaunchMode.externalApplication);
   } catch (e) {

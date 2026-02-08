@@ -110,7 +110,7 @@ class ProfilePage extends StatelessWidget {
 
             if (profile != null) {
               final isLoading = state is AuthLoading;
-              
+
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -171,7 +171,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                     if (profile.defaultAddress != null)
                       const SizedBox(height: 32),
-                    
+
                     // Action Buttons Section
                     const SizedBox(height: 16),
                     CustomButton(
@@ -183,14 +183,128 @@ class ProfilePage extends StatelessWidget {
                     SizedBox(height: 12.h),
                     CustomButton(
                       text: isLoading ? 'Logging out...' : 'Log out',
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              await context.read<AuthCubit>().logout();
-                            },
+                      onPressed:
+                          isLoading
+                              ? null
+                              : () async {
+                                await context.read<AuthCubit>().logout();
+                              },
                       bgColor: AppPalette.whiteColor,
                       textColor: AppPalette.blackColor,
                       borderColor: AppPalette.blackColor,
+                    ),
+                    SizedBox(height: 12.h),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          final authCubit = context.read<AuthCubit>();
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return BlocProvider.value(
+                                value: authCubit,
+                                child: BlocBuilder<AuthCubit, AuthState>(
+                                  builder: (context, state) {
+                                    final isDeleting = state is AuthLoading;
+                                    return AlertDialog(
+                                      backgroundColor: AppPalette.whiteColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      title: Text(
+                                        'Delete Account',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 18.sp,
+                                          color: AppPalette.blackColor,
+                                        ),
+                                      ),
+                                      content: Text(
+                                        'Are you sure you want to delete your account?\nYour account will be permanently deleted within 30 days. If you log in again during this period, your account will be restored.',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13.sp,
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Text(
+                                            'Cancel',
+                                            style: GoogleFonts.poppins(
+                                              color: AppPalette.greyColor,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              isDeleting
+                                                  ? null
+                                                  : () async{
+                                                    context
+                                                        .read<AuthCubit>()
+                                                        .logout();
+
+                                                        await Future.delayed(const Duration(seconds: 2));
+                                                       if(context.mounted && Navigator.canPop(context)){
+                                                        Navigator.pop(context);
+                                                        Navigator.pop(context);
+                                                       }
+                                                  },
+                                          child:
+                                              isDeleting
+                                                  ? const SizedBox(
+                                                    height: 20,
+                                                    width: 20,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color:
+                                                              AppPalette
+                                                                  .redColor,
+                                                        ),
+                                                  )
+                                                  : Text(
+                                                    'Delete',
+                                                    style: GoogleFonts.poppins(
+                                                      color:
+                                                          AppPalette.redColor,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: Text.rich(
+                          TextSpan(
+                            text: 'Do you want to ',
+                            style: GoogleFonts.poppins(
+                              color: AppPalette.blackColor,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: 'delete account?',
+                                style: GoogleFonts.poppins(
+                                  color: AppPalette.redColor,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: 20.h),
                   ],

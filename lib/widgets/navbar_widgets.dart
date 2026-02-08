@@ -171,8 +171,8 @@ class BottomNavWidget extends StatelessWidget {
                       icon:
                           state == NavItem.cart
                               ? Icon(Icons.local_offer_outlined, size: 16.sp)
-                              : Icon(Icons.shopping_bag_outlined, size: 16.sp),
-                      label: state == NavItem.cart ? 'Offers' : 'Cart',
+                              : Icon(Icons.local_offer_outlined, size: 16.sp),
+                      label: state == NavItem.cart ? 'Cart' : 'Offers',
                       activeIcon:
                           state == NavItem.cart
                               ? Icon(
@@ -180,7 +180,7 @@ class BottomNavWidget extends StatelessWidget {
                                 color: AppPalette.blueColor,
                               )
                               : Icon(
-                                Icons.shopping_bag_rounded,
+                                Icons.local_offer_outlined,
                                 color: AppPalette.blueColor,
                               ),
                     ),
