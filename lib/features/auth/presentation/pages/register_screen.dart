@@ -7,6 +7,7 @@ import 'package:iconnect/common/custom_testfiled.dart';
 import '../../../../app_palette.dart';
 import '../../../../common/action_button.dart';
 import '../../../../common/custom_snackbar.dart';
+import '../../../../common/policy_bottom_sheet.dart';
 import '../../../../constant/app_images.dart';
 import '../../../../constant/constant.dart';
 import '../../../../constant/validator_helper.dart';
@@ -159,12 +160,26 @@ class LoginPolicyWidget extends StatelessWidget {
               children: [
                 TextSpan(
                   text: "Terms and Conditions",
-                  style: TextStyle(color: Colors.blue[700]),
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      PolicyBottomSheet.showTermsAndConditions(context);
+                    },
                 ),
                 const TextSpan(text: " and "),
                 TextSpan(
                   text: "Privacy Policy",
-                  style: TextStyle(color: Colors.blue[700]),
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      PolicyBottomSheet.showPrivacyPolicy(context);
+                    },
                 ),
               ],
             ),

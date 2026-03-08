@@ -658,4 +658,37 @@ class ShopifyGraphQLService extends GraphQLBaseService {
       fetchPolicy: FetchPolicy.noCache,
     );
   }
+
+  /// Get shop policies (Privacy Policy, Terms of Service, Refund Policy)
+  Future<Map<String, dynamic>> getShopPolicies() async {
+    const queryString = r'''
+      query GetShopPolicies {
+        shop {
+          name
+          primaryDomain {
+            url
+          }
+          privacyPolicy {
+            title
+            body
+          }
+          termsOfService {
+            title
+            body
+          }
+          refundPolicy {
+            title
+            body
+          }
+        }
+      }
+    ''';
+
+    try {
+      return await executeQuery(queryString, fetchPolicy: FetchPolicy.networkOnly);
+    } catch (e) {
+      print('GraphQL Error in getShopPolicies: $e');
+      rethrow;
+    }
+  }
 }

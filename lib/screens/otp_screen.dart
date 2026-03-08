@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
+import 'package:iconnect/common/policy_bottom_sheet.dart';
 import 'package:iconnect/cubit/progresser_cubit/progresser_cubit.dart';
 import 'package:iconnect/routes.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
@@ -204,12 +205,26 @@ class OtpPolicyWidget extends StatelessWidget {
               children: [
                 TextSpan(
                   text: "Terms and Conditions",
-                  style: TextStyle(color: Colors.blue[700]),
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      PolicyBottomSheet.showTermsAndConditions(context);
+                    },
                 ),
                 const TextSpan(text: " and "),
                 TextSpan(
                   text: "Privacy Policy",
-                  style: TextStyle(color: Colors.blue[700]),
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      PolicyBottomSheet.showPrivacyPolicy(context);
+                    },
                 ),
               ],
             ),
@@ -306,7 +321,7 @@ class OtpDetailsWidget extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '1. Check your email inbox\n'
+                '1. Check your email inbox or spam folder\n'
                 '2. Click the verification link\n'
                 '3. Return here and click "I\'ve Verified"',
                 style: GoogleFonts.poppins(

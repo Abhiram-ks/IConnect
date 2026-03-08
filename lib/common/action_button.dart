@@ -64,7 +64,7 @@ class ActionButton extends StatelessWidget {
                           ),
                           SizedBox(width: 10),
                           Text(
-                            'Please wait...',
+                            'Loading...',
                             style: TextStyle(
                               fontSize: 16,
                               color: AppPalette.whiteColor,
