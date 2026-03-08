@@ -15,7 +15,6 @@ import 'package:iconnect/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
   // Initialize dependency injection
   await initializeDependencies();
   
@@ -59,7 +58,7 @@ class MyApp extends StatelessWidget {
             ),
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
-              title: 'I Connect',
+              title: 'iConnect',
               theme: AppTheme.lightTheme,
               initialRoute: AppRoutes.navigation,
               onGenerateRoute: AppRoutes.generateRoute,

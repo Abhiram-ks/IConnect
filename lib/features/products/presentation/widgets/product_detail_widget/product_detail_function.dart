@@ -121,7 +121,11 @@ class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
                       onPressed:
                           _isCreatingCheckout
                               ? null
-                              : () => _handleBuyNow(builderContext),
+                              : () => _redirectToWhatsApp(
+                                context: context,
+                                product: widget.product,
+                                selectedVariant: widget.selectedVariant,
+                              ),
                       icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
                       label: const Text('WhatsApp'),
                       style: ElevatedButton.styleFrom(
@@ -329,10 +333,82 @@ Future<void> _makePhoneCall(BuildContext context) async {
     debugPrint('Error making phone call: $e');
     // ignore: use_build_context_synchronously
     CustomSnackBar.show(
+      // ignore: use_build_context_synchronously
       context,
       message: 'Error: $e',
       textAlign: TextAlign.center,
       backgroundColor: AppPalette.redColor,
     );
+  }
+}
+
+Future<void> _redirectToWhatsApp({
+  required BuildContext context,
+  required ProductEntity product,
+  ProductVariantEntity? selectedVariant,
+}) async {
+  // Clean phone number: remove all non-digit characters
+  final phoneNumber = WhatsAppConfig.phoneNumber.replaceAll(
+    RegExp(r'[^\d]'),
+    '',
+  );
+
+  // Determine the best image to display
+  String imageUrl = '';
+  if (selectedVariant != null &&
+      selectedVariant.image != null &&
+      selectedVariant.image!.isNotEmpty) {
+    imageUrl = selectedVariant.image!;
+  } else if (product.featuredImage != null &&
+      product.featuredImage!.isNotEmpty) {
+    imageUrl = product.featuredImage!;
+  } else if (product.images.isNotEmpty) {
+    imageUrl = product.images.first;
+  }
+
+  // Get price and variant info
+  final double price = selectedVariant?.price ?? product.minPrice;
+  final String currency = selectedVariant?.currencyCode ?? product.currencyCode;
+  final String variantInfo = selectedVariant != null ? '\n*Variant:* ${selectedVariant.title}' : '';
+
+  // Construct the message
+  final String message =
+      "Hello, I'm interested in this product from IConnect:\n\n"
+      "*Product:* ${product.title}\n"
+      "*Price:* $currency $price\n"
+      "*ID:* ${product.id}$variantInfo\n"
+      "*Description:* ${product.description.length > 200 ? '${product.description.substring(0, 200)}...' : product.description}\n"
+      "*Image:* $imageUrl\n\n"
+      "Please let me know how to proceed.";
+
+  final Uri whatsappUri = Uri.parse(
+    'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}',
+  );
+
+  try {
+    final launched = await launchUrl(
+      whatsappUri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!launched) {
+      if (context.mounted) {
+        CustomSnackBar.show(
+          context,
+          message: 'Could not open WhatsApp. Please make sure it is installed.',
+          textAlign: TextAlign.center,
+          backgroundColor: AppPalette.redColor,
+        );
+      }
+    }
+  } catch (e) {
+    debugPrint('Error launching WhatsApp: $e');
+    if (context.mounted) {
+      CustomSnackBar.show(
+        context,
+        message: 'An error occurred while opening WhatsApp.',
+        textAlign: TextAlign.center,
+        backgroundColor: AppPalette.redColor,
+      );
+    }
   }
 }
