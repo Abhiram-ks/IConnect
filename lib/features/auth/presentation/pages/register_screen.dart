@@ -380,6 +380,7 @@ class _LoginCredentialState extends State<LoginCredential> {
                 borderColor: AppPalette.blueColor,
                 onPressed:
                     isLoading
+                    
                         ? null
                         : () {
                           if (_formKey.currentState!.validate()) {

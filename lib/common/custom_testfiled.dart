@@ -22,6 +22,7 @@ class TextFormFieldWidget extends StatelessWidget {
   final String? initialValue;
   final bool obscureText;
   final bool? showPasswordToggle;
+  final TextInputType? keyboardType;
 
   const TextFormFieldWidget({
     super.key,
@@ -43,6 +44,7 @@ class TextFormFieldWidget extends StatelessWidget {
     this.initialValue,
     this.obscureText = false,
     this.showPasswordToggle = false,
+    this.keyboardType,
   });
 
   @override
@@ -69,8 +71,8 @@ class TextFormFieldWidget extends StatelessWidget {
           enabled: enabled,
           onChanged: onChanged,
           minLines: minLines,
-
           maxLines: maxLines,
+          keyboardType: keyboardType,
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,

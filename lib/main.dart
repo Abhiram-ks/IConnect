@@ -1,9 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:iconnect/firebase_options.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:iconnect/app_theme.dart';
 import 'package:iconnect/core/di/service_locator.dart';
@@ -18,6 +20,10 @@ void main() async {
   
   // Initialize dependency injection
   await initializeDependencies();
+
+   await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb

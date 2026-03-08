@@ -36,7 +36,7 @@ class SignupScreen extends StatelessWidget {
             child: SafeArea(
               child: Scaffold(
                 backgroundColor: AppPalette.whiteColor,
-                resizeToAvoidBottomInset: false,
+                resizeToAvoidBottomInset: true,
                 body: SignupBodyWidget(
                   screenWidth: screenWidth,
                   screenHeight: screenHeight,
@@ -273,7 +273,18 @@ class _SignupCredentialState extends State<SignupCredential> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
-        if (state is AuthSignupSuccess || state is AuthLoginSuccess) {
+        if (state is AuthEmailVerificationPending) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.otp,
+            arguments: {
+              'email': state.email,
+              'password': state.password,
+              'firstName': state.firstName,
+              'lastName': state.lastName,
+            },
+          );
+        } else if (state is AuthSignupSuccess || state is AuthLoginSuccess) {
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.navigation,
@@ -466,6 +477,7 @@ class _SignupCredentialState extends State<SignupCredential> {
                     isLoading
                         ? null
                         : () {
+                          FocusScope.of(context).unfocus();
                           if (_formKey.currentState!.validate()) {
                             context.read<AuthCubit>().signup(
                               email: _emailController.text.trim(),
