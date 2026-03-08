@@ -48,7 +48,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       result.fold(
         (failure) {
-          emit(AuthError(failure.message));
+          emit(AuthError(_getUserFriendlyLoginError(failure.message)));
         },
         (authEntity) async {
           // Store access token in secure storage
@@ -60,8 +60,29 @@ class AuthCubit extends Cubit<AuthState> {
         },
       );
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(_getUserFriendlyLoginError(e.toString())));
     }
+  }
+
+  /// Convert API error messages to user-friendly messages
+  String _getUserFriendlyLoginError(String errorMessage) {
+    final lowerError = errorMessage.toLowerCase();
+    
+    if (lowerError.contains('unidentified customer') || 
+        lowerError.contains('customer not found') ||
+        lowerError.contains('invalid credentials')) {
+      return 'Invalid email or password. Please try again.';
+    } else if (lowerError.contains('network') || lowerError.contains('connection')) {
+      return 'Network error. Please check your internet connection.';
+    } else if (lowerError.contains('timeout')) {
+      return 'Request timed out. Please try again.';
+    } else if (lowerError.contains('too many')) {
+      return 'Too many login attempts. Please try again later.';
+    } else if (lowerError.contains('account disabled') || lowerError.contains('account locked')) {
+      return 'Your account has been disabled. Please contact support.';
+    }
+    
+    return errorMessage;
   }
 
   /// Signup - sends verification email without creating Firebase user yet

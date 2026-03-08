@@ -37,7 +37,7 @@ class LoginScreen extends StatelessWidget {
             child: SafeArea(
               child: Scaffold(
                 backgroundColor: AppPalette.whiteColor,
-                resizeToAvoidBottomInset: false,
+                resizeToAvoidBottomInset: true,
                 body: LoginBodyWidget(
                   screenWidth: screenWidth,
                   screenHeight: screenHeight,
@@ -271,12 +271,14 @@ class _LoginCredentialState extends State<LoginCredential> {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthLoginSuccess) {
+          context.read<ProgresserCubit>().stopLoading();
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.navigation,
             (route) => false,
           );
         } else if (state is AuthError) {
+          context.read<ProgresserCubit>().stopLoading();
           CustomSnackBar.show(
             context,
             message: state.message,
@@ -395,10 +397,11 @@ class _LoginCredentialState extends State<LoginCredential> {
                 borderColor: AppPalette.blueColor,
                 onPressed:
                     isLoading
-                    
                         ? null
                         : () {
+                          FocusScope.of(context).unfocus();
                           if (_formKey.currentState!.validate()) {
+                            context.read<ProgresserCubit>().startLoading();
                             context.read<AuthCubit>().login(
                               email: _emailController.text.trim(),
                               password: _passwordController.text,
