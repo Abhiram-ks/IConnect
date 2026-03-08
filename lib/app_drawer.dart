@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:iconnect/services/lauch_config.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/common/custom_button.dart';
@@ -27,7 +26,9 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => sl<MenuCubit>()..loadMenu('main-menu')),
+        BlocProvider(
+          create: (context) => sl<MenuCubit>()..loadMenu('main-menu'),
+        ),
         BlocProvider.value(value: sl<AuthCubit>()),
       ],
       child: Drawer(
@@ -59,7 +60,13 @@ class AppDrawer extends StatelessWidget {
             icon: Icon(CupertinoIcons.clear, color: AppPalette.blackColor),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          Center(child: Image.asset('assets/iconnect_logo.png', height: 25.h, fit: BoxFit.contain)),
+          Center(
+            child: Image.asset(
+              'assets/iconnect_logo.png',
+              height: 25.h,
+              fit: BoxFit.contain,
+            ),
+          ),
           ConstantWidgets.width20(context),
         ],
       ),
@@ -71,7 +78,9 @@ class AppDrawer extends StatelessWidget {
       builder: (context, state) {
         // Loading state
         if (state.status == MenuStatus.loading) {
-          return Center(child: CircularProgressIndicator(color: AppPalette.blueColor));
+          return Center(
+            child: CircularProgressIndicator(color: AppPalette.blueColor),
+          );
         }
 
         // Error state
@@ -105,14 +114,24 @@ class AppDrawer extends StatelessWidget {
         // Loaded state
         final menu = state.menu;
         if (menu == null || menu.items.isEmpty) {
-          return Center(child: Text('No categories available', style: TextStyle(fontSize: 14.sp, color: Colors.grey)));
+          return Center(
+            child: Text(
+              'No categories available',
+              style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+            ),
+          );
         }
 
         return ListView(
           padding: EdgeInsets.zero,
           children: [
-            ...menu.items.map((menuItem) => _buildMenuItemTile(context, menuItem, 0)),
-            Divider(color: const Color.fromARGB(255, 227, 227, 227), height: 1.h),
+            ...menu.items.map(
+              (menuItem) => _buildMenuItemTile(context, menuItem, 0),
+            ),
+            Divider(
+              color: const Color.fromARGB(255, 227, 227, 227),
+              height: 1.h,
+            ),
             ExpansionTile(
               childrenPadding: EdgeInsets.zero,
               iconColor: AppPalette.blackColor,
@@ -120,7 +139,10 @@ class AppDrawer extends StatelessWidget {
               textColor: AppPalette.blackColor,
               collapsedTextColor: AppPalette.blackColor,
               backgroundColor: AppPalette.whiteColor,
-              trailing: Icon(Icons.keyboard_arrow_down, color: AppPalette.blackColor),
+              trailing: Icon(
+                Icons.keyboard_arrow_down,
+                color: AppPalette.blackColor,
+              ),
 
               title: Text('Settings & Privacy'),
               children: [
@@ -131,7 +153,8 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://iconnectqatar.com/pages/about-us',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -142,7 +165,8 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://iconnectqatar.com/pages/contact',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -153,7 +177,8 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://iconnectqatar.com/pages/terms-conditions',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -164,7 +189,8 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://iconnectqatar.com/pages/privacy-policy',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -174,8 +200,10 @@ class AppDrawer extends StatelessWidget {
                   onTap: () async {
                     launchConfig(
                       context: context,
-                      url: 'https://iconnectqatar.xn--com%20%20pages%20%20services-3j6qla/',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      url:
+                          'https://iconnectqatar.xn--com%20%20pages%20%20services-3j6qla/',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -188,7 +216,10 @@ class AppDrawer extends StatelessWidget {
               textColor: AppPalette.blackColor,
               collapsedTextColor: AppPalette.blackColor,
               backgroundColor: AppPalette.whiteColor,
-              trailing: Icon(Icons.keyboard_arrow_down, color: AppPalette.blackColor),
+              trailing: Icon(
+                Icons.keyboard_arrow_down,
+                color: AppPalette.blackColor,
+              ),
 
               title: Text('Community & Support'),
               children: [
@@ -200,7 +231,8 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://www.facebook.com/iconnectqataronline/',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -212,7 +244,8 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://www.youtube.com/@iconnectqatar',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -225,7 +258,8 @@ class AppDrawer extends StatelessWidget {
                       context: context,
                       url:
                           'https://www.pinterest.com/iconnect1034/?invite_code=4e6a6281f7d64e14ae64af0c180313ce&sender=1024358015152962587',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -237,7 +271,8 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://www.instagram.com/iconnectqatar/',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
                 ),
@@ -249,111 +284,10 @@ class AppDrawer extends StatelessWidget {
                     launchConfig(
                       context: context,
                       url: 'https://www.snapchat.com/@iconnectqatara',
-                      message: 'We cannnot proceed at that moment, please try again later',
+                      message:
+                          'We cannnot proceed at that moment, please try again later',
                     );
                   },
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                SizedBox(width: 10),
-                Center(
-                  child: TextButton(
-                    onPressed: () {
-                      final authCubit = context.read<AuthCubit>();
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return BlocProvider.value(
-                            value: authCubit,
-                            child: BlocBuilder<AuthCubit, AuthState>(
-                              builder: (context, state) {
-                                final isDeleting = state is AuthLoading;
-                                return AlertDialog(
-                                  backgroundColor: AppPalette.whiteColor,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  title: Text(
-                                    'Delete Account',
-                                    style: GoogleFonts.poppins(fontSize: 18.sp, color: AppPalette.blackColor),
-                                  ),
-                                  content: Text(
-                                    'Are you sure you want to delete your account?\nYour account will be permanently deleted within 30 days. If you log in again during this period, your account will be restored.',
-                                    style: GoogleFonts.poppins(fontSize: 13.sp, height: 1.5),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text(
-                                        'Cancel',
-                                        style: GoogleFonts.poppins(
-                                          color: AppPalette.greyColor,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed:
-                                          isDeleting
-                                              ? null
-                                              : () async {
-                                                context.read<AuthCubit>().logout();
-
-                                                await Future.delayed(const Duration(seconds: 2));
-                                                if (context.mounted && Navigator.canPop(context)) {
-                                                  Navigator.pop(context);
-                                                  Navigator.pop(context);
-                                                }
-                                              },
-                                      child:
-                                          isDeleting
-                                              ? const SizedBox(
-                                                height: 20,
-                                                width: 20,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: AppPalette.redColor,
-                                                ),
-                                              )
-                                              : Text(
-                                                'Delete',
-                                                style: GoogleFonts.poppins(
-                                                  color: AppPalette.redColor,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    child: Text.rich(
-                      TextSpan(
-                        text: 'Do you want to ',
-                        style: GoogleFonts.poppins(
-                          color: AppPalette.blackColor,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'delete account?',
-                            style: GoogleFonts.poppins(
-                              color: AppPalette.redColor,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -363,7 +297,11 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItemTile(BuildContext context, MenuItemEntity menuItem, int level) {
+  Widget _buildMenuItemTile(
+    BuildContext context,
+    MenuItemEntity menuItem,
+    int level,
+  ) {
     final hasSubItems = menuItem.items.isNotEmpty;
     final menuCubit = context.read<MenuCubit>();
     final isExpanded = menuCubit.isItemExpanded(menuItem.title);
@@ -373,7 +311,12 @@ class AppDrawer extends StatelessWidget {
         ListTile(
           dense: true,
           visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          contentPadding: EdgeInsets.only(left: (12.0 + (level * 16.0)).w, right: 12.w, top: 3, bottom: 3),
+          contentPadding: EdgeInsets.only(
+            left: (12.0 + (level * 16.0)).w,
+            right: 12.w,
+            top: 3,
+            bottom: 3,
+          ),
           leading: null,
           title: Text(
             menuItem.title,
@@ -387,7 +330,12 @@ class AppDrawer extends StatelessWidget {
           ),
           trailing:
               hasSubItems
-                  ? Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_right, color: Colors.grey)
+                  ? Icon(
+                    isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_right,
+                    color: Colors.grey,
+                  )
                   : null,
           onTap: () {
             if (hasSubItems) {
@@ -400,7 +348,8 @@ class AppDrawer extends StatelessWidget {
                 context.read<ButtomNavCubit>().selectItem(NavItem.categories);
               }
               // Navigate to collection products screen if it's a collection
-              else if (menuItem.isCollection && menuItem.collectionHandle != null) {
+              else if (menuItem.isCollection &&
+                  menuItem.collectionHandle != null) {
                 Navigator.of(context).pop(); // Close drawer
                 Navigator.push(
                   context,
@@ -417,7 +366,11 @@ class AppDrawer extends StatelessWidget {
                 Navigator.of(context).pop();
                 // Optionally launch URL in browser
                 if (menuItem.url.isNotEmpty) {
-                  launchConfig(context: context, url: menuItem.url, message: 'Cannot open this link at the moment');
+                  launchConfig(
+                    context: context,
+                    url: menuItem.url,
+                    message: 'Cannot open this link at the moment',
+                  );
                 }
               }
             }
@@ -426,7 +379,9 @@ class AppDrawer extends StatelessWidget {
 
         // Sub-items
         if (isExpanded && hasSubItems)
-          ...menuItem.items.map((subItem) => _buildMenuItemTile(context, subItem, level + 1)),
+          ...menuItem.items.map(
+            (subItem) => _buildMenuItemTile(context, subItem, level + 1),
+          ),
       ],
     );
   }
@@ -468,7 +423,9 @@ class _FooterWidgetState extends State<_FooterWidget> {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, authState) {
         // Update token when auth state changes (login/logout)
-        if (authState is AuthInitial || authState is AuthLoginSuccess || authState is AuthSignupSuccess) {
+        if (authState is AuthInitial ||
+            authState is AuthLoginSuccess ||
+            authState is AuthSignupSuccess) {
           _loadToken();
         }
       },
@@ -500,7 +457,11 @@ class _FooterWidgetState extends State<_FooterWidget> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'My Account',
-                        style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold, color: Colors.black),
+                        style: TextStyle(
+                          fontSize: 19.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                         textAlign: TextAlign.left,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -533,7 +494,13 @@ class SettingWidget extends StatelessWidget {
   final IconData icon;
   final Function() onTap;
   final Color? color;
-  const SettingWidget({super.key, required this.title, required this.icon, required this.onTap, this.color});
+  const SettingWidget({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.onTap,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -543,7 +510,14 @@ class SettingWidget extends StatelessWidget {
       minVerticalPadding: 0,
       visualDensity: const VisualDensity(vertical: -4),
       leading: Icon(icon, color: color ?? Colors.grey[700]),
-      title: Text(title, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.normal, color: Colors.grey[700])),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 15.sp,
+          fontWeight: FontWeight.normal,
+          color: Colors.grey[700],
+        ),
+      ),
       onTap: onTap,
     );
   }
