@@ -311,30 +311,10 @@ List<Map<String, dynamic>> parseFlattenedOfferBlocks(
     final titleField = nodeMap['title'] as Map<String, dynamic>?;
     final title = titleField?['value'] as String?;
 
-    // Extract hero image from nested structure: heroImage.reference.image.url
-    final heroImageField = nodeMap['heroImage'] as Map<String, dynamic>?;
-    final heroReference = heroImageField?['reference'] as Map<String, dynamic>?;
-    final heroImage = heroReference?['image'] as Map<String, dynamic>?;
-    final heroImageUrl = heroImage?['url'] as String?;
-    final heroImageAltText = heroImage?['altText'] as String?;
-
-    // Extract button from button.field.value (JSON string)
-    String? buttonText;
-    String? buttonUrl;
-    final buttonField = nodeMap['button'] as Map<String, dynamic>?;
-    final buttonValue = buttonField?['value'] as String?;
-    if (buttonValue != null && buttonValue.isNotEmpty) {
-      try {
-        // Parse JSON string: {"text":"View more offers","url":"https://..."}
-        final buttonJson = jsonDecode(buttonValue) as Map<String, dynamic>?;
-        buttonText = buttonJson?['text'] as String?;
-        buttonUrl = buttonJson?['url'] as String?;
-      } catch (e) {
-        // If parsing fails, ignore button
-        buttonText = null;
-        buttonUrl = null;
-      }
-    }
+    // Extract PDF file URL
+    final pdfFileField = nodeMap['pdfFile'] as Map<String, dynamic>?;
+    final pdfReference = pdfFileField?['reference'] as Map<String, dynamic>?;
+    final pdfUrl = pdfReference?['url'] as String?;
 
     // Extract featured collection title
     final featuredCollectionTitleField =
@@ -356,52 +336,35 @@ List<Map<String, dynamic>> parseFlattenedOfferBlocks(
     final finalFeaturedCollectionTitle =
         featuredCollectionTitle ?? featuredCollectionTitleFromRef;
 
-    // Extract items
-    final itemsList = <Map<String, dynamic>>[];
-    final itemsField = nodeMap['items'] as Map<String, dynamic>?;
-    final itemsReferences = itemsField?['references'] as Map<String, dynamic>?;
-    final itemsNodes = itemsReferences?['nodes'] as List<dynamic>? ?? const [];
-    for (final itemNode in itemsNodes) {
-      final itemMap = itemNode as Map<String, dynamic>? ?? const {};
+    // Extract clearance collection title
+    final clearanceCollectionTitleField =
+        nodeMap['clearance_collection_title'] as Map<String, dynamic>?;
+    final clearanceCollectionTitle =
+        clearanceCollectionTitleField?['value'] as String?;
 
-      // Extract item image
-      final itemImageField = itemMap['itemImage'] as Map<String, dynamic>?;
-      final itemImageReference =
-          itemImageField?['reference'] as Map<String, dynamic>?;
-      final itemImage = itemImageReference?['image'] as Map<String, dynamic>?;
-      final itemImageUrl = itemImage?['url'] as String?;
-      final itemAltText = itemImage?['altText'] as String?;
-
-      // Extract item collection
-      final itemCollectionField =
-          itemMap['itemCollection'] as Map<String, dynamic>?;
-      final itemCollectionReference =
-          itemCollectionField?['reference'] as Map<String, dynamic>?;
-      final itemCollectionHandle =
-          itemCollectionReference?['handle'] as String?;
-      final itemCollectionTitle = itemCollectionReference?['title'] as String?;
-      final itemCollectionId = itemCollectionReference?['id'] as String?;
-
-      itemsList.add({
-        'imageUrl': itemImageUrl,
-        'altText': itemAltText,
-        'collectionHandle': itemCollectionHandle,
-        'collectionTitle': itemCollectionTitle,
-        'collectionId': itemCollectionId,
-      });
-    }
+    // Extract clearance collection
+    final clearanceCollectionField =
+        nodeMap['clearance_collection'] as Map<String, dynamic>?;
+    final clearanceCollectionReference =
+        clearanceCollectionField?['reference'] as Map<String, dynamic>?;
+    final clearanceCollectionHandle =
+        clearanceCollectionReference?['handle'] as String?;
+    final clearanceCollectionTitleFromRef =
+        clearanceCollectionReference?['title'] as String?;
+    final clearanceCollectionId = clearanceCollectionReference?['id'] as String?;
+    final finalClearanceCollectionTitle =
+        clearanceCollectionTitle ?? clearanceCollectionTitleFromRef;
 
     offerBlocks.add({
       'id': id,
       'title': title,
-      'heroImageUrl': heroImageUrl,
-      'heroImageAltText': heroImageAltText,
-      'buttonText': buttonText,
-      'buttonUrl': buttonUrl,
+      'pdfUrl': pdfUrl,
       'featuredCollectionTitle': finalFeaturedCollectionTitle,
       'featuredCollectionHandle': featuredCollectionHandle,
       'featuredCollectionId': featuredCollectionId,
-      'items': itemsList,
+      'clearanceCollectionTitle': finalClearanceCollectionTitle,
+      'clearanceCollectionHandle': clearanceCollectionHandle,
+      'clearanceCollectionId': clearanceCollectionId,
     });
   }
   return offerBlocks;

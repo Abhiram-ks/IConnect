@@ -38,49 +38,27 @@ class OfferBlockModel extends OfferBlockEntity {
   const OfferBlockModel({
     required super.id,
     super.title,
-    super.heroImageUrl,
-    super.heroImageAltText,
-    super.buttonText,
-    super.buttonUrl,
+    super.pdfUrl,
     super.featuredCollectionTitle,
     super.featuredCollectionHandle,
     super.featuredCollectionId,
-    super.viewMoreCollectionHandle,
-    super.viewMoreCollectionTitle,
-    super.viewMoreCollectionId,
     super.clearanceCollectionHandle,
     super.clearanceCollectionTitle,
     super.clearanceCollectionId,
-    super.items,
   });
 
   /// Factory constructor from a flattened map produced in an isolate.
   factory OfferBlockModel.fromFlattenedJson(Map<String, dynamic> json) {
-    final itemsList = json['items'] as List<dynamic>? ?? [];
-    final items = itemsList
-        .map((item) => OfferItemModel.fromFlattenedJson(
-              item as Map<String, dynamic>,
-            ))
-        .toList();
-
     return OfferBlockModel(
       id: json['id'] as String? ?? '',
       title: json['title'] as String?,
-      heroImageUrl: json['heroImageUrl'] as String?,
-      heroImageAltText: json['heroImageAltText'] as String?,
-      buttonText: json['buttonText'] as String?,
-      buttonUrl: json['buttonUrl'] as String?,
+      pdfUrl: json['pdfUrl'] as String?,
       featuredCollectionTitle: json['featuredCollectionTitle'] as String?,
       featuredCollectionHandle: json['featuredCollectionHandle'] as String?,
       featuredCollectionId: json['featuredCollectionId'] as String?,
-      viewMoreCollectionHandle: json['viewMoreCollectionHandle'] as String?,
-      viewMoreCollectionTitle: json['viewMoreCollectionTitle'] as String?,
-      viewMoreCollectionId: json['viewMoreCollectionId'] as String?,
-      clearanceCollectionHandle:
-          json['clearanceCollectionHandle'] as String?,
+      clearanceCollectionHandle: json['clearanceCollectionHandle'] as String?,
       clearanceCollectionTitle: json['clearanceCollectionTitle'] as String?,
       clearanceCollectionId: json['clearanceCollectionId'] as String?,
-      items: items,
     );
   }
 
@@ -89,20 +67,13 @@ class OfferBlockModel extends OfferBlockEntity {
     return {
       'id': id,
       'title': title,
-      'heroImageUrl': heroImageUrl,
-      'heroImageAltText': heroImageAltText,
-      'buttonText': buttonText,
-      'buttonUrl': buttonUrl,
+      'pdfUrl': pdfUrl,
       'featuredCollectionTitle': featuredCollectionTitle,
       'featuredCollectionHandle': featuredCollectionHandle,
       'featuredCollectionId': featuredCollectionId,
-      'viewMoreCollectionHandle': viewMoreCollectionHandle,
-      'viewMoreCollectionTitle': viewMoreCollectionTitle,
-      'viewMoreCollectionId': viewMoreCollectionId,
       'clearanceCollectionHandle': clearanceCollectionHandle,
       'clearanceCollectionTitle': clearanceCollectionTitle,
       'clearanceCollectionId': clearanceCollectionId,
-      'items': items.map((item) => (item as OfferItemModel).toJson()).toList(),
     };
   }
 }

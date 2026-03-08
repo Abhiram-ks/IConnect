@@ -782,18 +782,12 @@ class GraphQLQueries {
             title: field(key: "title") {
               value
             }
-            heroImage: field(key: "hero_image") {
+            pdfFile: field(key: "pdf_file") {
               reference {
-                ... on MediaImage {
-                  image {
-                    url
-                    altText
-                  }
+                ... on GenericFile {
+                  url
                 }
               }
-            }
-            button: field(key: "button_link") {
-              value
             }
             featured_collection_title: field(key: "featured_collection_title") {
               value
@@ -807,30 +801,15 @@ class GraphQLQueries {
                 }
               }
             }
-            items: field(key: "items") {
-              references(first: 20) {
-                nodes {
-                  ... on Metaobject {
-                    itemImage: field(key: "image") {
-                      reference {
-                        ... on MediaImage {
-                          image {
-                            url
-                            altText
-                          }
-                        }
-                      }
-                    }
-                    itemCollection: field(key: "collection") {
-                      reference {
-                        ... on Collection {
-                          id
-                          handle
-                          title
-                        }
-                      }
-                    }
-                  }
+            clearance_collection_title: field(key: "clearance_collection_title") {
+              value
+            }
+            clearance_collection: field(key: "clearance_collection") {
+              reference {
+                ... on Collection {
+                  id
+                  handle
+                  title
                 }
               }
             }
