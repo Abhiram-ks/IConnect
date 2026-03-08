@@ -5,6 +5,7 @@ import 'package:iconnect/screens/product_details_screen.dart';
 import 'package:iconnect/screens/banner_details_screen.dart';
 import 'package:iconnect/screens/test_shopify_products.dart';
 import 'package:iconnect/screens/collection_products_screen.dart';
+import 'package:iconnect/screens/otp_screen.dart';
 import 'package:iconnect/features/products/presentation/pages/brand_details_page.dart';
 import 'package:iconnect/features/auth/presentation/pages/register_screen.dart';
 import 'package:iconnect/features/auth/presentation/pages/signup_screen.dart';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String navigation = '/';
   static const String login = '/login_screen';
   static const String signup = '/signup_screen';
+  static const String otp = '/otp_screen';
   static const String profile = '/profile';
   static const String orders = '/orders';
   static const String dashbord = '/dashbord_screen';
@@ -106,6 +108,20 @@ class AppRoutes {
               (context) => BlocProvider.value(
                 value: sl<AuthCubit>(),
                 child: const SignupScreen(),
+              ),
+        );
+      case otp:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder:
+              (context) => BlocProvider.value(
+                value: sl<AuthCubit>(),
+                child: OtpScreen(
+                  email: args?['email'] as String? ?? '',
+                  password: args?['password'] as String? ?? '',
+                  firstName: args?['firstName'] as String?,
+                  lastName: args?['lastName'] as String?,
+                ),
               ),
         );
       case profile:

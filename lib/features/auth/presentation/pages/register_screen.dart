@@ -7,6 +7,7 @@ import 'package:iconnect/common/custom_testfiled.dart';
 import '../../../../app_palette.dart';
 import '../../../../common/action_button.dart';
 import '../../../../common/custom_snackbar.dart';
+import '../../../../common/policy_bottom_sheet.dart';
 import '../../../../constant/app_images.dart';
 import '../../../../constant/constant.dart';
 import '../../../../constant/validator_helper.dart';
@@ -36,7 +37,7 @@ class LoginScreen extends StatelessWidget {
             child: SafeArea(
               child: Scaffold(
                 backgroundColor: AppPalette.whiteColor,
-                resizeToAvoidBottomInset: false,
+                resizeToAvoidBottomInset: true,
                 body: LoginBodyWidget(
                   screenWidth: screenWidth,
                   screenHeight: screenHeight,
@@ -159,12 +160,26 @@ class LoginPolicyWidget extends StatelessWidget {
               children: [
                 TextSpan(
                   text: "Terms and Conditions",
-                  style: TextStyle(color: Colors.blue[700]),
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      PolicyBottomSheet.showTermsAndConditions(context);
+                    },
                 ),
                 const TextSpan(text: " and "),
                 TextSpan(
                   text: "Privacy Policy",
-                  style: TextStyle(color: Colors.blue[700]),
+                  style: TextStyle(
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      PolicyBottomSheet.showPrivacyPolicy(context);
+                    },
                 ),
               ],
             ),
@@ -256,12 +271,14 @@ class _LoginCredentialState extends State<LoginCredential> {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthLoginSuccess) {
+          context.read<ProgresserCubit>().stopLoading();
           Navigator.pushNamedAndRemoveUntil(
             context,
             AppRoutes.navigation,
             (route) => false,
           );
         } else if (state is AuthError) {
+          context.read<ProgresserCubit>().stopLoading();
           CustomSnackBar.show(
             context,
             message: state.message,
@@ -382,7 +399,9 @@ class _LoginCredentialState extends State<LoginCredential> {
                     isLoading
                         ? null
                         : () {
+                          FocusScope.of(context).unfocus();
                           if (_formKey.currentState!.validate()) {
+                            context.read<ProgresserCubit>().startLoading();
                             context.read<AuthCubit>().login(
                               email: _emailController.text.trim(),
                               password: _passwordController.text,

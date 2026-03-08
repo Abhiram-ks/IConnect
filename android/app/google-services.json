@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "903511285944",
+    "project_id": "iconnect-qatar-shop",
+    "storage_bucket": "iconnect-qatar-shop.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903511285944:android:37d158e8931d1e69c6d44d",
+        "android_client_info": {
+          "package_name": "com.iconnect.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1xiSMMZ731Hbx3bnMHezLBZFc9EZkXqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

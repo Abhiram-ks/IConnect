@@ -48,6 +48,27 @@ class AuthProfileLoading extends AuthState {
   List<Object?> get props => [authEntity];
 }
 
+/// Email verification pending state
+class AuthEmailVerificationPending extends AuthState {
+  final String email;
+  final String password;
+  final String? firstName;
+  final String? lastName;
+
+  const AuthEmailVerificationPending({
+    required this.email,
+    required this.password,
+    this.firstName,
+    this.lastName,
+  });
+
+  @override
+  List<Object?> get props => [email, password, firstName, lastName];
+}
+
+/// OTP verification loading state
+class AuthOtpVerificationLoading extends AuthState {}
+
 /// Error state
 class AuthError extends AuthState {
   final String message;
