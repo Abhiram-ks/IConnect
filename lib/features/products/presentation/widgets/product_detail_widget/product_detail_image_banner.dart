@@ -115,27 +115,38 @@ class _ProductDetailImageBannerState extends State<ProductDetailImageBanner> {
                     maxScale: 4.0,
                     panEnabled: true,
                     scaleEnabled: true,
-                    child: Center(
-                      child: CachedNetworkImage(
-                        imageUrl: productImages[index],
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) => Center(
-                          child: CircularProgressIndicator(
-                            color: AppPalette.blueColor,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                        errorWidget: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[200],
-                            child: const Icon(
-                              Icons.image,
-                              color: Colors.grey,
-                              size: 100,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final w = constraints.maxWidth;
+                        final h = constraints.maxHeight;
+                        return SizedBox(
+                          width: w,
+                          height: h,
+                          child: CachedNetworkImage(
+                            imageUrl: productImages[index],
+                            width: w,
+                            height: h,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            placeholder: (context, url) => Center(
+                              child: CircularProgressIndicator(
+                                color: AppPalette.blueColor,
+                                strokeWidth: 2,
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                            errorWidget: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.image,
+                                  color: Colors.grey,
+                                  size: 100,
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
                   );
                 },

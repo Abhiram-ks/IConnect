@@ -119,13 +119,11 @@ class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed:
-                          _isCreatingCheckout
-                              ? null
-                              : () => _redirectToWhatsApp(
-                                context: context,
-                                product: widget.product,
-                                selectedVariant: widget.selectedVariant,
-                              ),
+                          () => _redirectToWhatsApp(
+                            context: context,
+                            product: widget.product,
+                            selectedVariant: widget.selectedVariant,
+                          ),
                       icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 18),
                       label: const Text('WhatsApp'),
                       style: ElevatedButton.styleFrom(
@@ -369,7 +367,8 @@ Future<void> _redirectToWhatsApp({
   // Get price and variant info
   final double price = selectedVariant?.price ?? product.minPrice;
   final String currency = selectedVariant?.currencyCode ?? product.currencyCode;
-  final String variantInfo = selectedVariant != null ? '\n*Variant:* ${selectedVariant.title}' : '';
+  final String variantInfo =
+      selectedVariant != null ? '\n*Variant:* ${selectedVariant.title}' : '';
 
   // Construct the message
   final String message =
