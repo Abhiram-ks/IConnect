@@ -4,6 +4,10 @@
 class ApiConfig {
   // Shopify Configuration
   static const String shopifyApiVersion = '2024-10';
+
+  /// Canonical storefront origin for resolving relative URLs in product HTML
+  /// (images, links) when rendering inside a WebView.
+  static const String storePublicOrigin = 'https://iconnectqatar.com';
   
   // API Endpoints
   static String graphQLEndpoint(String storeUrl, String version) => 

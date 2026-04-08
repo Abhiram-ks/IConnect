@@ -33,7 +33,7 @@ Widget buildProductDetails(ProductEntity product, BuildContext context, ProductV
                 product.availableForSale ?
                 buildQuantitySection() : Center(child: Text('Currently Unavailable For Sale', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w500, color: AppPalette.blackColor), textAlign: TextAlign.center, )),
                 buildActionButtons(product, context, selectedVariant),
-                buildProductDescription(product),
+                buildProductDescription(product, context),
                 buildYouMayAlsoLikeSection(context, product.id),
                 ConstantWidgets.hight10(context),
               ],
