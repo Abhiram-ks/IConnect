@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:iconnect/core/storage/secure_storage_service.dart';
 import 'package:iconnect/core/usecase/usecase.dart';
@@ -7,7 +8,6 @@ import 'package:iconnect/features/auth/domain/usecases/login_usecase.dart';
 import 'package:iconnect/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
 import 'package:iconnect/features/profile/domain/usecases/get_profile_usecase.dart';
-
 /// Auth Cubit - Manages authentication state and operations
 class AuthCubit extends Cubit<AuthState> {
   final LoginUsecase loginUsecase;
@@ -67,21 +67,23 @@ class AuthCubit extends Cubit<AuthState> {
   /// Convert API error messages to user-friendly messages
   String _getUserFriendlyLoginError(String errorMessage) {
     final lowerError = errorMessage.toLowerCase();
-    
-    if (lowerError.contains('unidentified customer') || 
+
+    if (lowerError.contains('unidentified customer') ||
         lowerError.contains('customer not found') ||
         lowerError.contains('invalid credentials')) {
       return 'Invalid email or password. Please try again.';
-    } else if (lowerError.contains('network') || lowerError.contains('connection')) {
+    } else if (lowerError.contains('network') ||
+        lowerError.contains('connection')) {
       return 'Network error. Please check your internet connection.';
     } else if (lowerError.contains('timeout')) {
       return 'Request timed out. Please try again.';
     } else if (lowerError.contains('too many')) {
       return 'Too many login attempts. Please try again later.';
-    } else if (lowerError.contains('account disabled') || lowerError.contains('account locked')) {
+    } else if (lowerError.contains('account disabled') ||
+        lowerError.contains('account locked')) {
       return 'Your account has been disabled. Please contact support.';
     }
-    
+
     return errorMessage;
   }
 
@@ -95,7 +97,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       final firebaseAuth = FirebaseAuth.instance;
-      
+
       // Create temporary Firebase user to send verification email
       final userCredential = await firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -118,15 +120,21 @@ class AuthCubit extends Cubit<AuthState> {
       await firebaseAuth.signOut();
 
       // Emit state to navigate to OTP screen
-      emit(AuthEmailVerificationPending(
-        email: email,
-        password: password,
-        firstName: firstName,
-        lastName: lastName,
-      ));
+      emit(
+        AuthEmailVerificationPending(
+          email: email,
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+        ),
+      );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        emit(const AuthError('This email is already registered. Please login instead.'));
+        emit(
+          const AuthError(
+            'This email is already registered. Please login instead.',
+          ),
+        );
       } else {
         emit(AuthError(_getFirebaseErrorMessage(e)));
       }
@@ -145,7 +153,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthOtpVerificationLoading());
     try {
       final firebaseAuth = FirebaseAuth.instance;
-      
+
       // Sign in to check verification status
       final userCredential = await firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -159,12 +167,16 @@ class AuthCubit extends Cubit<AuthState> {
       if (user != null && user.emailVerified) {
         // Email is verified, NOW create account in backend
         await _completeSignup(email, password, firstName, lastName);
-        
+
         // Keep Firebase user signed in for now, will be managed by backend token
       } else {
         // Email not verified yet, sign out
         await firebaseAuth.signOut();
-        emit(const AuthError('Email not verified yet. Please check your email and click the verification link.'));
+        emit(
+          const AuthError(
+            'Email not verified yet. Please check your email and click the verification link.',
+          ),
+        );
       }
     } catch (e) {
       await FirebaseAuth.instance.signOut();
@@ -172,7 +184,13 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  /// Complete signup after email verification - creates backend account
+  /// Complete signup after email verification.
+  ///
+  /// On success → creates a Firestore "users" document, then logs in.
+  /// On Shopify "email already taken" → the user has a pre-existing Shopify
+  ///   web account. Firebase registration already succeeded, so we emit
+  ///   [AuthShopifyAccountAlreadyExists] to prompt them to sign in with the
+  ///   password they just chose.
   Future<void> _completeSignup(
     String email,
     String password,
@@ -180,7 +198,6 @@ class AuthCubit extends Cubit<AuthState> {
     String? lastName,
   ) async {
     try {
-      // Create account in your backend system
       final result = await signupUsecase(
         SignupParams(
           email: email,
@@ -190,24 +207,49 @@ class AuthCubit extends Cubit<AuthState> {
         ),
       );
 
-      result.fold(
+      await result.fold(
         (failure) async {
-          // Backend signup failed, optionally delete Firebase user
-          // Uncomment below if you want to delete Firebase user on backend failure
-          // try {
-          //   final user = FirebaseAuth.instance.currentUser;
-          //   await user?.delete();
-          // } catch (e) {
-          //   // Ignore deletion errors
-          // }
-          emit(AuthError(failure.message));
+          final msg = failure.message.toLowerCase();
+          final isEmailTaken =
+              msg.contains('already') ||
+              msg.contains('taken') ||
+              msg.contains('exists') ||
+              msg.contains('email has already been taken');
+
+          if (isEmailTaken) {
+            // Shopify account already exists (web user registering in app).
+            // Firebase account was just created — save to Firestore then
+            // tell the user to sign in with the password they just set.
+            try {
+              await _createFirestoreUser(
+                email: email,
+                firstName: firstName,
+                lastName: lastName,
+              );
+            } catch (firestoreError) {
+              emit(AuthError('Account created but profile save failed: $firestoreError'));
+              return;
+            }
+            emit(AuthShopifyAccountAlreadyExists(email));
+          } else {
+            emit(AuthError(failure.message));
+          }
         },
         (authEntity) async {
+          // New Shopify account created — save to Firestore then log in.
+          try {
+            await _createFirestoreUser(
+              email: email,
+              firstName: firstName,
+              lastName: lastName,
+            );
+          } catch (firestoreError) {
+            emit(AuthError('Account created but profile save failed: $firestoreError'));
+            return;
+          }
           if (authEntity.accessToken.isEmpty) {
-            // Backend signup successful but no token, login to get token
             await login(email: email, password: password);
           } else {
-            // Store backend access token
             await SecureStorageService.storeAccessToken(
               authEntity.accessToken,
               expiresAt: authEntity.expiresAt,
@@ -221,11 +263,33 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Creates (or updates) a document in the Firestore "users" collection.
+  /// Uses the Firebase Auth UID as the document ID so it is always unique.
+  /// Safe to call multiple times — uses [SetOptions(merge: true)].
+  Future<void> _createFirestoreUser({
+    required String email,
+    String? firstName,
+    String? lastName,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    await FirebaseFirestore.instance.collection('users').doc(uid).set(
+      {
+        'email': email,
+        'firstName': firstName ?? '',
+        'lastName': lastName ?? '',
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
   /// Resend verification email
   Future<void> resendVerificationEmail(String email, String password) async {
     try {
       final firebaseAuth = FirebaseAuth.instance;
-      
+
       // Sign in to resend verification
       final userCredential = await firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -241,10 +305,14 @@ class AuthCubit extends Cubit<AuthState> {
           androidInstallApp: false,
           androidMinimumVersion: '21',
         );
-        
+
         await userCredential.user?.sendEmailVerification(actionCodeSettings);
         await firebaseAuth.signOut();
-        emit(const AuthError('Verification email resent successfully. Please check your inbox.'));
+        emit(
+          const AuthError(
+            'Verification email resent successfully. Please check your inbox.',
+          ),
+        );
       } else {
         emit(const AuthError('Email is already verified.'));
       }
@@ -284,7 +352,33 @@ class AuthCubit extends Cubit<AuthState> {
     return error.toString();
   }
 
+  /// Sends Firebase's password reset email. With email enumeration protection,
+  /// the client cannot know whether the address is registered; the UI explains
+  /// that the link only arrives if an account exists, otherwise sign up.
+  Future<void> forgotPassword({required String email}) async {
+    emit(AuthForgotPasswordLoading());
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      emit(AuthForgotPasswordEmailSent(email));
+    } on FirebaseAuthException catch (e) {
+      emit(AuthError(_getForgotPasswordError(e)));
+    } catch (e) {
+      emit(AuthError('Failed to send reset email. Please try again.'));
+    }
+  }
 
+  String _getForgotPasswordError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return 'Please enter a valid email address.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      case 'network-request-failed':
+        return 'Network error. Please check your connection.';
+      default:
+        return e.message ?? 'Failed to send reset email. Please try again.';
+    }
+  }
 
   /// Logout
   Future<void> logout() async {
@@ -292,7 +386,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       // Sign out from Firebase
       await FirebaseAuth.instance.signOut();
-      
+
       // Clear all secure storage data
       await SecureStorageService.clearAllTokens();
       emit(AuthInitial());

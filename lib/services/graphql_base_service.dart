@@ -595,6 +595,28 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     );
   }
 
+  /// Send password reset email via Shopify (customerRecover)
+  Future<Map<String, dynamic>> customerRecover({
+    required String email,
+  }) async {
+    const mutationString = r'''
+      mutation CustomerRecover($email: String!) {
+        customerRecover(email: $email) {
+          customerUserErrors {
+            code
+            field
+            message
+          }
+        }
+      }
+    ''';
+
+    return executeMutation(
+      mutationString,
+      variables: {'email': email},
+    );
+  }
+
   /// Get customer profile
   Future<Map<String, dynamic>> getCustomer({
     required String customerAccessToken,

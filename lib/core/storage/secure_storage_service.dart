@@ -3,9 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Secure Storage Service for storing sensitive data like access tokens
 class SecureStorageService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock_this_device,
     ),
@@ -16,7 +14,10 @@ class SecureStorageService {
   static const String _expiresAtKey = 'expires_at';
 
   /// Store access token
-  static Future<void> storeAccessToken(String token, {String? expiresAt}) async {
+  static Future<void> storeAccessToken(
+    String token, {
+    String? expiresAt,
+  }) async {
     await _storage.write(key: _accessTokenKey, value: token);
     if (expiresAt != null) {
       await _storage.write(key: _expiresAtKey, value: expiresAt);
@@ -76,5 +77,3 @@ class SecureStorageService {
     return true;
   }
 }
-
-

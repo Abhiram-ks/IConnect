@@ -265,6 +265,20 @@ class _SignupCredentialState extends State<SignupCredential> {
   bool _obscureConfirmPassword = true;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-fill email when navigated from the forgot-password "web account" flow
+    if (_emailController.text.isEmpty) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final prefilledEmail = args?['email'] as String?;
+      if (prefilledEmail != null && prefilledEmail.isNotEmpty) {
+        _emailController.text = prefilledEmail;
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();

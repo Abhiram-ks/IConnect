@@ -7,6 +7,7 @@ import 'package:iconnect/screens/test_shopify_products.dart';
 import 'package:iconnect/screens/collection_products_screen.dart';
 import 'package:iconnect/screens/otp_screen.dart';
 import 'package:iconnect/features/products/presentation/pages/brand_details_page.dart';
+import 'package:iconnect/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:iconnect/features/auth/presentation/pages/register_screen.dart';
 import 'package:iconnect/features/auth/presentation/pages/signup_screen.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String navigation = '/';
   static const String login = '/login_screen';
   static const String signup = '/signup_screen';
+  static const String forgotPassword = '/forgot_password';
   static const String otp = '/otp_screen';
   static const String profile = '/profile';
   static const String orders = '/orders';
@@ -102,6 +104,10 @@ class AppRoutes {
         );
       case login:
         return MaterialPageRoute(builder: (context) => const LoginScreen());
+      case forgotPassword:
+        return MaterialPageRoute(
+          builder: (context) => const ForgotPasswordScreen(),
+        );
       case signup:
         return MaterialPageRoute(
           builder:

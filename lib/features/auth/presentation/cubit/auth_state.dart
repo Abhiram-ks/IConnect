@@ -69,6 +69,29 @@ class AuthEmailVerificationPending extends AuthState {
 /// OTP verification loading state
 class AuthOtpVerificationLoading extends AuthState {}
 
+/// Forgot password email sent state
+class AuthForgotPasswordEmailSent extends AuthState {
+  final String email;
+  const AuthForgotPasswordEmailSent(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
+
+/// Forgot password loading state
+class AuthForgotPasswordLoading extends AuthState {}
+
+/// Shopify customerCreate returned "email already taken" — the user has an
+/// existing Shopify web account. Firebase registration succeeded, so they
+/// should now sign in with the password they just set.
+class AuthShopifyAccountAlreadyExists extends AuthState {
+  final String email;
+  const AuthShopifyAccountAlreadyExists(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
+
 /// Error state
 class AuthError extends AuthState {
   final String message;

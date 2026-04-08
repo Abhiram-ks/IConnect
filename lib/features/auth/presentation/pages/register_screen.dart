@@ -164,10 +164,11 @@ class LoginPolicyWidget extends StatelessWidget {
                     color: Colors.blue[700],
                     decoration: TextDecoration.underline,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      PolicyBottomSheet.showTermsAndConditions(context);
-                    },
+                  recognizer:
+                      TapGestureRecognizer()
+                        ..onTap = () {
+                          PolicyBottomSheet.showTermsAndConditions(context);
+                        },
                 ),
                 const TextSpan(text: " and "),
                 TextSpan(
@@ -176,10 +177,11 @@ class LoginPolicyWidget extends StatelessWidget {
                     color: Colors.blue[700],
                     decoration: TextDecoration.underline,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      PolicyBottomSheet.showPrivacyPolicy(context);
-                    },
+                  recognizer:
+                      TapGestureRecognizer()
+                        ..onTap = () {
+                          PolicyBottomSheet.showPrivacyPolicy(context);
+                        },
                 ),
               ],
             ),
@@ -390,6 +392,28 @@ class _LoginCredentialState extends State<LoginCredential> {
                   ConstantWidgets.hight10(context),
                 ],
               ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.forgotPassword);
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Forgot password?',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              ConstantWidgets.hight10(context),
               ActionButton(
                 text: isLoading ? 'Signing in...' : 'Continue',
                 bgColor: AppPalette.whiteColor.withAlpha((0.8 * 255).round()),
