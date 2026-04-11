@@ -164,10 +164,11 @@ class SignupPolicyWidget extends StatelessWidget {
                     color: Colors.blue[700],
                     decoration: TextDecoration.underline,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      PolicyBottomSheet.showTermsAndConditions(context);
-                    },
+                  recognizer:
+                      TapGestureRecognizer()
+                        ..onTap = () {
+                          PolicyBottomSheet.showTermsAndConditions(context);
+                        },
                 ),
                 const TextSpan(text: " and "),
                 TextSpan(
@@ -176,10 +177,11 @@ class SignupPolicyWidget extends StatelessWidget {
                     color: Colors.blue[700],
                     decoration: TextDecoration.underline,
                   ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      PolicyBottomSheet.showPrivacyPolicy(context);
-                    },
+                  recognizer:
+                      TapGestureRecognizer()
+                        ..onTap = () {
+                          PolicyBottomSheet.showPrivacyPolicy(context);
+                        },
                 ),
               ],
             ),
@@ -342,163 +344,48 @@ class _SignupCredentialState extends State<SignupCredential> {
                 label: 'First Name',
                 controller: _firstNameController,
               ),
-              ConstantWidgets.hight10(context),
               TextFormFieldWidget(
                 hintText: 'Enter your last name',
                 label: 'Last Name',
                 controller: _lastNameController,
               ),
-              ConstantWidgets.hight10(context),
               TextFormFieldWidget(
                 hintText: 'Enter your email',
                 label: 'Email address *',
                 validate: ValidatorHelper.validateEmail,
                 controller: _emailController,
               ),
-              ConstantWidgets.hight10(context),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10.0, bottom: 5),
-                    child: Text(
-                      'Password *',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _passwordController,
-                    validator: ValidatorHelper.validatePassword,
-                    obscureText: _obscurePassword,
-                    style: const TextStyle(fontSize: 16),
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      hintText: 'Enter your password',
-                      hintStyle: TextStyle(color: AppPalette.hintColor),
-                      suffixIcon: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                        child: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: AppPalette.hintColor,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.hintColor,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.blueColor,
-                          width: 1,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.redColor,
-                          width: 1,
-                        ),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.redColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  ConstantWidgets.hight10(context),
-                ],
+              TextFormFieldWidget(
+                hintText: 'Enter your password',
+                label: 'Password *',
+                controller: _passwordController,
+                validate: ValidatorHelper.validatePassword,
+                obscureText: _obscurePassword,
+                suffixIconColor: AppPalette.hintColor,
+                suffixIconData:
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                suffixIconAction: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10.0, bottom: 5),
-                    child: Text(
-                      'Confirm Password *',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    validator: _validateConfirmPassword,
-                    obscureText: _obscureConfirmPassword,
-                    style: const TextStyle(fontSize: 16),
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      hintText: 'Confirm your password',
-                      hintStyle: TextStyle(color: AppPalette.hintColor),
-                      suffixIcon: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                        child: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: AppPalette.hintColor,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.hintColor,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.blueColor,
-                          width: 1,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.redColor,
-                          width: 1,
-                        ),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.redColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  ConstantWidgets.hight10(context),
-                ],
+              TextFormFieldWidget(
+                hintText: 'Confirm your password',
+                label: 'Confirm Password *',
+                controller: _confirmPasswordController,
+                validate: _validateConfirmPassword,
+                obscureText: _obscureConfirmPassword,
+                suffixIconColor: AppPalette.hintColor,
+                suffixIconData:
+                    _obscureConfirmPassword
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                suffixIconAction: () {
+                  setState(() {
+                    _obscureConfirmPassword = !_obscureConfirmPassword;
+                  });
+                },
               ),
               ActionButton(
                 text: isLoading ? 'Creating account...' : 'Sign Up',

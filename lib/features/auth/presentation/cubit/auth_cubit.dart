@@ -8,6 +8,8 @@ import 'package:iconnect/features/auth/domain/usecases/login_usecase.dart';
 import 'package:iconnect/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
 import 'package:iconnect/features/profile/domain/usecases/get_profile_usecase.dart';
+import 'package:iconnect/services/coupen_service.dart';
+
 /// Auth Cubit - Manages authentication state and operations
 class AuthCubit extends Cubit<AuthState> {
   final LoginUsecase loginUsecase;
@@ -227,7 +229,11 @@ class AuthCubit extends Cubit<AuthState> {
                 lastName: lastName,
               );
             } catch (firestoreError) {
-              emit(AuthError('Account created but profile save failed: $firestoreError'));
+              emit(
+                AuthError(
+                  'Account created but profile save failed: $firestoreError',
+                ),
+              );
               return;
             }
             emit(AuthShopifyAccountAlreadyExists(email));
@@ -244,7 +250,11 @@ class AuthCubit extends Cubit<AuthState> {
               lastName: lastName,
             );
           } catch (firestoreError) {
-            emit(AuthError('Account created but profile save failed: $firestoreError'));
+            emit(
+              AuthError(
+                'Account created but profile save failed: $firestoreError',
+              ),
+            );
             return;
           }
           if (authEntity.accessToken.isEmpty) {
@@ -272,17 +282,17 @@ class AuthCubit extends Cubit<AuthState> {
     String? lastName,
   }) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
+    if (uid == null) throw Exception('Firebase user not found after verification');
 
-    await FirebaseFirestore.instance.collection('users').doc(uid).set(
-      {
-        'email': email,
-        'firstName': firstName ?? '',
-        'lastName': lastName ?? '',
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'email': email,
+      'firstName': firstName ?? '',
+      'lastName': lastName ?? '',
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    // Assign coupon if eligible (first 100 installs)
+    await CouponService().getOrAssignCoupon();
   }
 
   /// Resend verification email
