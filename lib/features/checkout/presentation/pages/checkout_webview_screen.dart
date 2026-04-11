@@ -7,6 +7,7 @@ import 'package:iconnect/core/di/service_locator.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/routes.dart';
+import 'package:iconnect/services/coupen_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -17,11 +18,17 @@ class CheckoutWebViewScreen extends StatefulWidget {
   final bool showExitConfirmation;
   final String? customerAccessToken;
 
+  /// When non-null, the checkout URL already contains `?discount=couponCode`
+  /// (appended by CheckoutCubit). After a confirmed purchase we mark it used
+  /// in Firestore so the user cannot apply it again.
+  final String? couponCode;
+
   const CheckoutWebViewScreen({
     super.key,
     required this.checkoutUrl,
     this.showExitConfirmation = true,
     this.customerAccessToken,
+    this.couponCode,
   });
 
   @override
@@ -219,6 +226,16 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
 
       // Clear the cart since order is placed
       sl<CartCubit>().clearCart();
+
+      // If a welcome coupon was applied, record it as used so the customer
+      // cannot redeem it a second time (web or app).
+      if (widget.couponCode != null) {
+        CouponService().markCouponUsed().then((_) {
+          log('Coupon ${widget.couponCode} marked as used after purchase');
+        }).catchError((e) {
+          log('Failed to mark coupon used (non-critical): $e');
+        });
+      }
 
       // Show success message and navigate to home immediately
       if (mounted) {

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../cart/domain/entities/cart_item_entity.dart';
 import '../../../../services/graphql_base_service.dart';
 import '../../../../core/storage/secure_storage_service.dart';
+import '../../../../services/coupen_service.dart';
 
 part 'checkout_state.dart';
 
@@ -250,11 +251,34 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         'Customer Access Token: ${accessToken != null ? "Present" : "Not present"}',
       );
 
+      // ── Coupon pre-fill ──────────────────────────────────────────────────
+      // Only app users who are logged in can have a welcome coupon.
+      // We append ?discount=CODE so Shopify pre-fills the discount field.
+      String finalWebUrl = checkoutUrl;
+      String? couponCode;
+
+      if (isLoggedIn && accessToken != null) {
+        try {
+          couponCode = await CouponService().getUserCoupon();
+          if (couponCode != null) {
+            final uri = Uri.parse(checkoutUrl);
+            final params = Map<String, String>.from(uri.queryParameters)
+              ..['discount'] = couponCode;
+            finalWebUrl = uri.replace(queryParameters: params).toString();
+            log('Coupon pre-filled in checkout URL: $couponCode');
+          }
+        } catch (e) {
+          log('Failed to fetch user coupon (checkout continues without it): $e');
+        }
+      }
+      // ────────────────────────────────────────────────────────────────────
+
       emit(
         CheckoutCreated(
           checkoutId: cartId,
-          webUrl: checkoutUrl,
+          webUrl: finalWebUrl,
           customerAccessToken: accessToken,
+          couponCode: couponCode,
         ),
       );
     } catch (e) {

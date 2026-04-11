@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -58,5 +60,56 @@ class CouponService {
 
       return code;
     });
+  }
+
+  /// Returns the user's assigned coupon code **only if**:
+  ///   - the user is logged in to Firebase,
+  ///   - they were assigned a coupon during signup (app-only path), and
+  ///   - they have not yet used it.
+  ///
+  /// Returns `null` in every other case so callers never need to null-guard.
+  Future<String?> getUserCoupon() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    try {
+      final snap = await _db.collection('users').doc(user.uid).get();
+      final data = snap.data();
+      if (data == null) return null;
+
+      final bool alreadyUsed = data['coupon_used'] as bool? ?? false;
+      if (alreadyUsed) return null;
+
+      final String? code = (data['coupon_code'] as String?)?.trim();
+      return (code != null && code.isNotEmpty) ? code : null;
+    } catch (e) {
+      log('CouponService.getUserCoupon error: $e');
+      return null;
+    }
+  }
+
+  /// Marks the user's coupon as used after a successful purchase.
+  /// Safe to call even if the user never had a coupon — exits early in that case.
+  Future<void> markCouponUsed() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final userRef = _db.collection('users').doc(user.uid);
+      final snap = await userRef.get();
+      final data = snap.data();
+
+      // Nothing to update if there is no coupon or it is already marked used.
+      if (data == null || data['coupon_code'] == null) return;
+      if (data['coupon_used'] as bool? ?? false) return;
+
+      await userRef.update({
+        'coupon_used': true,
+        'coupon_used_at': FieldValue.serverTimestamp(),
+      });
+      log('CouponService: coupon marked as used for uid=${user.uid}');
+    } catch (e) {
+      log('CouponService.markCouponUsed error: $e');
+    }
   }
 }
