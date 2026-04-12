@@ -1,8 +1,5 @@
-import 'dart:convert';
 
-/// NOTE: All functions here must be top-level and return/send only
-/// values transferable across isolates (Map/List/num/bool/String/null).
-/// They are designed to be used with `compute` or `Isolate.run`.
+
 
 // ===================== PRODUCTS =====================
 

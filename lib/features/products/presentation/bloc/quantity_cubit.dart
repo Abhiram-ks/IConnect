@@ -44,6 +44,10 @@ class QuantityCubit extends Cubit<QuantityState> {
       emit(state.copyWith(count: state.count - 1));
     }
   }
+
+  void reset() {
+    emit(state.copyWith(count: state.min));
+  }
 }
 
 

@@ -12,7 +12,6 @@ import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
     as products;
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/models/collection_filter.dart';
-import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/services/collection_filter_service.dart';
 import 'package:iconnect/widgets/active_filter_chips.dart';
 import 'package:iconnect/widgets/collection_filter_drawer.dart';
@@ -90,7 +89,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
         });
       }
     } catch (e) {
-      print('Error loading filters: $e');
       // If error, filters will remain empty
     }
   }
@@ -193,16 +191,11 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
             // Shopify expects each filter to be an object with specific fields like:
             // {available: true}, {price: {min: 100, max: 500}}, {productVendor: "Brand"}, etc.
             shopifyFilters.add(parsedInput);
-
-            print('Parsed filter: $parsedInput');
           } catch (e) {
-            print('Error parsing filter input JSON: $e');
             // If parsing fails, skip this filter
           }
         }
-      } catch (e) {
-        print('Error converting filter ${filter.filterId}: $e');
-      }
+      } catch (e) {}
     }
 
     return shopifyFilters;
@@ -233,7 +226,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
         onFiltersApplied: _onFiltersApplied,
         onClearAll: _onClearAllFilters,
       ),
-      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
       body: Stack(
         children: [
           BlocBuilder<products.ProductBloc, products.ProductState>(

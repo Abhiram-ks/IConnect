@@ -10,24 +10,13 @@ import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_screen.dart';
 import 'package:iconnect/features/checkout/presentation/cubit/checkout_cubit.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
-import 'package:iconnect/screens/nav_screen.dart';
-import 'package:iconnect/widgets/navbar_widgets.dart';
 
 class DetailedCartScreen extends StatelessWidget {
   const DetailedCartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppPalette.blueColor,
-      child: SafeArea(
-        child: Scaffold(
-          appBar: CustomAppBarDashbord(
-            hideCartIcon: true,
-            onBack: () {
-              Navigator.pop(context);
-            },
-          ),
+    return Scaffold(
           body: BlocBuilder<CartCubit, CartState>(
             bloc: sl<CartCubit>(),
             builder: (context, state) {
@@ -85,11 +74,7 @@ class DetailedCartScreen extends StatelessWidget {
                 ),
               );
             },
-            
           ),
-          bottomNavigationBar: const BottomNavWidget(),
-        ),
-      ),
     );
   }
 

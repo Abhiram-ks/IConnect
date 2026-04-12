@@ -8,7 +8,6 @@ import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/features/products/presentation/widgets/brands_widgets/brands_widget_hero.dart';
 import 'package:iconnect/features/products/presentation/widgets/brands_widgets/brands_widget_product.dart';
-import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 import '../../../../constant/constant.dart';
@@ -83,7 +82,6 @@ class _BrandDetailsPageState extends State<BrandDetailsPage> {
     return Scaffold(
       drawer: AppDrawer(),
       endDrawer: const CartDrawerWidget(),
-      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context),),
       body: Stack(
         children: [
           SingleChildScrollView(

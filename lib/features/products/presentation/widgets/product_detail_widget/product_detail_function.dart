@@ -39,6 +39,64 @@ class _ActionButtonsWidget extends StatefulWidget {
 
 class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
   bool _isCreatingCheckout = false;
+  bool _isAddingToCart = false;
+
+  Future<void> _handleAddToCart(BuildContext localContext) async {
+    final variant =
+        widget.selectedVariant ??
+        (widget.product.variants.isNotEmpty
+            ? widget.product.variants.first
+            : null);
+
+    if (variant == null) {
+      CustomSnackBar.show(
+        localContext,
+        message: 'No variant available for this product.',
+        textAlign: TextAlign.center,
+        backgroundColor: AppPalette.redColor,
+      );
+      return;
+    }
+
+    setState(() => _isAddingToCart = true);
+
+    try {
+      final qty = localContext.read<QuantityCubit>().state.count;
+      await sl<CartCubit>().addToCart(variantId: variant.id, quantity: qty);
+
+      if (!mounted) return;
+
+      final cartState = sl<CartCubit>().state;
+      if (cartState is CartLoaded || cartState is CartOperationInProgress) {
+        CustomSnackBar.show(
+          localContext,
+          message: 'Added to cart successfully!',
+          textAlign: TextAlign.center,
+          backgroundColor: AppPalette.greenColor,
+        );
+        // Reset quantity back to 1
+        // ignore: use_build_context_synchronously
+        localContext.read<QuantityCubit>().reset();
+      } else if (cartState is CartError) {
+        CustomSnackBar.show(
+          localContext,
+          message: 'Failed to add to cart.',
+          textAlign: TextAlign.center,
+          backgroundColor: AppPalette.redColor,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      CustomSnackBar.show(
+        localContext,
+        message: 'Error adding to cart.',
+        textAlign: TextAlign.center,
+        backgroundColor: AppPalette.redColor,
+      );
+    } finally {
+      if (mounted) setState(() => _isAddingToCart = false);
+    }
+  }
 
   Future<void> _handleBuyNow(BuildContext localContext) async {
     setState(() {
@@ -71,13 +129,10 @@ class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
             children: [
               if (widget.product.availableForSale)
                 CustomButton(
-                  onPressed:
-                      () => _addToCart(
-                        builderContext,
-                        widget.product,
-                        widget.selectedVariant,
-                      ),
-                  text: 'Add to cart',
+                  onPressed: _isAddingToCart
+                      ? null
+                      : () => _handleAddToCart(builderContext),
+                  text: _isAddingToCart ? 'Adding...' : 'Add to cart',
                   bgColor: AppPalette.whiteColor,
                   textColor: AppPalette.blackColor,
                   borderColor: AppPalette.blackColor,
@@ -147,65 +202,6 @@ class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
   }
 }
 
-void _addToCart(
-  BuildContext localContext,
-  ProductEntity product,
-  ProductVariantEntity? selectedVariant,
-) async {
-  try {
-    final variant =
-        selectedVariant ??
-        (product.variants.isNotEmpty ? product.variants.first : null);
-
-    if (variant == null) {
-      CustomSnackBar.show(
-        localContext,
-        message: 'No variant available for this product.',
-        textAlign: TextAlign.center,
-        backgroundColor: AppPalette.redColor,
-      );
-      return;
-    }
-
-    CustomSnackBar.show(
-      localContext,
-      message: 'Adding ${product.title} to cart...',
-      textAlign: TextAlign.center,
-      backgroundColor: AppPalette.blueColor,
-    );
-    await sl<CartCubit>().addToCart(
-      variantId: variant.id,
-      quantity: localContext.read<QuantityCubit>().state.count,
-    );
-
-    final cartState = sl<CartCubit>().state;
-    if (cartState is CartLoaded || cartState is CartOperationInProgress) {
-      CustomSnackBar.show(
-        // ignore: use_build_context_synchronously
-        localContext,
-        message: '${product.title} added to cart successfully!',
-        textAlign: TextAlign.center,
-        backgroundColor: AppPalette.greenColor,
-      );
-    } else if (cartState is CartError) {
-      CustomSnackBar.show(
-        // ignore: use_build_context_synchronously
-        localContext,
-        message: 'Error: ${cartState.message}',
-        textAlign: TextAlign.center,
-        backgroundColor: AppPalette.redColor,
-      );
-    }
-  } catch (e) {
-    CustomSnackBar.show(
-      // ignore: use_build_context_synchronously
-      localContext,
-      message: 'Error adding to cart: $e',
-      textAlign: TextAlign.center,
-      backgroundColor: AppPalette.redColor,
-    );
-  }
-}
 
 Future<void> buyNow(
   BuildContext localContext,

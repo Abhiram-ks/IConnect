@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,8 +8,6 @@ import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/features/products/domain/entities/product_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
-import 'package:iconnect/screens/nav_screen.dart';
-import 'package:iconnect/widgets/navbar_widgets.dart';
 
 import '../features/products/presentation/widgets/product_detail_widget/product_detal_staring_body.dart';
 
@@ -72,9 +71,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
       body: _buildBody(),
-      bottomNavigationBar: BottomNavWidget(),
     );
   }
 

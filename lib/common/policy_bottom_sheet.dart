@@ -153,8 +153,6 @@ class PolicyBottomSheet {
                     final shopData = snapshot.data!;
                     final policy = shopData[policyKey];
                     
-                    print('Policy key: $policyKey');
-                    print('Policy data: $policy');
                     
                     if (policy == null) {
                       return Center(
@@ -356,20 +354,15 @@ class PolicyBottomSheet {
 
   static Future<Map<String, dynamic>?> _fetchPolicyData(ShopifyGraphQLService service) async {
     try {
-      print('Fetching shop policies...');
       final result = await service.getShopPolicies();
-      print('Policy result: $result');
       
       if (result.containsKey('shop') && result['shop'] != null) {
         final shopData = result['shop'] as Map<String, dynamic>;
-        print('Shop data: $shopData');
         return shopData;
       }
       
-      print('No shop data in result');
       return null;
     } catch (e) {
-      print('Policy fetch error: $e');
       rethrow;
     }
   }

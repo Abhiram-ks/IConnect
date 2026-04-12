@@ -4,7 +4,6 @@ import 'package:iconnect/app_drawer.dart';
 import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/models/cart_item.dart';
-import 'package:iconnect/screens/nav_screen.dart';
 import 'package:iconnect/widgets/cart_drawer.dart';
 import 'package:iconnect/widgets/product_card.dart';
 import 'package:iconnect/widgets/whatsapp_floating_button.dart';
@@ -24,7 +23,6 @@ class BannerDetailsScreen extends StatelessWidget {
     return Scaffold(
       drawer: AppDrawer(),
       endDrawer: const CartDrawerWidget(),
-      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
       body: Stack(
         children: [
           SingleChildScrollView(

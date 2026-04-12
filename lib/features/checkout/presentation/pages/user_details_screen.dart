@@ -55,7 +55,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBarDashbord(onBack: () => Navigator.pop(context)),
+      appBar: CustomAppBarDashbord(isRootPage: false),
       body: BlocConsumer<CheckoutCubit, CheckoutState>(
         bloc: sl<CheckoutCubit>(),
         listener: (context, state) {
