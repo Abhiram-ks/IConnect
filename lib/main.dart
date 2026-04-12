@@ -9,6 +9,7 @@ import 'package:iconnect/firebase_options.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:iconnect/app_theme.dart';
 import 'package:iconnect/core/di/service_locator.dart';
+import 'package:iconnect/core/storage/local_storage_service.dart';
 import 'package:iconnect/cubit/cart_cubit/cart_cubit.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
@@ -23,6 +24,10 @@ void main() async {
    await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Pre-load SharedPreferences so all LocalStorageService getters are
+  // synchronous from this point on — no await needed at call sites.
+  await LocalStorageService.init();
   
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb

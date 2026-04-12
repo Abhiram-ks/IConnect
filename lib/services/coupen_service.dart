@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:iconnect/core/storage/local_storage_service.dart';
 
 class CouponService {
   final _db = FirebaseFirestore.instance;
@@ -59,6 +60,12 @@ class CouponService {
       );
 
       return code;
+    }).then((code) async {
+      // Cache immediately so the banner shows without a second Firestore read.
+      if (code != null) {
+        await LocalStorageService.storeCouponData(code: code, used: false);
+      }
+      return code;
     });
   }
 
@@ -81,7 +88,15 @@ class CouponService {
       if (alreadyUsed) return null;
 
       final String? code = (data['coupon_code'] as String?)?.trim();
-      return (code != null && code.isNotEmpty) ? code : null;
+      final result = (code != null && code.isNotEmpty) ? code : null;
+
+      // Populate local cache so widgets never need a Firestore read.
+      await LocalStorageService.storeCouponData(
+        code: code ?? '',
+        used: alreadyUsed,
+      );
+
+      return result;
     } catch (e) {
       log('CouponService.getUserCoupon error: $e');
       return null;
@@ -107,6 +122,10 @@ class CouponService {
         'coupon_used': true,
         'coupon_used_at': FieldValue.serverTimestamp(),
       });
+
+      // Update local cache instantly — notifier fires, banner disappears
+      // without waiting for a Firestore round-trip.
+      await LocalStorageService.storeCouponData(used: true);
       log('CouponService: coupon marked as used for uid=${user.uid}');
     } catch (e) {
       log('CouponService.markCouponUsed error: $e');

@@ -38,6 +38,31 @@ class LoginScreen extends StatelessWidget {
               child: Scaffold(
                 backgroundColor: AppPalette.whiteColor,
                 resizeToAvoidBottomInset: true,
+                appBar: AppBar(
+                  backgroundColor: AppPalette.whiteColor,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          AppRoutes.navigation,
+                          (route) => false,
+                        );
+                      },
+                      child: Text(
+                        'Skip',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue[700],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 body: LoginBodyWidget(
                   screenWidth: screenWidth,
                   screenHeight: screenHeight,
@@ -318,79 +343,22 @@ class _LoginCredentialState extends State<LoginCredential> {
                 label: 'Email address *',
                 validate: ValidatorHelper.validateEmail,
                 controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
               ),
-              ConstantWidgets.hight10(context),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10.0, bottom: 5),
-                    child: Text(
-                      'Password *',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _passwordController,
-                    validator: ValidatorHelper.validatePassword,
-                    obscureText: _obscurePassword,
-                    style: const TextStyle(fontSize: 16),
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      hintText: 'Enter your password',
-                      hintStyle: TextStyle(color: AppPalette.hintColor),
-                      suffixIcon: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                        child: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: AppPalette.hintColor,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.hintColor,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.blueColor,
-                          width: 1,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.redColor,
-                          width: 1,
-                        ),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppPalette.redColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  ConstantWidgets.hight10(context),
-                ],
+              TextFormFieldWidget(
+                hintText: 'Enter your password',
+                label: 'Password *',
+                validate: ValidatorHelper.validatePassword,
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                suffixIconData:
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                suffixIconColor: AppPalette.hintColor,
+                suffixIconAction: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
               ),
               Align(
                 alignment: Alignment.centerRight,

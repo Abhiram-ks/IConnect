@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:iconnect/core/storage/secure_storage_service.dart';
+import 'package:iconnect/core/storage/local_storage_service.dart';
 import 'package:iconnect/core/usecase/usecase.dart';
 import 'package:iconnect/features/auth/domain/entities/auth_entity.dart';
 import 'package:iconnect/features/auth/domain/usecases/login_usecase.dart';
@@ -9,6 +12,7 @@ import 'package:iconnect/features/auth/domain/usecases/signup_usecase.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
 import 'package:iconnect/features/profile/domain/usecases/get_profile_usecase.dart';
 import 'package:iconnect/services/coupen_service.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 /// Auth Cubit - Manages authentication state and operations
 class AuthCubit extends Cubit<AuthState> {
@@ -53,11 +57,19 @@ class AuthCubit extends Cubit<AuthState> {
           emit(AuthError(_getUserFriendlyLoginError(failure.message)));
         },
         (authEntity) async {
-          // Store access token in secure storage
+          // Store Shopify access token in secure storage
           await SecureStorageService.storeAccessToken(
             authEntity.accessToken,
             expiresAt: authEntity.expiresAt,
           );
+
+          // Sign into Firebase so currentUser is available, then persist UID
+          // in SharedPreferences for synchronous access across the app.
+          await _signInFirebaseAndStoreUid(
+            email: email,
+            password: password,
+          );
+
           emit(AuthLoginSuccess(authEntity));
         },
       );
@@ -167,6 +179,15 @@ class AuthCubit extends Cubit<AuthState> {
       final user = firebaseAuth.currentUser;
 
       if (user != null && user.emailVerified) {
+        // Persist the Firebase UID immediately — before any async work so it
+        // is available synchronously for the rest of the session.
+        await LocalStorageService.storeUserData(
+          firebaseUid: user.uid,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+        );
+
         // Email is verified, NOW create account in backend
         await _completeSignup(email, password, firstName, lastName);
 
@@ -257,6 +278,13 @@ class AuthCubit extends Cubit<AuthState> {
             );
             return;
           }
+
+          // Tag the Shopify customer as an app user so the welcome discount
+          // can be restricted to app_user segment in Shopify Admin.
+          // Fire-and-forget: tagging failure must never block signup.
+          // if (authEntity.userId != null) {
+          //   _tagShopifyAppUser(authEntity.userId!);
+          // }
           if (authEntity.accessToken.isEmpty) {
             await login(email: email, password: password);
           } else {
@@ -390,18 +418,65 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Calls the `tagShopifyAppUser` Cloud Function to add the `app_user` tag
+  /// on the Shopify customer. This lets Shopify discount rules restrict the
+  /// welcome coupon to app-only customers at the server level.
+  ///
+  /// Always fire-and-forget — never awaited at the call site so a tagging
+  /// failure never blocks or rolls back the signup flow.
+  void _tagShopifyAppUser(String shopifyCustomerGid) {
+    FirebaseFunctions.instance
+        .httpsCallable('tagShopifyAppUser')
+        .call({'shopifyCustomerId': shopifyCustomerGid})
+        .then((_) => log('Shopify app_user tag applied: $shopifyCustomerGid'))
+        .catchError(
+          (e) => log('Shopify tagging failed (non-critical): $e'),
+        );
+  }
+
+  /// Signs into Firebase with the given credentials and stores the resulting
+  /// UID (and email) in [LocalStorageService] for synchronous access.
+  ///
+  /// Called during login — signup already has the UID from [verifyEmailAndSignup].
+  /// Failures are non-fatal: the Shopify session is already established.
+  Future<void> _signInFirebaseAndStoreUid({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final uid = credential.user?.uid;
+      if (uid != null) {
+        await LocalStorageService.storeUserData(
+          firebaseUid: uid,
+          email: email,
+        );
+        log('Firebase UID stored after login: $uid');
+
+        // Populate coupon cache so the banner is correct immediately.
+        // getUserCoupon() writes to LocalStorageService internally.
+        await CouponService().getUserCoupon();
+      }
+    } catch (e) {
+      // Non-critical: Shopify session is valid, coupon banner just won't show
+      log('Firebase sign-in during login failed (non-critical): $e');
+    }
+  }
+
   /// Logout
   Future<void> logout() async {
     emit(AuthLoading());
     try {
-      // Sign out from Firebase
       await FirebaseAuth.instance.signOut();
-
-      // Clear all secure storage data
       await SecureStorageService.clearAllTokens();
+      await LocalStorageService.clearAll(); // clears uid, email, name
       emit(AuthInitial());
     } catch (e) {
-      // Even if there's an error, clear the state
+      // Even if there's an error, wipe state so the user is not stuck
+      await LocalStorageService.clearAll();
       emit(AuthInitial());
     }
   }

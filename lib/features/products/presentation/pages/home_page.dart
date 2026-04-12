@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iconnect/constant/app_images.dart';
 import 'package:iconnect/constant/constant.dart';
+import 'package:iconnect/core/storage/local_storage_service.dart';
 import 'package:iconnect/core/utils/api_response.dart';
 import 'package:iconnect/cubit/home_view_cubit/home_view_cubit.dart';
+import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
+import 'package:iconnect/features/products/domain/entities/home_screen_entity.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart';
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
+import 'package:iconnect/features/products/presentation/widgets/categories_carousel.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/banner_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/brand_section.dart';
-import 'package:iconnect/features/products/presentation/widgets/categories_carousel.dart';
-import 'package:iconnect/features/products/presentation/widgets/home_widgets/tabbed_products_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/category_products_section.dart';
 import 'package:iconnect/features/products/presentation/widgets/home_widgets/dynamic_banner_section.dart';
-import 'package:iconnect/features/products/domain/entities/home_screen_entity.dart';
-import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
+import 'package:iconnect/features/products/presentation/widgets/home_widgets/tabbed_products_section.dart';
 import 'package:iconnect/routes.dart';
 
 class HomePage extends StatefulWidget {
@@ -160,6 +162,7 @@ class _HomeContentViewState extends State<_HomeContentView>
                       const CategoriesCarousel(),
                       ConstantWidgets.hight10(context),
                       const BrandSection(),
+                      const _OfferBannerIfEligible(),
                       ConstantWidgets.hight30(context),
                       const TabbedProductsSection(),
                       ConstantWidgets.hight30(context),
@@ -224,6 +227,31 @@ class _HomeContentViewState extends State<_HomeContentView>
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+/// Shows [AppImages.offerBanner] when the logged-in user has an un-used
+/// welcome coupon.
+///
+/// Reads entirely from [LocalStorageService] — zero Firestore reads,
+/// zero open connections. Reacts to coupon state changes via
+/// [LocalStorageService.couponEligible] which is updated by [CouponService]
+/// at every write point (assigned, used, logout).
+class _OfferBannerIfEligible extends StatelessWidget {
+  const _OfferBannerIfEligible();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: LocalStorageService.couponEligible,
+      builder: (context, eligible, _) {
+        if (!eligible) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Image.asset(AppImages.offerBanner),
         );
       },
     );
