@@ -33,8 +33,12 @@ class MenuItemEntity extends Equatable {
       final parts = url.split('/collections/');
       if (parts.length > 1) {
         // Remove any query parameters or trailing slashes
-        final handle = parts[1].split('?').first.split('#').first;
-        return handle.replaceAll('/', '');
+        final handlePath = parts[1].split('?').first.split('#').first;
+        final segments =
+            handlePath.split('/').where((segment) => segment.isNotEmpty);
+        if (segments.isNotEmpty) {
+          return segments.first;
+        }
       }
     }
     return null;

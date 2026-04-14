@@ -16,7 +16,6 @@ import 'package:iconnect/services/collection_filter_service.dart';
 import 'package:iconnect/widgets/active_filter_chips.dart';
 import 'package:iconnect/widgets/collection_filter_drawer.dart';
 import 'package:iconnect/widgets/sort_dropdown.dart';
-import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 
 import '../widgets/shopify_product_grid_section.dart';
 
@@ -488,7 +487,6 @@ class _CollectionProductsScreenState extends State<CollectionProductsScreen> {
               return const SizedBox.shrink();
             },
           ),
-          const WhatsAppFloatingButton(),
         ],
       ),
     );

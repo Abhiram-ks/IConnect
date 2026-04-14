@@ -129,9 +129,10 @@ class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
             children: [
               if (widget.product.availableForSale)
                 CustomButton(
-                  onPressed: _isAddingToCart
-                      ? null
-                      : () => _handleAddToCart(builderContext),
+                  onPressed:
+                      _isAddingToCart
+                          ? null
+                          : () => _handleAddToCart(builderContext),
                   text: _isAddingToCart ? 'Adding...' : 'Add to cart',
                   bgColor: AppPalette.whiteColor,
                   textColor: AppPalette.blackColor,
@@ -201,7 +202,6 @@ class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
     );
   }
 }
-
 
 Future<void> buyNow(
   BuildContext localContext,
@@ -341,11 +341,8 @@ Future<void> _redirectToWhatsApp({
   required ProductEntity product,
   ProductVariantEntity? selectedVariant,
 }) async {
-  // Clean phone number: remove all non-digit characters
-  final phoneNumber = WhatsAppConfig.phoneNumber.replaceAll(
-    RegExp(r'[^\d]'),
-    '',
-  );
+  // Keep only digits for WhatsApp deep links.
+  final phoneNumber = WhatsAppConfig.phoneNumber.replaceAll(RegExp(r'\D'), '');
 
   // Determine the best image to display
   String imageUrl = '';
@@ -363,28 +360,32 @@ Future<void> _redirectToWhatsApp({
   // Get price and variant info
   final double price = selectedVariant?.price ?? product.minPrice;
   final String currency = selectedVariant?.currencyCode ?? product.currencyCode;
-  final String variantInfo =
-      selectedVariant != null ? '\n*Variant:* ${selectedVariant.title}' : '';
+  // final String productUrl = WebsiteConfig.productUrl(product.handle);
 
   // Construct the message
   final String message =
       "Hello, I'm interested in this product from IConnect:\n\n"
       "*Product:* ${product.title}\n"
       "*Price:* $currency $price\n"
-      "*ID:* ${product.id}$variantInfo\n"
-      "*Description:* ${product.description.length > 200 ? '${product.description.substring(0, 200)}...' : product.description}\n"
       "*Image:* $imageUrl\n\n"
+      // "${productUrl.isNotEmpty ? '*Link:* $productUrl\n' : ''}\n"
       "Please let me know how to proceed.";
 
-  final Uri whatsappUri = Uri.parse(
-    'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}',
+  final encodedMessage = Uri.encodeComponent(message);
+  final appUri = Uri.parse(
+    'whatsapp://send?phone=$phoneNumber&text=$encodedMessage',
+  );
+  final webUri = Uri.parse(
+    'https://wa.me/$phoneNumber?text=$encodedMessage',
   );
 
   try {
-    final launched = await launchUrl(
-      whatsappUri,
-      mode: LaunchMode.externalApplication,
-    );
+    bool launched = false;
+    if (await canLaunchUrl(appUri)) {
+      launched = await launchUrl(appUri, mode: LaunchMode.externalApplication);
+    } else {
+      launched = await launchUrl(webUri, mode: LaunchMode.externalApplication);
+    }
     if (!launched) {
       if (context.mounted) {
         CustomSnackBar.show(

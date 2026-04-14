@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"iconnect-qatar-shop","configurations":{"android":"1:903511285944:android:37d158e8931d1e69c6d44d","ios":"1:903511285944:ios:a114cefa72e89ccfc6d44d"}}},"android":{"default":{"projectId":"iconnect-qatar-shop","appId":"1:903511285944:android:37d158e8931d1e69c6d44d","fileOutput":"android/app/google-services.json"}}}}}
+{
+  "functions": {
+    "source": "functions"
+  },
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "iconnect-qatar-shop",
+          "configurations": {
+            "android": "1:903511285944:android:37d158e8931d1e69c6d44d",
+            "ios": "1:903511285944:ios:a114cefa72e89ccfc6d44d"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "iconnect-qatar-shop",
+          "appId": "1:903511285944:android:37d158e8931d1e69c6d44d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  }
+}

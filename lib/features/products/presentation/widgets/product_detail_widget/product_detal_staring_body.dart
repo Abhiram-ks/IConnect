@@ -7,7 +7,6 @@ import 'package:iconnect/features/products/presentation/widgets/product_detail_w
 
 import '../../../../../app_palette.dart';
 import '../../../../../constant/constant.dart';
-import '../../../../../widgets/whatsapp_floating_button.dart';
 import '../../bloc/quantity_cubit.dart';
 import 'product_detail_description.dart';
 import 'product_detail_image_banner.dart';
@@ -39,7 +38,6 @@ Widget buildProductDetails(ProductEntity product, BuildContext context, ProductV
               ],
             ),
           ),
-          const WhatsAppFloatingButton(),
         ],
       ),
     );

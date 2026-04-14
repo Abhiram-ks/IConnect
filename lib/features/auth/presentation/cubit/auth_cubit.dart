@@ -286,12 +286,16 @@ class AuthCubit extends Cubit<AuthState> {
           //   _tagShopifyAppUser(authEntity.userId!);
           // }
           if (authEntity.accessToken.isEmpty) {
+            // login() calls _signInFirebaseAndStoreUid which fires
+            // _tagMobileAppUser() — no need to call it separately here.
             await login(email: email, password: password);
           } else {
             await SecureStorageService.storeAccessToken(
               authEntity.accessToken,
               expiresAt: authEntity.expiresAt,
             );
+            // Tag the Shopify customer as a mobile app user. Fire-and-forget.
+            _tagMobileAppUser();
             emit(AuthSignupSuccess(authEntity));
           }
         },
@@ -418,20 +422,18 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  /// Calls the `tagShopifyAppUser` Cloud Function to add the `app_user` tag
-  /// on the Shopify customer. This lets Shopify discount rules restrict the
-  /// welcome coupon to app-only customers at the server level.
+  /// Calls the `tagMobileAppUser` Cloud Function, which adds the
+  /// `mobile_app_user` tag to the customer's Shopify profile via the
+  /// Admin API. The CF uses the caller's Firebase ID-token email to look
+  /// up the Shopify customer — nothing needs to be passed from the app.
   ///
-  /// Always fire-and-forget — never awaited at the call site so a tagging
-  /// failure never blocks or rolls back the signup flow.
-  void _tagShopifyAppUser(String shopifyCustomerGid) {
-    FirebaseFunctions.instance
-        .httpsCallable('tagShopifyAppUser')
-        .call({'shopifyCustomerId': shopifyCustomerGid})
-        .then((_) => log('Shopify app_user tag applied: $shopifyCustomerGid'))
-        .catchError(
-          (e) => log('Shopify tagging failed (non-critical): $e'),
-        );
+  /// Always fire-and-forget — a tagging failure must never block login.
+  void _tagMobileAppUser() {
+    FirebaseFunctions.instanceFor(region: 'asia-south1')
+        .httpsCallable('tagMobileAppUser')
+        .call()
+        .then((_) => log('mobile_app_user Shopify tag applied'))
+        .catchError((e) => log('mobile_app_user Shopify tagging failed (non-critical): $e'));
   }
 
   /// Signs into Firebase with the given credentials and stores the resulting
@@ -455,6 +457,10 @@ class AuthCubit extends Cubit<AuthState> {
           email: email,
         );
         log('Firebase UID stored after login: $uid');
+
+        // Tag the user as a mobile app user. Fire-and-forget so a CF failure
+        // never blocks login. Already-tagged users are skipped server-side.
+        _tagMobileAppUser();
 
         // Populate coupon cache so the banner is correct immediately.
         // getUserCoupon() writes to LocalStorageService internally.

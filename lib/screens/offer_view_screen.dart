@@ -8,7 +8,6 @@ import 'package:iconnect/features/products/presentation/bloc/product_bloc.dart'
     as products;
 import 'package:iconnect/features/products/presentation/bloc/product_event.dart';
 import 'package:iconnect/routes.dart';
-import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 import 'package:iconnect/widgets/shopify_product_grid_section.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
@@ -164,7 +163,6 @@ class _OfferViewScreenState extends State<OfferViewScreen> {
               return const SizedBox.shrink();
             },
           ),
-          const WhatsAppFloatingButton(),
         ],
       ),
     );

@@ -21,6 +21,10 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
+  String _normalizeHandle(String handle) {
+    return Uri.decodeComponent(handle).trim().toLowerCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -149,7 +153,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         // Create a map of collection handle to collection for quick lookup
                         final collectionMap = <String, CollectionEntity>{
                           for (var collection in collections)
-                            collection.handle: collection,
+                            _normalizeHandle(collection.handle): collection,
                         };
 
                         if (menu == null || menu.items.isEmpty) {
@@ -245,7 +249,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               // Get collection image
               String? imageUrl;
               if (subItem.collectionHandle != null) {
-                final collection = collectionMap[subItem.collectionHandle];
+                final collection =
+                    collectionMap[_normalizeHandle(subItem.collectionHandle!)];
                 if (collection != null) {
                   imageUrl = collection.imageUrl;
                 }
