@@ -9,6 +9,7 @@ import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_s
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../app_palette.dart';
+import '../../../../../common/checkout_auth_guard.dart';
 import '../../../../../common/custom_button.dart';
 import '../../../../../common/custom_snackbar.dart';
 import '../../../../../constant/constant.dart';
@@ -99,6 +100,9 @@ class _ActionButtonsWidgetState extends State<_ActionButtonsWidget> {
   }
 
   Future<void> _handleBuyNow(BuildContext localContext) async {
+    // Guard: user must be signed in to checkout.
+    if (!checkAuthForCheckout(localContext)) return;
+
     setState(() {
       _isCreatingCheckout = true;
     });

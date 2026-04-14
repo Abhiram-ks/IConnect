@@ -286,7 +286,7 @@ class ShopifyGridProductCard extends StatelessWidget {
                     Positioned.fill(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.black54,
+                          color: const Color.fromARGB(55, 0, 0, 0),
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(12.r),
                           ),

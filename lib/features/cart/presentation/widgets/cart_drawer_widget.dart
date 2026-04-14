@@ -10,6 +10,7 @@ import 'package:iconnect/features/cart/domain/entities/cart_item_entity.dart';
 import 'package:iconnect/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:iconnect/features/checkout/presentation/pages/checkout_webview_screen.dart';
 import 'package:iconnect/features/checkout/presentation/cubit/checkout_cubit.dart';
+import 'package:iconnect/common/checkout_auth_guard.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
 
 class CartDrawerWidget extends StatelessWidget {
@@ -186,6 +187,9 @@ class CartDrawerWidget extends StatelessWidget {
                     isCreatingCheckout
                         ? null
                         : () async {
+                          // Guard: user must be signed in to checkout.
+                          if (!checkAuthForCheckout(context)) return;
+
                           final currentCartState = sl<CartCubit>().state;
                           if (currentCartState is CartLoaded) {
                             // Clear any previous checkout state

@@ -13,6 +13,7 @@ import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
 import 'package:iconnect/features/profile/domain/usecases/get_profile_usecase.dart';
 import 'package:iconnect/services/coupen_service.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 /// Auth Cubit - Manages authentication state and operations
 class AuthCubit extends Cubit<AuthState> {
@@ -479,10 +480,14 @@ class AuthCubit extends Cubit<AuthState> {
       await FirebaseAuth.instance.signOut();
       await SecureStorageService.clearAllTokens();
       await LocalStorageService.clearAll(); // clears uid, email, name
+      // Clear Shopify session cookies so a previous user's email is never
+      // pre-filled in the checkout WebView for a guest or different user.
+      await WebViewCookieManager().clearCookies();
       emit(AuthInitial());
     } catch (e) {
       // Even if there's an error, wipe state so the user is not stuck
       await LocalStorageService.clearAll();
+      await WebViewCookieManager().clearCookies();
       emit(AuthInitial());
     }
   }

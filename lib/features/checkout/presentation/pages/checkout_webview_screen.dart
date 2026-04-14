@@ -56,6 +56,15 @@ class _CheckoutWebViewScreenState extends State<CheckoutWebViewScreen> {
 
   Future<void> _initializeWebView() async {
     try {
+      // When there is no customer access token the user is a guest (or just
+      // logged out). Clear any lingering Shopify session cookies so a previous
+      // user's email / address is never pre-filled for someone else.
+      if (widget.customerAccessToken == null ||
+          widget.customerAccessToken!.isEmpty) {
+        await WebViewCookieManager().clearCookies();
+        log('CheckoutWebViewScreen: guest session — cleared WebView cookies.');
+      }
+
       // Create platform-specific parameters for better performance
       late final PlatformWebViewControllerCreationParams params;
       if (WebViewPlatform.instance is WebKitWebViewPlatform) {
