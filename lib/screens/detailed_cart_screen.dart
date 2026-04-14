@@ -237,8 +237,7 @@ class DetailedCartScreen extends StatelessWidget {
                                     final state = sl<CheckoutCubit>().state;
                                     if (state is CheckoutCreated) {
                                       // Navigate to WebView with checkout URL
-                                      Navigator.push(
-                                        context,
+                                      Navigator.of(context, rootNavigator: true).push(
                                         MaterialPageRoute(
                                           builder:
                                               (

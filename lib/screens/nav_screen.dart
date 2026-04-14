@@ -284,6 +284,36 @@ class _BottomNavigationControllersState
                             builder: (_) => const DetailedCartScreen(),
                           ),
                         ),
+                    // Open search as a full-screen dialog on the root navigator,
+                    // but hand it an onProductTap callback so when the user picks
+                    // a product the search dialog is popped first, then the detail
+                    // page is pushed inside the active tab — keeping the shell
+                    // (AppBar + bottom nav) visible.
+                    onSearchTap: () {
+                      final activeTabIndex = tabIndex;
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder:
+                              (_) => SearchScreen(
+                                onProductTap: (handle) {
+                                  // 1. Close the search screen.
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop();
+                                  // 2. Push product details inside the tab so
+                                  //    the shell (AppBar + bottom nav) stays on.
+                                  _navigatorKeys[activeTabIndex].currentState
+                                      ?.pushNamed(
+                                    AppRoutes.productDetails,
+                                    arguments: {'productHandle': handle},
+                                  );
+                                },
+                              ),
+                        ),
+                      );
+                    },
                   ),
                   body: Stack(
                     children: [
@@ -399,6 +429,13 @@ class CustomAppBarDashbord extends StatelessWidget
   /// When null, falls back to a root-navigator push.
   final VoidCallback? onCartTap;
 
+  /// Custom action for the search icon tap.
+  /// When provided (e.g. from the shell) the search screen is opened with an
+  /// [onProductTap] callback so product-detail pushes land inside the tab
+  /// navigator (keeping the shell visible).
+  /// When null, falls back to a plain root-navigator push of [SearchScreen].
+  final VoidCallback? onSearchTap;
+
   final VoidCallback? onNotificationTap;
   final bool hideCartIcon;
 
@@ -411,6 +448,7 @@ class CustomAppBarDashbord extends StatelessWidget
     this.isRootPage = true,
     this.onBack,
     this.onCartTap,
+    this.onSearchTap,
     this.onNotificationTap,
     this.hideCartIcon = false,
   }) : preferredSize = Size.fromHeight(60.h);
@@ -478,6 +516,7 @@ class CustomAppBarDashbord extends StatelessWidget
         IconButton(
           icon: const Icon(Icons.search, color: AppPalette.blackColor),
           onPressed:
+              onSearchTap ??
               () => Navigator.push(
                 context,
                 MaterialPageRoute(

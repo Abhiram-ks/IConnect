@@ -281,8 +281,7 @@ Future<void> buyNow(
         debugPrint(
           'BuyNow: Navigating to CheckoutWebViewScreen with showExitConfirmation: false',
         );
-        await Navigator.push(
-          context,
+        await Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute(
             builder:
                 (context) => CheckoutWebViewScreen(

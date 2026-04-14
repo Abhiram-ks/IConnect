@@ -207,8 +207,7 @@ class CartDrawerWidget extends StatelessWidget {
                                 Navigator.of(context).pop();
 
                                 // Navigate to WebView with checkout URL
-                                Navigator.push(
-                                  context,
+                                Navigator.of(context, rootNavigator: true).push(
                                   MaterialPageRoute(
                                     builder:
                                         (context) => CheckoutWebViewScreen(

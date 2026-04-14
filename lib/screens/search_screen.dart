@@ -17,7 +17,17 @@ import 'package:iconnect/widgets/whatsapp_floating_button.dart';
 /// - Single word searches use regular search across all product fields
 /// - Shopify searches across: title, description, tags, product type, vendor
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  /// Called when the user taps a product card.
+  ///
+  /// Receives the product handle. The caller is responsible for navigating
+  /// to the product detail page (typically by popping this screen first,
+  /// then pushing inside the tab navigator so the shell remains visible).
+  ///
+  /// When null, falls back to a plain [Navigator.pushNamed] on the current
+  /// navigator (legacy / standalone behaviour).
+  final void Function(String handle)? onProductTap;
+
+  const SearchScreen({super.key, this.onProductTap});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -507,11 +517,15 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildProductCard(ProductEntity product) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/product_details',
-          arguments: {'productHandle': product.handle},
-        );
+        if (widget.onProductTap != null) {
+          widget.onProductTap!(product.handle);
+        } else {
+          Navigator.pushNamed(
+            context,
+            '/product_details',
+            arguments: {'productHandle': product.handle},
+          );
+        }
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
