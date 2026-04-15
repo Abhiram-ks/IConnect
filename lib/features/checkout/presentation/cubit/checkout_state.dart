@@ -23,7 +23,6 @@ class CheckoutCreating extends CheckoutState {
 class CheckoutCreated extends CheckoutState {
   final String checkoutId;
   final String webUrl;
-  final String? customerAccessToken;
 
   /// Non-null only when the logged-in app user has an unused welcome coupon.
   /// The cubit appends it as `?discount=CODE` to [webUrl] automatically.
@@ -32,12 +31,11 @@ class CheckoutCreated extends CheckoutState {
   const CheckoutCreated({
     required this.checkoutId,
     required this.webUrl,
-    this.customerAccessToken,
     this.couponCode,
   });
 
   @override
-  List<Object?> get props => [checkoutId, webUrl, customerAccessToken, couponCode];
+  List<Object?> get props => [checkoutId, webUrl, couponCode];
 }
 
 class CheckoutError extends CheckoutState {

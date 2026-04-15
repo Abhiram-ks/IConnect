@@ -248,8 +248,6 @@ class DetailedCartScreen extends StatelessWidget {
                                                 context,
                                               ) => CheckoutWebViewScreen(
                                                 checkoutUrl: state.webUrl,
-                                                customerAccessToken:
-                                                    state.customerAccessToken,
                                               ),
                                         ),
                                       );

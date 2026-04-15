@@ -410,113 +410,6 @@ class _OtpCredentialState extends State<OtpCredential> {
     }
   }
 
-  void _showAlreadyRegisteredDialog(BuildContext context, String email) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle_outline,
-                color: Colors.green,
-                size: 36,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Account Registered!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Your account has been successfully registered.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: Colors.black54,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: Colors.blue.shade700,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Please sign in with your email and the password you just set.',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.blue.shade800,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppPalette.blueColor,
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(9),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                // Clear the stack back to the login screen
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.login,
-                  (route) => false,
-                );
-              },
-              child: const Text(
-                'Go to Sign In',
-                style: TextStyle(
-                  color: AppPalette.whiteColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -528,8 +421,6 @@ class _OtpCredentialState extends State<OtpCredential> {
             AppRoutes.navigation,
             (route) => false,
           );
-        } else if (state is AuthShopifyAccountAlreadyExists) {
-          _showAlreadyRegisteredDialog(context, state.email);
         } else if (state is AuthError) {
           if (state.message.contains('resent successfully') ||
               state.message.contains('already verified')) {

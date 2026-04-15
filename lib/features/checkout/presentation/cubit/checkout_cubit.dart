@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../cart/domain/entities/cart_item_entity.dart';
 import '../../../../services/graphql_base_service.dart';
-import '../../../../core/storage/secure_storage_service.dart';
+import '../../../../core/storage/local_storage_service.dart';
 import '../../../../services/coupen_service.dart';
 
 part 'checkout_state.dart';
@@ -114,13 +114,10 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     emit(CheckoutInitial());
   }
 
-  /// Create Shopify cart and get checkoutUrl (modern Cart API)
+  /// Create Shopify cart and get checkoutUrl (modern Cart API).
   ///
-  /// This method automatically retrieves user details from secure storage if logged in
-  /// and passes them to Shopify for a seamless checkout experience:
-  /// - Email and phone for prefilling
-  /// - Customer access token to maintain logged-in state in checkout webview
-  /// - Default address for delivery prefilling
+  /// Uses the user's email from [LocalStorageService] to prefill the buyer
+  /// identity. No Shopify customer access token is used.
   Future<void> createShopifyCheckout({String? email}) async {
     try {
       if (state is! CheckoutLoaded) {
@@ -138,98 +135,32 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
       emit(const CheckoutCreating());
 
-      // Initialize buyer identity map
+      final isLoggedIn = LocalStorageService.isLoggedIn;
+
+      // Resolve email: prefer the passed-in value, fall back to stored email.
+      final String? userEmail =
+          (email != null && email.isNotEmpty)
+              ? email
+              : LocalStorageService.email;
+
       Map<String, dynamic>? buyerIdentity;
-      Map<String, dynamic>? deliveryPreferences;
-      String? accessToken;
-
-      // Get user details from secure storage if logged in
-      String? userEmail = email;
-      final isLoggedIn = await SecureStorageService.isLoggedIn();
-
-      if (isLoggedIn) {
-        try {
-          accessToken = await SecureStorageService.getAccessToken();
-          if (accessToken != null && accessToken.isNotEmpty) {
-            // Fetch customer profile
-            final customerData = await _graphQLService.getCustomer(
-              customerAccessToken: accessToken,
-            );
-
-            final customer = customerData['customer'];
-            if (customer != null) {
-              // Extract customer details
-              userEmail = customer['email'] as String?;
-              final phone = customer['phone'] as String?;
-              final defaultAddress = customer['defaultAddress'];
-
-              log('Retrieved user details from profile:');
-              log('Email: $userEmail');
-              log('Phone: $phone');
-              log('Has default address: ${defaultAddress != null}');
-
-              // Build buyer identity with all available information
-              buyerIdentity = {
-                if (userEmail != null && userEmail.isNotEmpty)
-                  'email': userEmail,
-                if (phone != null && phone.isNotEmpty) 'phone': phone,
-                // CRITICAL: Include customerAccessToken to maintain login state in checkout
-                'customerAccessToken': accessToken,
-              };
-
-              // Build delivery preferences if default address exists
-              if (defaultAddress != null) {
-                deliveryPreferences = {
-                  'deliveryAddress': {
-                    if (defaultAddress['address1'] != null)
-                      'address1': defaultAddress['address1'],
-                    if (defaultAddress['address2'] != null)
-                      'address2': defaultAddress['address2'],
-                    if (defaultAddress['city'] != null)
-                      'city': defaultAddress['city'],
-                    if (defaultAddress['province'] != null)
-                      'province': defaultAddress['province'],
-                    if (defaultAddress['zip'] != null)
-                      'zip': defaultAddress['zip'],
-                    if (defaultAddress['country'] != null)
-                      'country': defaultAddress['country'],
-                  },
-                };
-              }
-            }
-          }
-        } catch (e) {
-          log('Failed to retrieve user details: $e');
-          // Continue with just email if profile retrieval fails
-          if (userEmail != null && userEmail.isNotEmpty) {
-            buyerIdentity = {'email': userEmail};
-          }
-        }
-      } else if (userEmail != null && userEmail.isNotEmpty) {
-        // Guest checkout with provided email
+      if (userEmail != null && userEmail.isNotEmpty) {
         buyerIdentity = {'email': userEmail};
+        log('Checkout buyer identity — email: $userEmail');
       }
 
-      // Prepare cart lines for Shopify Cart API
-      final lines =
-          items.map((item) {
-            return {'merchandiseId': item.variantId, 'quantity': item.quantity};
-          }).toList();
+      // Prepare cart lines for Shopify Cart API.
+      final lines = items
+          .map((item) => {'merchandiseId': item.variantId, 'quantity': item.quantity})
+          .toList();
 
       log('Creating cart with ${lines.length} items');
-      log('Buyer identity: $buyerIdentity');
-      log('Delivery preferences: $deliveryPreferences');
 
-      // Call GraphQL service to create cart with full buyer information
       final response = await _graphQLService.createCart(
         lines: lines,
         buyerIdentity: buyerIdentity,
-        deliveryAddressPreferences: deliveryPreferences,
       );
 
-      log('Cart response: $response');
-
-      // Extract cart data
       final cartData = response['cartCreate']?['cart'];
       if (cartData == null) {
         emit(const CheckoutError(message: 'Failed to create cart'));
@@ -244,20 +175,13 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         return;
       }
 
-      log('Cart created successfully!');
-      log('Cart ID: $cartId');
-      log('Checkout URL: $checkoutUrl');
-      log(
-        'Customer Access Token: ${accessToken != null ? "Present" : "Not present"}',
-      );
+      log('Cart created — id: $cartId');
 
       // ── Coupon pre-fill ──────────────────────────────────────────────────
-      // Only app users who are logged in can have a welcome coupon.
-      // We append ?discount=CODE so Shopify pre-fills the discount field.
       String finalWebUrl = checkoutUrl;
       String? couponCode;
 
-      if (isLoggedIn && accessToken != null) {
+      if (isLoggedIn) {
         try {
           couponCode = await CouponService().getUserCoupon();
           if (couponCode != null) {
@@ -277,7 +201,6 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         CheckoutCreated(
           checkoutId: cartId,
           webUrl: finalWebUrl,
-          customerAccessToken: accessToken,
           couponCode: couponCode,
         ),
       );

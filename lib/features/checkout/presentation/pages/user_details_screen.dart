@@ -290,7 +290,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                                               builder:
                                                   (context) => CheckoutWebViewScreen(
                                                     checkoutUrl: state.webUrl,
-                                                    customerAccessToken: state.customerAccessToken,
                                                     couponCode: state.couponCode,
                                                   ),
                                             ),

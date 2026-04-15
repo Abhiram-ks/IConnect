@@ -15,6 +15,10 @@ class StorageKeys {
   static const String userFirstName = 'user_first_name';
   static const String userLastName  = 'user_last_name';
 
+  // ── Session ────────────────────────────────────────────────────────────────
+  /// True when the user is logged in via Firebase.
+  static const String isLoggedIn = 'is_logged_in';
+
   // ── Coupon ─────────────────────────────────────────────────────────────────
   /// The welcome coupon code assigned to this device install. Empty = no coupon.
   static const String couponCode = 'coupon_code';
@@ -71,12 +75,13 @@ class LocalStorageService {
 
   // ── Synchronous getters — no await needed anywhere ────────────────────────
 
-  static String? get uid       => _prefs.getString(StorageKeys.firebaseUid);
-  static String? get email     => _prefs.getString(StorageKeys.userEmail);
-  static String? get firstName => _prefs.getString(StorageKeys.userFirstName);
-  static String? get lastName  => _prefs.getString(StorageKeys.userLastName);
-  static String? get couponCode => _prefs.getString(StorageKeys.couponCode);
-  static bool    get couponUsed => _prefs.getBool(StorageKeys.couponUsed) ?? false;
+  static bool    get isLoggedIn  => _prefs.getBool(StorageKeys.isLoggedIn) ?? false;
+  static String? get uid         => _prefs.getString(StorageKeys.firebaseUid);
+  static String? get email       => _prefs.getString(StorageKeys.userEmail);
+  static String? get firstName   => _prefs.getString(StorageKeys.userFirstName);
+  static String? get lastName    => _prefs.getString(StorageKeys.userLastName);
+  static String? get couponCode  => _prefs.getString(StorageKeys.couponCode);
+  static bool    get couponUsed  => _prefs.getBool(StorageKeys.couponUsed) ?? false;
 
   /// Display name built from first + last name; falls back to email.
   static String get displayName {
@@ -85,6 +90,11 @@ class LocalStorageService {
   }
 
   // ── Writers ───────────────────────────────────────────────────────────────
+
+  /// Set the logged-in flag.
+  static Future<void> setLoggedIn(bool value) async {
+    await _prefs.setBool(StorageKeys.isLoggedIn, value);
+  }
 
   /// Persist any combination of user identity fields.
   /// Only writes keys whose value is non-null — safe for partial updates.
@@ -117,6 +127,7 @@ class LocalStorageService {
   /// Remove all user-related keys and reset the coupon notifier.
   /// Call this on logout — clears both identity and coupon state.
   static Future<void> clearAll() async {
+    await _prefs.remove(StorageKeys.isLoggedIn);
     await _prefs.remove(StorageKeys.firebaseUid);
     await _prefs.remove(StorageKeys.userEmail);
     await _prefs.remove(StorageKeys.userFirstName);

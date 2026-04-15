@@ -51,10 +51,12 @@ class OrdersPage extends StatelessWidget {
             }
 
             if (state is OrdersError && (state.orders.isEmpty)) {
-              return Center(
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 60),
                     Icon(
                       Icons.error_outline,
                       size: 64,
@@ -220,6 +222,7 @@ class OrdersPage extends StatelessWidget {
                   (item) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (item.variant?.imageUrl != null)
                           ClipRRect(
@@ -255,8 +258,6 @@ class OrdersPage extends StatelessWidget {
                                   fontWeight: FontWeight.w500,
                                   color: AppPalette.blackColor,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -273,7 +274,7 @@ class OrdersPage extends StatelessWidget {
                           item.originalTotalPrice.formattedAmount,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w400,
                             color: AppPalette.blackColor,
                           ),
                         ),

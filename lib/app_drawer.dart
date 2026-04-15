@@ -14,9 +14,8 @@ import 'package:iconnect/features/menu/presentation/cubit/menu_state.dart';
 import 'package:iconnect/screens/collection_products_screen.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
-import 'package:iconnect/core/storage/secure_storage_service.dart';
+import 'package:iconnect/core/storage/local_storage_service.dart';
 import 'package:iconnect/routes.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:iconnect/cubit/nav_cubit/navigation_cubit.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -399,92 +398,50 @@ class _FooterWidget extends StatefulWidget {
 }
 
 class _FooterWidgetState extends State<_FooterWidget> {
-  String? _token;
-  bool _isLoadingToken = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadToken();
-  }
-
-  Future<void> _loadToken() async {
-    final token = await SecureStorageService.getAccessToken();
-    if (mounted) {
-      setState(() {
-        _token = token;
-        _isLoadingToken = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
-      listener: (context, authState) {
-        // Update token when auth state changes (login/logout)
-        if (authState is AuthInitial ||
-            authState is AuthLoginSuccess ||
-            authState is AuthSignupSuccess) {
-          _loadToken();
-        }
-      },
-      child: BlocBuilder<AuthCubit, AuthState>(
-        builder: (context, authState) {
-          final isLoggedIn = _token != null && _token!.isNotEmpty;
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        final isLoggedIn = LocalStorageService.isLoggedIn;
 
-          if (_isLoadingToken) {
-            return Container(
-              padding: EdgeInsets.all(16.w),
-              child: Center(
-                child: Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: SizedBox(width: 100.w, height: 100.h),
-                ),
-              ),
-            );
-          }
-
-          return Container(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              children: [
-                if (!isLoggedIn)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 16.h),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'My Account',
-                        style: TextStyle(
-                          fontSize: 19.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                        textAlign: TextAlign.left,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+        return Container(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            children: [
+              if (!isLoggedIn)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 16.h),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'My Account',
+                      style: TextStyle(
+                        fontSize: 19.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
+                      textAlign: TextAlign.left,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                if (!isLoggedIn)
-                  Column(
-                    children: [
-                      CustomButton(
-                        text: 'Log in',
-                        onPressed: () {
-                          Navigator.pushNamed(context, AppRoutes.login);
-                        },
-                      ),
-                    ],
-                  ),
-                SizedBox(height: 16.h),
-              ],
-            ),
-          );
-        },
-      ),
+                ),
+              if (!isLoggedIn)
+                Column(
+                  children: [
+                    CustomButton(
+                      text: 'Log in',
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.login);
+                      },
+                    ),
+                  ],
+                ),
+              SizedBox(height: 16.h),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -216,8 +216,6 @@ class CartDrawerWidget extends StatelessWidget {
                                     builder:
                                         (context) => CheckoutWebViewScreen(
                                           checkoutUrl: state.webUrl,
-                                          customerAccessToken:
-                                              state.customerAccessToken,
                                         ),
                                   ),
                                 );

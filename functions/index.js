@@ -25,7 +25,7 @@ function shopifyConfig() {
  */
 async function shopifyAdminQuery(query, variables = {}) {
   const { domain, token } = shopifyConfig();
-  const url = `https://${domain}/admin/api/2024-01/graphql.json`;
+  const url = `https://${domain}/admin/api/2025-01/graphql.json`;
 
   const response = await axios.post(
     url,
@@ -170,6 +170,127 @@ exports.onUserCreated = functions.region("asia-south1").auth.user().onCreate(asy
 // Flutter usage:
 //   FirebaseFunctions.instance.httpsCallable('tagMobileAppUser').call();
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// CALLABLE: Fetch orders for the logged-in user by email.
+//
+// Called from OrdersRemoteDataSourceImpl.getOrders() in Flutter.
+// Email is taken from the caller's Firebase Auth token (not from `data`) so
+// a user can never query another user's orders.
+//
+// Returns the same JSON shape as the Shopify Storefront API customer orders
+// query so the existing OrderModel.listFromJson() parser works without changes:
+//   { customer: { orders: { edges: [ { node: { ... } } ] } } }
+//
+// Flutter usage:
+//   FirebaseFunctions.instance.httpsCallable('getOrdersByEmail')
+//       .call({'first': 50});
+// ─────────────────────────────────────────────────────────────────────────────
+exports.getOrdersByEmail = functions.region("asia-south1").https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");
+  }
+
+  const email = context.auth.token.email;
+  if (!email) {
+    throw new functions.https.HttpsError("invalid-argument", "Authenticated user has no email.");
+  }
+
+  const first = (data && data.first) ? Math.min(Number(data.first), 250) : 50;
+  const after = (data && data.after) ? data.after : null;
+
+  const query = `
+    query GetOrdersByEmail($query: String!, $first: Int!) {
+      orders(first: $first, query: $query, sortKey: PROCESSED_AT, reverse: true) {
+        edges {
+          node {
+            id
+            name
+            processedAt
+            totalPriceSet {
+              shopMoney { amount currencyCode }
+            }
+            displayFulfillmentStatus
+            displayFinancialStatus
+            lineItems(first: 10) {
+              edges {
+                node {
+                  title
+                  quantity
+                  originalTotalSet {
+                    shopMoney { amount currencyCode }
+                  }
+                  variant {
+                    id
+                    title
+                    image { url }
+                    product {
+                      featuredImage { url }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const adminData = await shopifyAdminQuery(query, {
+      query: `email:${email}`,
+      first,
+    });
+
+    const edges = adminData?.orders?.edges ?? [];
+
+    // Transform Admin API format → Storefront API format expected by Flutter.
+    const transformed = edges.map(({ node }) => ({
+      node: {
+        id: node.id,
+        name: node.name,
+        orderNumber: parseInt(node.name.replace(/[^0-9]/g, "")) || 0,
+        processedAt: node.processedAt,
+        totalPrice: node.totalPriceSet?.shopMoney ?? { amount: "0", currencyCode: "USD" },
+        fulfillmentStatus: node.displayFulfillmentStatus ?? null,
+        financialStatus: node.displayFinancialStatus ?? null,
+          lineItems: {
+            edges: (node.lineItems?.edges ?? []).map(({ node: item }) => ({
+              node: {
+                title: item.title,
+                quantity: item.quantity,
+                originalTotalPrice: item.originalTotalSet?.shopMoney ?? { amount: "0", currencyCode: "USD" },
+                variant: item.variant
+                  ? {
+                      id: item.variant.id,
+                      title: item.variant.title,
+                      // Prefer the variant-specific image; fall back to the
+                      // product's featured image (most variants have no own image).
+                      image: item.variant.image ?? item.variant.product?.featuredImage ?? null,
+                    }
+                  : null,
+              },
+            })),
+          },
+      },
+    }));
+
+    console.log(`getOrdersByEmail: found ${transformed.length} orders for ${email}`);
+
+    return {
+      customer: {
+        orders: {
+          edges: transformed,
+        },
+      },
+    };
+  } catch (error) {
+    const msg = error?.message || "Unknown error";
+    console.error("getOrdersByEmail: error fetching orders for", email, msg, error);
+    throw new functions.https.HttpsError("internal", `Failed to fetch orders: ${msg}`);
+  }
+});
+
 exports.tagMobileAppUser = functions.region("asia-south1").https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError("unauthenticated", "Must be signed in.");

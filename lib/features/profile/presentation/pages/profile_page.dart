@@ -6,9 +6,9 @@ import 'package:iconnect/app_palette.dart';
 import 'package:iconnect/common/custom_button.dart';
 import 'package:iconnect/common/custom_snackbar.dart';
 import 'package:iconnect/core/di/service_locator.dart';
+import 'package:iconnect/core/storage/local_storage_service.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
-import 'package:iconnect/features/profile/domain/entities/profile_entity.dart';
 import 'package:iconnect/routes.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -55,60 +55,16 @@ class ProfilePage extends StatelessWidget {
             }
           },
           builder: (context, state) {
-            // Load profile if not already loaded
-            if (state is AuthLoginSuccess && state.profile == null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<AuthCubit>().loadProfile();
-              });
-            } else if (state is AuthSignupSuccess && state.profile == null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<AuthCubit>().loadProfile();
-              });
+            // Read user data directly from local storage.
+            final email = LocalStorageService.email ?? '';
+            final displayName = LocalStorageService.displayName;
+            final isLoggedIn = LocalStorageService.isLoggedIn;
+
+            if (!isLoggedIn || (state is! AuthLoginSuccess && state is! AuthSignupSuccess)) {
+              return const SizedBox.shrink();
             }
 
-            if (state is AuthProfileLoading ||
-                (state is AuthLoginSuccess && state.profile == null) ||
-                (state is AuthSignupSuccess && state.profile == null)) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppPalette.blueColor),
-              );
-            }
-
-            if (state is AuthError) {
-              final authState = state;
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: AppPalette.redColor,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      authState.message,
-                      style: GoogleFonts.poppins(color: AppPalette.redColor),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => context.read<AuthCubit>().loadProfile(),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            ProfileEntity? profile;
-            if (state is AuthLoginSuccess) {
-              profile = state.profile;
-            } else if (state is AuthSignupSuccess) {
-              profile = state.profile;
-            }
-
-            if (profile != null) {
+            {
               final isLoading = state is AuthLoading;
 
               return SingleChildScrollView(
@@ -124,9 +80,9 @@ class ProfilePage extends StatelessWidget {
                             radius: 50,
                             backgroundColor: AppPalette.blueColor,
                             child: Text(
-                              profile.fullName.isNotEmpty
-                                  ? profile.fullName[0].toUpperCase()
-                                  : profile.email[0].toUpperCase(),
+                              displayName.isNotEmpty
+                                  ? displayName[0].toUpperCase()
+                                  : (email.isNotEmpty ? email[0].toUpperCase() : '?'),
                               style: const TextStyle(
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
@@ -136,7 +92,7 @@ class ProfilePage extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            profile.fullName,
+                            displayName,
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -148,29 +104,13 @@ class ProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
                     // Email
-                    _buildInfoCard(
-                      icon: Icons.email,
-                      label: 'Email',
-                      value: profile.email,
-                    ),
-                    const SizedBox(height: 16),
-                    // Phone
-                    if (profile.phone != null && profile.phone!.isNotEmpty)
+                    if (email.isNotEmpty)
                       _buildInfoCard(
-                        icon: Icons.phone,
-                        label: 'Phone',
-                        value: profile.phone!,
+                        icon: Icons.email,
+                        label: 'Email',
+                        value: email,
                       ),
-                    if (profile.phone != null && profile.phone!.isNotEmpty)
-                      const SizedBox(height: 16),
-                    // Default Address
-                    if (profile.defaultAddress != null)
-                      _buildAddressCard(
-                        label: 'Default Address',
-                        address: profile.defaultAddress!,
-                      ),
-                    if (profile.defaultAddress != null)
-                      const SizedBox(height: 32),
+                    if (email.isNotEmpty) const SizedBox(height: 16),
 
                     // Action Buttons Section
                     const SizedBox(height: 16),
@@ -363,44 +303,4 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildAddressCard({
-    required String label,
-    required AddressEntity address,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppPalette.whiteColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppPalette.hintColor.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.location_on, color: AppPalette.blueColor),
-              const SizedBox(width: 16),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: AppPalette.hintColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            address.fullAddress,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: AppPalette.blackColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
