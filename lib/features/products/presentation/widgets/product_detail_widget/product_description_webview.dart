@@ -93,6 +93,7 @@ double _snapHeightToDevicePixels(double logicalHeight, double devicePixelRatio) 
 class _ProductDescriptionWebViewState extends State<ProductDescriptionWebView> {
   WebViewController? _controller;
   double _height = 180;
+  bool _initialDocumentLoaded = false;
   static const double _minHeight = 120;
   static const double _paddingBuffer = 8;
 
@@ -112,6 +113,15 @@ class _ProductDescriptionWebViewState extends State<ProductDescriptionWebView> {
     }
   }
 
+  String get _normalizedBaseUrl =>
+      widget.baseUrl.endsWith('/') ? widget.baseUrl : '${widget.baseUrl}/';
+
+  bool _isBaseUrlNavigation(String url) {
+    final normalized = _normalizedBaseUrl;
+    final stripped = normalized.substring(0, normalized.length - 1);
+    return url == normalized || url == stripped;
+  }
+
   NavigationDecision _handleNavigation(NavigationRequest request) {
     if (!request.isMainFrame) {
       return NavigationDecision.navigate;
@@ -120,6 +130,18 @@ class _ProductDescriptionWebViewState extends State<ProductDescriptionWebView> {
     if (url == 'about:blank') {
       return NavigationDecision.navigate;
     }
+
+    // iOS (WKWebView) fires the navigation delegate for `loadHtmlString`'s
+    // baseUrl as part of the initial document load. Android's WebView skips
+    // `shouldOverrideUrlLoading` for that initial `loadDataWithBaseURL`, so the
+    // bug only manifests on iOS: the base URL gets treated like an outbound
+    // link and opened in Safari, leaving the description blank. Allow the
+    // initial base-URL navigation to proceed in-place; user-initiated taps
+    // after the page has finished loading still get routed externally.
+    if (!_initialDocumentLoaded && _isBaseUrlNavigation(url)) {
+      return NavigationDecision.navigate;
+    }
+
     final uri = Uri.tryParse(url);
     if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
       launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -177,11 +199,9 @@ class _ProductDescriptionWebViewState extends State<ProductDescriptionWebView> {
   Future<void> _loadContent() async {
     final c = _controller;
     if (c == null) return;
+    _initialDocumentLoaded = false;
     final doc = buildProductDescriptionHtmlDocument(widget.bodyHtml);
-    final base = widget.baseUrl.endsWith('/')
-        ? widget.baseUrl
-        : '${widget.baseUrl}/';
-    await c.loadHtmlString(doc, baseUrl: base);
+    await c.loadHtmlString(doc, baseUrl: _normalizedBaseUrl);
   }
 
   String get _reportHeightScript => '''
@@ -209,6 +229,7 @@ class _ProductDescriptionWebViewState extends State<ProductDescriptionWebView> {
 ''';
 
   Future<void> _onPageFinished() async {
+    _initialDocumentLoaded = true;
     final c = _controller;
     if (c == null || !mounted) return;
     try {

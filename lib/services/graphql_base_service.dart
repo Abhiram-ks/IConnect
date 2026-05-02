@@ -596,9 +596,7 @@ class ShopifyGraphQLService extends GraphQLBaseService {
   }
 
   /// Send password reset email via Shopify (customerRecover)
-  Future<Map<String, dynamic>> customerRecover({
-    required String email,
-  }) async {
+  Future<Map<String, dynamic>> customerRecover({required String email}) async {
     const mutationString = r'''
       mutation CustomerRecover($email: String!) {
         customerRecover(email: $email) {
@@ -611,10 +609,7 @@ class ShopifyGraphQLService extends GraphQLBaseService {
       }
     ''';
 
-    return executeMutation(
-      mutationString,
-      variables: {'email': email},
-    );
+    return executeMutation(mutationString, variables: {'email': email});
   }
 
   /// Get customer profile
@@ -681,6 +676,25 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     );
   }
 
+  /// Fetch a Shopify page (About Us, Contact, Privacy Policy, etc.) by handle.
+  /// Returns the raw GraphQL response; the `page` key may be `null` if the
+  /// handle does not exist in the store.
+  Future<Map<String, dynamic>> getPageByHandle(String handle) async {
+    return executeQuery(
+      GraphQLQueries.getPageByHandle,
+      variables: {'handle': handle},
+    );
+  }
+
+  /// List Online Store pages. Useful as a fallback when a hard-coded handle
+  /// doesn't match what the merchant configured in Shopify Admin.
+  Future<Map<String, dynamic>> getAllPages({int first = 50}) async {
+    return executeQuery(
+      GraphQLQueries.getAllPages,
+      variables: {'first': first},
+    );
+  }
+
   /// Get shop policies (Privacy Policy, Terms of Service, Refund Policy)
   Future<Map<String, dynamic>> getShopPolicies() async {
     const queryString = r'''
@@ -707,7 +721,10 @@ class ShopifyGraphQLService extends GraphQLBaseService {
     ''';
 
     try {
-      return await executeQuery(queryString, fetchPolicy: FetchPolicy.networkOnly);
+      return await executeQuery(
+        queryString,
+        fetchPolicy: FetchPolicy.networkOnly,
+      );
     } catch (e) {
       print('GraphQL Error in getShopPolicies: $e');
       rethrow;

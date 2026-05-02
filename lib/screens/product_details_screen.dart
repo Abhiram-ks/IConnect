@@ -109,6 +109,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       }
 
       return buildProductDetails(product, context, _selectedVariant);
+      
     }
 
     return Center(

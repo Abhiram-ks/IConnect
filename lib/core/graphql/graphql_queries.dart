@@ -914,6 +914,41 @@ class GraphQLQueries {
     }
   ''';
 
+  // ========== PAGE QUERIES ==========
+
+  /// Fetch a Shopify Online Store page (About Us, Contact, Privacy Policy,
+  /// etc.) by its handle. Returns just the page title and body HTML — none of
+  /// the storefront theme chrome (header, nav, footer).
+  static const String getPageByHandle = r'''
+    query GetPageByHandle($handle: String!) {
+      page(handle: $handle) {
+        id
+        handle
+        title
+        body
+        bodySummary
+      }
+    }
+  ''';
+
+  /// List Online Store pages. Used as a fallback when a hard-coded handle
+  /// doesn't match what the merchant configured in Shopify Admin — we can
+  /// then look up the right page by title.
+  static const String getAllPages = r'''
+    query GetAllPages($first: Int!) {
+      pages(first: $first) {
+        edges {
+          node {
+            id
+            handle
+            title
+            body
+          }
+        }
+      }
+    }
+  ''';
+
   // ========== MENU QUERIES ==========
 
   /// Get menu by handle

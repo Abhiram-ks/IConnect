@@ -12,6 +12,9 @@ import 'package:iconnect/features/menu/domain/entities/menu_entity.dart';
 import 'package:iconnect/features/menu/presentation/cubit/menu_cubit.dart';
 import 'package:iconnect/features/menu/presentation/cubit/menu_state.dart';
 import 'package:iconnect/screens/collection_products_screen.dart';
+import 'package:iconnect/screens/contact_us_screen.dart';
+import 'package:iconnect/screens/service_screen.dart';
+import 'package:iconnect/screens/shopify_page_screen.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iconnect/features/auth/presentation/cubit/auth_state.dart';
 import 'package:iconnect/core/storage/local_storage_service.dart';
@@ -148,63 +151,42 @@ class AppDrawer extends StatelessWidget {
                 SettingWidget(
                   title: 'About Us',
                   icon: Icons.info_rounded,
-                  onTap: () async {
-                    launchConfig(
-                      context: context,
-                      url: 'https://iconnectqatar.com/pages/about-us',
-                      message:
-                          'We cannnot proceed at that moment, please try again later',
-                    );
-                  },
+                  onTap:
+                      () => _openShopifyPage(
+                        context,
+                        title: 'About Us',
+                        handle: 'about-us',
+                      ),
                 ),
                 SettingWidget(
                   title: 'Contact Us',
                   icon: Icons.contact_support,
-                  onTap: () async {
-                    launchConfig(
-                      context: context,
-                      url: 'https://iconnectqatar.com/pages/contact',
-                      message:
-                          'We cannnot proceed at that moment, please try again later',
-                    );
-                  },
+                  onTap: () => _openScreen(context, const ContactUsScreen()),
                 ),
                 SettingWidget(
                   title: 'Terms & Conditions',
                   icon: Icons.description,
-                  onTap: () async {
-                    launchConfig(
-                      context: context,
-                      url: 'https://iconnectqatar.com/pages/terms-conditions',
-                      message:
-                          'We cannnot proceed at that moment, please try again later',
-                    );
-                  },
+                  onTap:
+                      () => _openShopifyPage(
+                        context,
+                        title: 'Terms & Conditions',
+                        handle: 'terms-conditions',
+                      ),
                 ),
                 SettingWidget(
                   title: 'Privacy & Policies',
                   icon: Icons.privacy_tip,
-                  onTap: () async {
-                    launchConfig(
-                      context: context,
-                      url: 'https://iconnectqatar.com/pages/privacy-policy',
-                      message:
-                          'We cannnot proceed at that moment, please try again later',
-                    );
-                  },
+                  onTap:
+                      () => _openShopifyPage(
+                        context,
+                        title: 'Privacy & Policies',
+                        handle: 'privacy-policy',
+                      ),
                 ),
                 SettingWidget(
                   title: 'Service',
                   icon: Icons.help,
-                  onTap: () async {
-                    launchConfig(
-                      context: context,
-                      url:
-                          'https://iconnectqatar.xn--com%20%20pages%20%20services-3j6qla/',
-                      message:
-                          'We cannnot proceed at that moment, please try again later',
-                    );
-                  },
+                  onTap: () => _openScreen(context, const ServiceScreen()),
                 ),
               ],
             ),
@@ -387,6 +369,24 @@ class AppDrawer extends StatelessWidget {
 
   Widget _buildFooter(BuildContext context) {
     return _FooterWidget();
+  }
+
+  void _openShopifyPage(
+    BuildContext context, {
+    required String title,
+    required String handle,
+  }) {
+    Navigator.of(context).pop();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ShopifyPageScreen(title: title, handle: handle),
+      ),
+    );
+  }
+
+  void _openScreen(BuildContext context, Widget screen) {
+    Navigator.of(context).pop();
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 }
 
